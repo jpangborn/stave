@@ -17,6 +17,15 @@
                 </flux:navlist.group>
             </flux:navlist>
 
+            <flux:navlist>
+                <flux:navlist.group :heading="__('Liturgy')">
+                    <flux:navlist.item icon="calendar-days" wire:navigate>{{ __('Services') }}</flux:navlist.item>
+                    <flux:navlist.item icon="notepad-text-dashed" wire:navigate>{{ __('Templates') }}</flux:navlist.item>
+                    <flux:navlist.item icon="musical-note" wire:navigate>{{ __('Songs') }}</flux:navlist.item>
+                    <flux:navlist.item icon="book-open-text" wire:navigate>{{ __('Readings') }}</flux:navlist.item>
+                </flux:navlist.group>
+            </flux:navlist>
+
             <flux:spacer />
 
             <flux:navlist variant="outline">
