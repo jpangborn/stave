@@ -15,14 +15,18 @@
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                 </flux:navlist.group>
-            </flux:navlist>
 
-            <flux:navlist>
-                <flux:navlist.group :heading="__('Liturgy')">
+                <flux:navlist.group :heading="__('Liturgy')" class="grid mt-4">
                     <flux:navlist.item icon="calendar-days" wire:navigate>{{ __('Services') }}</flux:navlist.item>
                     <flux:navlist.item icon="notepad-text-dashed" wire:navigate>{{ __('Templates') }}</flux:navlist.item>
                     <flux:navlist.item icon="musical-note" wire:navigate>{{ __('Songs') }}</flux:navlist.item>
                     <flux:navlist.item icon="book-open-text" wire:navigate>{{ __('Readings') }}</flux:navlist.item>
+                </flux:navlist.group>
+
+                <flux:navlist.group :heading="__('Flock')" class="grid mt-4">
+                    <flux:navlist.item icon="users" wire:navigate>{{ __('People') }}</flux:navlist.item>
+                    <flux:navlist.item icon="user-group" wire:navigate>{{ __('Groups') }}</flux:navlist.item>
+                    <flux:navlist.item icon="calendar-date-range" wire:navigate>{{ __('Prayer Schedule') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
