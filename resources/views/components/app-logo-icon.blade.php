@@ -1,8 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 42" {{ $attributes }}>
-    <path 
-        fill="currentColor" 
-        fill-rule="evenodd" 
-        clip-rule="evenodd"
-        d="M17.2 5.633 8.6.855 0 5.633v26.51l16.2 9 16.2-9v-8.442l7.6-4.223V9.856l-8.6-4.777-8.6 4.777V18.3l-5.6 3.111V5.633ZM38 18.301l-5.6 3.11v-6.157l5.6-3.11V18.3Zm-1.06-7.856-5.54 3.078-5.54-3.079 5.54-3.078 5.54 3.079ZM24.8 18.3v-6.157l5.6 3.111v6.158L24.8 18.3Zm-1 1.732 5.54 3.078-13.14 7.302-5.54-3.078 13.14-7.3v-.002Zm-16.2 7.89 7.6 4.222V38.3L2 30.966V7.92l5.6 3.111v16.892ZM8.6 9.3 3.06 6.222 8.6 3.143l5.54 3.08L8.6 9.3Zm21.8 15.51-13.2 7.334V38.3l13.2-7.334v-6.156ZM9.6 11.034l5.6-3.11v14.6l-5.6 3.11v-14.6Z"
-    />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240">
+  <!-- Main church body -->
+  <rect x="60" y="140" width="80" height="80" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Lower roof -->
+  <polygon points="50,140 60,120 140,120 150,140" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Middle section -->
+  <rect x="70" y="100" width="60" height="40" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Middle roof -->
+  <polygon points="65,100 70,85 130,85 135,100" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Upper section -->
+  <rect x="85" y="70" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Upper roof -->
+  <polygon points="80,70 85,55 115,55 120,70" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Spire -->
+  <polygon points="95,55 100,20 105,55" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Cross on top -->
+  <line x1="100" y1="15" x2="100" y2="25" stroke="currentColor" stroke-width="2"/>
+  <line x1="96" y1="19" x2="104" y2="19" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Main door -->
+  <rect x="90" y="180" width="20" height="30" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M 90,195 Q 100,185 110,195" fill="none" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Windows -->
+  <rect x="75" y="160" width="8" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="117" y="160" width="8" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+
+  <!-- Decorative roof details -->
+  <line x1="50" y1="140" x2="55" y2="135" stroke="currentColor" stroke-width="1.5"/>
+  <line x1="150" y1="140" x2="145" y2="135" stroke="currentColor" stroke-width="1.5"/>
+
+  <!-- Vertical support posts -->
+  <line x1="70" y1="220" x2="70" y2="200" stroke="currentColor" stroke-width="1.5"/>
+  <line x1="130" y1="220" x2="130" y2="200" stroke="currentColor" stroke-width="1.5"/>
 </svg>
