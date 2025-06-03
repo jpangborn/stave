@@ -11,6 +11,7 @@ new class extends Component {
 
     public $sortBy = "name";
     public $sortDirection = "asc";
+    public $search = "";
 
     public function sort($column)
     {
@@ -26,7 +27,18 @@ new class extends Component {
     #[Computed]
     public function songs()
     {
+        $search = $this->search;
+
         return Song::query()
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereAny(
+                        ["name", "ccli_number"],
+                        "like",
+                        "%{$search}%"
+                    );
+                });
+            })
             ->tap(
                 fn($query) => $this->sortBy
                     ? $query->orderBy($this->sortBy, $this->sortDirection)
@@ -48,12 +60,18 @@ new class extends Component {
     <flux:heading size="xl" level="1">Hymns and Spiritual Songs</flux:heading>
     <flux:subheading size="lg" class="mb-6">Manage your worship music library.</flux:subheading>
 
-    <flux:table :paginate="$this->songs" class="mt-2">
+    <div class="flex space-x-4 items-center">
+        <flux:input wire:model.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
+        <flux:spacer/>
+        <flux:button :href="route('songs.create')" size="sm" variant="primary" icon="plus">Add Song</flux:button>
+    </div>
+
+    <flux:table :paginate="$this->songs" class="mt-4">
         <flux:table.columns>
-            <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Name</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'ccli_number'" :direction="$sortDirection" wire:click="sort('ccli_number')">CCLI Number</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')">Added</flux:table.column>
-            <flux:table.column></flux:table.column>
+            <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Name</flux:table.column>
+            <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'ccli_number'" :direction="$sortDirection" wire:click="sort('ccli_number')">CCLI Number</flux:table.column>
+            <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')">Added</flux:table.column>
+            <flux:table.column class="font-semibold"></flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>

@@ -19,7 +19,7 @@ new class extends Component {
     </flux:table.cell>
     <flux:table.cell>
         @if($song->ccli_number)
-            <flux:badge size="sm" color="indigo" inset="top bottom">{{ $song->ccli_number }}</flux:badge>
+            <flux:badge size="sm" color="zinc" inset="top bottom">{{ $song->ccli_number }}</flux:badge>
         @endif
     </flux:table.cell>
     <flux:table.cell>
