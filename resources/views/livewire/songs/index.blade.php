@@ -32,7 +32,7 @@ new class extends Component {
                     ? $query->orderBy($this->sortBy, $this->sortDirection)
                     : $query
             )
-            ->paginate(15);
+            ->paginate(12);
     }
 
     public function delete($id)
