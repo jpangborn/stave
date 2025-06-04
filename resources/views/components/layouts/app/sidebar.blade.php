@@ -19,8 +19,8 @@
                 <flux:navlist.group :heading="__('Liturgy')" class="grid">
                     <flux:navlist.item icon="calendar-days" wire:navigate>{{ __('Services') }}</flux:navlist.item>
                     <flux:navlist.item icon="notepad-text-dashed" wire:navigate>{{ __('Templates') }}</flux:navlist.item>
-                    <flux:navlist.item icon="musical-note" :href="route('songs.index')" :current="request()->routeIs('songs.index')" wire:navigate>{{ __('Songs') }}</flux:navlist.item>
-                    <flux:navlist.item icon="book-open-text" wire:navigate>{{ __('Readings') }}</flux:navlist.item>
+                    <flux:navlist.item icon="musical-note" :href="route('songs.index')" :current="request()->routeIs('songs.*')" wire:navigate>{{ __('Songs') }}</flux:navlist.item>
+                    <flux:navlist.item icon="book-open-text" :href="route('readings.index')" :current="request()->routeIs('readings.*')" wire:navigate>{{ __('Readings') }}</flux:navlist.item>
                 </flux:navlist.group>
 
                 <flux:navlist.group :heading="__('Congregation')" class="grid">
