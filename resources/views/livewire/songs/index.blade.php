@@ -27,17 +27,13 @@ new class extends Component {
     #[Computed]
     public function songs()
     {
-        $search = $this->search;
-
         return Song::query()
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereAny(
-                        ["name", "ccli_number"],
-                        "like",
-                        "%{$search}%"
-                    );
-                });
+            ->when($this->search, function ($query) {
+                $query->whereAny(
+                    ["name", "ccli_number"],
+                    "like",
+                    "%{$this->search}%"
+                );
             })
             ->tap(
                 fn($query) => $this->sortBy
