@@ -17,16 +17,16 @@ new class extends Component {
         @else
             @foreach($template->serviceElements as $element)
                 @switch($element->type)
-                    @case(App\Enums\ServiceElementType::SECTION)
+                    @case(App\Enums\LiturgyElementType::SECTION)
                         <livewire:templates.elements.section :$element :key="$element->id" />
                         @break
-                    @case(App\Enums\ServiceElementType::SONG)
+                    @case(App\Enums\LiturgyElementType::SONG)
                         <livewire:templates.elements.song :$element :key="$element->id" />
                         @break
-                    @case(App\Enums\ServiceElementType::READING)
+                    @case(App\Enums\LiturgyElementType::READING)
                         <livewire:templates.elements.reading :$element :key="$element->id" />
                         @break
-                    @case(App\Enums\ServiceElementType::SERMON)
+                    @case(App\Enums\LiturgyElementType::SERMON)
                         <livewire:templates.elements.sermon :$element :key="$element->id" />
                         @break
                     @default

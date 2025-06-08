@@ -25,6 +25,11 @@ new class extends Component {
         return $this->redirect("/templates", navigate: true);
     }
 
+    public function addElement(string $element)
+    {
+        $this->form->addElement($element);
+    }
+
     public function delete()
     {
         $this->form->template->delete();
@@ -75,8 +80,8 @@ new class extends Component {
                     <flux:button variant="primary"  size="sm" icon-trailing="chevron-down">Add Element</flux:button>
 
                     <flux:menu>
-                        @foreach(App\Enums\ServiceElementType::cases() as $element)
-                            <flux:menu.item icon="{{ $element->icon() }}">{{ $element->label() }}</flux:menu.item>
+                        @foreach(App\Enums\LiturgyElementType::cases() as $element)
+                            <flux:menu.item icon="{{ $element->icon() }}" wire:click="addElement('{{ $element->value }}')">{{ $element->label() }}</flux:menu.item>
                         @endforeach
                     </flux:menu>
                 </flux:dropdown>
