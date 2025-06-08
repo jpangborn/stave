@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Song extends Model
 {
@@ -27,5 +28,13 @@ class Song extends Model
     public function sheets(): HasMany
     {
         return $this->hasMany(Sheet::class);
+    }
+
+    /**
+     * @return MorphMany<LiturgyElement,Song>
+     */
+    public function liturgyElements(): MorphMany
+    {
+        return $this->morphMany(LiturgyElement::class, "content");
     }
 }

@@ -35,6 +35,17 @@ Route::middleware(["auth"])->group(function () {
     Volt::route("readings/{reading}/edit", "readings.edit")->name(
         "readings.edit"
     );
+
+    Volt::route("templates", "templates.index")->name("templates.index");
+    Volt::route("templates/create", "templates.create")->name(
+        "templates.create"
+    );
+    Volt::route("templates/{template}", "templates.show")->name(
+        "templates.show"
+    );
+    Volt::route("templates/{template}/edit", "templates.edit")->name(
+        "templates.edit"
+    );
 });
 
 require __DIR__ . "/auth.php";

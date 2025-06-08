@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ReadingType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Reading extends Model
 {
@@ -23,5 +24,13 @@ class Reading extends Model
         return [
             "type" => ReadingType::class,
         ];
+    }
+
+    /**
+     * @return MorphMany<LiturgyElement,Reading>
+     */
+    public function liturgyElements(): MorphMany
+    {
+        return $this->morphMany(LiturgyElement::class, "content");
     }
 }

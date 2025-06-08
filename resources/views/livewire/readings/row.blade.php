@@ -16,7 +16,7 @@ new class extends Component {
 
 <flux:table.row>
     <flux:table.cell>
-        <flux:link variant="subtle" href="{{ route('readings.show', ['reading' => $reading]) }}" >{{ $reading->title }}</flux:link>
+        <flux:link variant="ghost" href="{{ route('readings.show', ['reading' => $reading]) }}" >{{ $reading->title }}</flux:link>
     </flux:table.cell>
     <flux:table.cell>
         <flux:badge size="sm" color="{{ $reading->type->color() }}" inset="top bottom">{{ $reading->type->label() }}</flux:badge>
@@ -29,12 +29,8 @@ new class extends Component {
             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
             <flux:menu class="min-w-32">
-                @can(Permission::EDIT_SONGS)
-                    <flux:menu.item href="{{ route('readings.edit', ['reading' => $reading]) }}" icon="pencil-square">Edit</flux:menu.item>
-                @endcan
-                @can(Permission::DELETE_SONGS)
-                    <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
-                @endcan
+                <flux:menu.item href="{{ route('readings.edit', ['reading' => $reading]) }}" icon="pencil-square" class="cursor-default">Edit</flux:menu.item>
+                <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
         </flux:drowdown>
 
