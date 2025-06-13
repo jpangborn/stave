@@ -27,7 +27,8 @@ new class extends Component {
 
     public function addElement(string $element)
     {
-        $this->form->addElement($element);
+        //$this->form->addElement($element);
+        Flux::modal("add-element")->show();
     }
 
     public function delete()
@@ -90,4 +91,31 @@ new class extends Component {
             <livewire:templates.elements :template="$form->template" />
         </flux:tab.panel>
     </flux:tab.group>
+
+    <flux:modal variant="flyout" name="add-element">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Add Liturgy Element</flux:heading>
+            </div>
+
+            <flux:select label="Type" variant="listbox">
+                @foreach(App\Enums\LiturgyElementType::cases() as $element)
+                    <flux:select.option value="{{ $element->value }}">
+                        <div class="flex gap-x-2">
+                            <flux:icon name="{{ $element->icon() }}" />{{ $element->label() }}
+                        </div>
+                    </flux:select.option>
+                @endforeach
+            </flux:select>
+
+            <flux:input label="Name" placeholder="Enter a name..." />
+
+            <flux:input label="Description" />
+
+            <div class="flex">
+                <flux:spacer />
+                <flux:button type="submit" variant="primary">Add Element</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </section>
