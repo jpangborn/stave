@@ -27,8 +27,10 @@ class LiturgyElementForm extends Form
 
     #[Validate]
     public int $order = 0;
-
-    public function rules()
+    /**
+     * @return array<string,mixed>
+     */
+    public function rules(): array
     {
         return [
             "name" => "required|string|max:255",
@@ -42,7 +44,10 @@ class LiturgyElementForm extends Form
         ];
     }
 
-    public function setLiturgyElement(LiturgyElement $element)
+    /**
+     * @return void
+     */
+    public function setLiturgyElement(LiturgyElement $element): void
     {
         $this->element = $element;
         $this->parent = $element->parent;
@@ -52,13 +57,17 @@ class LiturgyElementForm extends Form
         $this->type = $element?->type?->value ?? "";
         $this->order = $element->order;
     }
-
-    public function setParent(Template|Service $parent)
+    /**
+     * @return void
+     */
+    public function setParent(Template|Service $parent): void
     {
         $this->parent = $parent;
     }
-
-    public function store()
+    /**
+     * @return void
+     */
+    public function store(): void
     {
         $this->validate();
 
@@ -70,8 +79,10 @@ class LiturgyElementForm extends Form
             ->liturgyElements()
             ->create($this->only(["name", "description", "type", "order"]));
     }
-
-    public function update()
+    /**
+     * @return void
+     */
+    public function update(): void
     {
         $this->validate();
 

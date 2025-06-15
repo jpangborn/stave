@@ -35,7 +35,7 @@ new class extends Component {
         </flux:tabs>
 
         <flux:tab.panel name="details">
-            <div class="max-w-lg [&>p]:mb-8">
+            <div class="max-w-lg [&>p]:mb-8 [&>h3]:text-lg">
                 {!! $form->text !!}
             </div>
         </flux:tab.panel>
