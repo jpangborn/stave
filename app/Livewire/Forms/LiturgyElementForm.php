@@ -2,45 +2,81 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\LiturgyElementType;
 use App\Models\LiturgyElement;
+use App\Models\Service;
+use App\Models\Template;
+use Exception;
+use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 class LiturgyElementForm extends Form
 {
     public ?LiturgyElement $element;
+    public Template|Service|null $parent;
 
     #[Validate]
     public string $name;
 
     #[Validate]
-    public bool $default = false;
+    public ?string $description = null;
 
-    public function rules() {
+    #[Validate]
+    public string $type;
+
+    #[Validate]
+    public int $order = 0;
+
+    public function rules()
+    {
         return [
-            'name' => 'required|string|max:255',
-            'default' => 'required|bool',
+            "name" => "required|string|max:255",
+            "description" => "nullable|string|max:255",
+            "type" => [
+                "required",
+                "string",
+                new Enum(LiturgyElementType::class),
+            ],
+            "order" => "integer|min:0|max:1000",
         ];
     }
 
-    public function setTemplate(Template $template) {
-        $this->template = $template;
+    public function setLiturgyElement(LiturgyElement $element)
+    {
+        $this->element = $element;
+        $this->parent = $element->parent;
 
-        $this->name = $template->name;
-        $this->default = $template->default;
+        $this->name = $element->name;
+        $this->description = $element->description;
+        $this->type = $element?->type?->value ?? "";
+        $this->order = $element->order;
     }
 
-    public function store() {
-        $this->validate();
-
-        Template::create($this->only(['name', 'default']));
+    public function setParent(Template|Service $parent)
+    {
+        $this->parent = $parent;
     }
 
-    public function update() {
+    public function store()
+    {
         $this->validate();
 
-        $this->template->update(
-            $this->only(['name', 'default'])
+        if (!$this->parent) {
+            throw new Exception("Parent not set");
+        }
+
+        $this->parent
+            ->liturgyElements()
+            ->create($this->only(["name", "description", "type", "order"]));
+    }
+
+    public function update()
+    {
+        $this->validate();
+
+        $this->element->update(
+            $this->only(["name", "description", "type", "order"])
         );
     }
 }

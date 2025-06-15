@@ -1,11 +1,11 @@
     <?php
+    use App\Models\LiturgyElement;
+    use Livewire\Volt\Component;
 
-use App\Models\ServiceElement;
-use Livewire\Volt\Component;
-
-new class extends Component {
-    public ServiceElement $element;
-}; ?>
+    new class extends Component {
+        public LiturgyElement $element;
+    };
+    ?>
 
 <flux:table.row>
     <flux:table.cell>
@@ -18,6 +18,17 @@ new class extends Component {
                 @if($element->description)
                     <flux:subheading>{{ $element->description }}</flux:subheading>
                 @endif
+            </div>
+            <flux:spacer />
+            <div>
+                <flux:dropdown align="end" offset="-15">
+                    <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
+
+                    <flux:menu class="min-w-32">
+                        <flux:menu.item wire:click="editElement({{ $element->id }})" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
+                        <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
+                    </flux:menu>
+                </flux:drowdown>
             </div>
         </div>
     </flux:table.cell>

@@ -1,21 +1,36 @@
 <?php
 
 use App\Models\Template;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Reactive;
 use Livewire\Volt\Component;
 
 new class extends Component {
-    public Template $template;
+    #[Reactive]
+    public int $templateId;
+
+    public function getTemplateProperty()
+    {
+        return Template::with("liturgyElements")->find($this->templateId);
+    }
+
+    #[On("related-model-added")]
+    public function refreshElements()
+    {
+        // Force re-computation of the template property
+        unset($this->template);
+    }
 };
 ?>
 
 <flux:table class="w-full">
     <flux:table.rows>
-        @if(!$template->serviceElements)
+        @if($this->template->liturgyElements->isEmpty())
             <flux:table.row>
                 <flux:table.cell align="center">No Service Elements</flux:table.cell>
             </flux:table.row>
         @else
-            @foreach($template->serviceElements as $element)
+            @foreach($this->template->liturgyElements as $element)
                 @switch($element->type)
                     @case(App\Enums\LiturgyElementType::SECTION)
                         <livewire:templates.elements.section :$element :key="$element->id" />

@@ -1,13 +1,16 @@
 <?php
 
+use App\Livewire\Forms\LiturgyElementForm;
 use Flux\Flux;
 use App\Models\Template;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Volt\Component;
 use App\Livewire\Forms\TemplateForm;
 
 new class extends Component {
     public TemplateForm $form;
+    public LiturgyElementForm $elementForm;
 
     #[Url]
     public $tab = "details";
@@ -15,6 +18,14 @@ new class extends Component {
     public function mount(Template $template)
     {
         $this->form->setTemplate($template);
+    }
+
+    #[On("related-model-added")]
+    public function refreshTemplate()
+    {
+        $this->form->setTemplate(
+            $this->form->template->fresh(["liturgyElements"])
+        );
     }
 
     public function save()
@@ -27,8 +38,23 @@ new class extends Component {
 
     public function addElement(string $element)
     {
-        //$this->form->addElement($element);
+        $this->elementForm->type = $element;
+
         Flux::modal("add-element")->show();
+    }
+
+    public function saveElement()
+    {
+        $this->elementForm->order =
+            $this->form->template->liturgyElements()->count() + 1;
+
+        $this->elementForm->parent = $this->form->template;
+
+        $this->elementForm->store();
+        $this->reset("elementForm");
+        $this->dispatch("related-model-added");
+        Flux::modal("add-element")->close();
+        Flux::toast(variant: "success", text: "Element added to template.");
     }
 
     public function delete()
@@ -53,8 +79,8 @@ new class extends Component {
         <flux:tab.panel name="details">
             <form wire:submit="save" class="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <div class="w-80">
-                    <flux:heading size="lg">Reading Details</flux:heading>
-                    <flux:subheading>Information about the reading.</flux:subheading>
+                    <flux:heading size="lg">Template Details</flux:heading>
+                    <flux:subheading>Information about the template.</flux:subheading>
                 </div>
 
                 <div class="flex-1 max-w-md space-y-6">
@@ -88,34 +114,42 @@ new class extends Component {
                 </flux:dropdown>
             </div>
 
-            <livewire:templates.elements :template="$form->template" />
+            <livewire:templates.elements :template-id="$form->template->id" />
         </flux:tab.panel>
     </flux:tab.group>
 
     <flux:modal variant="flyout" name="add-element">
-        <div class="space-y-6">
+        <form wire:submit="saveElement" class="space-y-6">
             <div>
                 <flux:heading size="lg">Add Liturgy Element</flux:heading>
             </div>
 
-            <flux:select label="Type" variant="listbox">
+            <flux:select label="Type" variant="listbox" wire:model="elementForm.type">
                 @foreach(App\Enums\LiturgyElementType::cases() as $element)
                     <flux:select.option value="{{ $element->value }}">
-                        <div class="flex gap-x-2">
+                        <div class="flex items-center gap-x-2">
                             <flux:icon name="{{ $element->icon() }}" />{{ $element->label() }}
                         </div>
                     </flux:select.option>
                 @endforeach
             </flux:select>
 
-            <flux:input label="Name" placeholder="Enter a name..." />
+            <flux:field>
+                <flux:label for="element_name">Name</flux:label>
+                <flux:input id="element_name" placeholder="Enter a name..." wire:model="elementForm.name" />
+                <flux:error name="elementForm.name" />
+            </flux:field>
 
-            <flux:input label="Description" />
+            <flux:field>
+                <flux:label for="element_description">Description</flux:label>
+                <flux:input id="element_description" wire:model="elementForm.description" />
+                <flux:error name="elementForm.description" />
+            </flux:field>
 
             <div class="flex">
                 <flux:spacer />
                 <flux:button type="submit" variant="primary">Add Element</flux:button>
             </div>
-        </div>
+        </form>
     </flux:modal>
 </section>
