@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\LiturgyElement;
 use App\Models\Template;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
@@ -19,6 +20,13 @@ new class extends Component {
     {
         // Force re-computation of the template property
         unset($this->template);
+    }
+
+    public function delete($id)
+    {
+        LiturgyElement::findOrFail($id)->delete();
+        Flux::modal("delete-element")->close();
+        Flux::toast(variant: "danger", text: "Liturgy element deleted.");
     }
 };
 ?>
