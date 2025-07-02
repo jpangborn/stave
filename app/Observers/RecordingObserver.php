@@ -28,8 +28,8 @@ class RecordingObserver
      */
     public function deleted(Recording $recording): void
     {
-        if (Storage::disk("recordings")->exists($recording->filename)) {
-            Storage::disk("recordings")->delete($recording->filename);
+        if (Storage::disk('recordings')->exists($recording->filename)) {
+            Storage::disk('recordings')->delete($recording->filename);
         }
     }
 

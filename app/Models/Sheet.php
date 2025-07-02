@@ -12,7 +12,7 @@ class Sheet extends Model
     /** @use HasFactory<\Database\Factories\SheetFactory> */
     use HasFactory;
 
-    protected $fillable = ["description", "filename"];
+    protected $fillable = ['description', 'filename'];
 
     /**
      * @return BelongsTo<Song,Sheet>

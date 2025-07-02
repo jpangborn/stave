@@ -12,7 +12,7 @@ class LiturgyElement extends Model
     /** @use HasFactory<\Database\Factories\ElementFactory> */
     use HasFactory;
 
-    protected $fillable = ["type", "order", "name", "description"];
+    protected $fillable = ['type', 'order', 'name', 'description'];
 
     /**
      * Get the attributes that should be cast.
@@ -22,7 +22,7 @@ class LiturgyElement extends Model
     protected function casts(): array
     {
         return [
-            "type" => LiturgyElementType::class,
+            'type' => LiturgyElementType::class,
         ];
     }
 

@@ -22,8 +22,8 @@ class Service extends Model
 
     public function liturgyElements(): MorphMany
     {
-        return $this->morphMany(LiturgyElement::class, "liturgy")->orderBy(
-            "order"
+        return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(
+            'order'
         );
     }
 }

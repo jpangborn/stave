@@ -18,14 +18,16 @@ class ReadingForm extends Form
 
     public ?string $text = null;
 
-    public function rules() {
+    public function rules()
+    {
         return [
             'title' => 'required|string|max:255',
             'type' => 'required|string',
         ];
     }
 
-    public function setReading(Reading $reading) {
+    public function setReading(Reading $reading)
+    {
         $this->reading = $reading;
 
         $this->title = $reading->title;
@@ -33,13 +35,15 @@ class ReadingForm extends Form
         $this->text = $reading->text;
     }
 
-    public function store() {
+    public function store()
+    {
         $this->validate();
 
         Reading::create($this->only(['title', 'type', 'text']));
     }
 
-    public function update() {
+    public function update()
+    {
         $this->validate();
 
         $this->reading->update(

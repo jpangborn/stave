@@ -10,11 +10,13 @@ class SongForm extends Form
 {
     public ?Song $song;
 
-    #[Validate("required|string")]
+    #[Validate('required|string')]
     public string $name;
 
     public ?string $ccli_number = null;
+
     public ?string $copyright = null;
+
     public ?string $lyrics = null;
 
     public function setSong(Song $song): void
@@ -32,7 +34,7 @@ class SongForm extends Form
         $this->validate();
 
         Song::create(
-            $this->only(["name", "ccli_number", "copyright", "lyrics"])
+            $this->only(['name', 'ccli_number', 'copyright', 'lyrics'])
         );
     }
 
@@ -41,7 +43,7 @@ class SongForm extends Form
         $this->validate();
 
         $this->song->update(
-            $this->only(["name", "ccli_number", "copyright", "lyrics"])
+            $this->only(['name', 'ccli_number', 'copyright', 'lyrics'])
         );
     }
 }

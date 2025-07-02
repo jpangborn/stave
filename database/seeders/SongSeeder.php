@@ -7,7 +7,7 @@ use Illuminate\Database\Seeder;
 
 class SongSeeder extends Seeder
 {
-    private $dataFile = "songs.csv";
+    private $dataFile = 'songs.csv';
 
     /**
      * Seed the application's database.
@@ -16,13 +16,13 @@ class SongSeeder extends Seeder
     {
         Song::truncate();
 
-        $songs = fopen(base_path("database/data/" . $this->dataFile), "r");
+        $songs = fopen(base_path('database/data/'.$this->dataFile), 'r');
 
         while ($song = fgetcsv($songs)) {
             Song::create([
-                "name" => $song[0],
-                "ccli_number" => $song[1],
-                "lyrics" => $song[2],
+                'name' => $song[0],
+                'ccli_number' => $song[1],
+                'lyrics' => $song[2],
             ]);
         }
     }

@@ -12,7 +12,7 @@ class Song extends Model
     /** @use HasFactory<\Database\Factories\SongFactory> */
     use HasFactory;
 
-    protected $fillable = ["name", "ccli_number", "copyright", "lyrics"];
+    protected $fillable = ['name', 'ccli_number', 'copyright', 'lyrics'];
 
     /**
      * @return HasMany<Recording,Song>
@@ -35,6 +35,6 @@ class Song extends Model
      */
     public function liturgyElements(): MorphMany
     {
-        return $this->morphMany(LiturgyElement::class, "content");
+        return $this->morphMany(LiturgyElement::class, 'content');
     }
 }

@@ -28,8 +28,8 @@ class SheetObserver
      */
     public function deleted(Sheet $sheet): void
     {
-        if (Storage::disk("sheets")->exists($sheet->filename)) {
-            Storage::disk("sheets")->delete($sheet->filename);
+        if (Storage::disk('sheets')->exists($sheet->filename)) {
+            Storage::disk('sheets')->delete($sheet->filename);
         }
     }
 

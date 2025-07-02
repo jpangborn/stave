@@ -15,25 +15,24 @@ class CreateServiceFromTemplate extends Component
 
         DB::transaction(function () use ($template, $date) {
             $service = Service::create([
-                "title" =>
-                    $template->name . " – " . $date->toFormattedDateString(),
-                "date" => $date,
-                "template_id" => $template->id,
+                'title' => $template->name.' – '.$date->toFormattedDateString(),
+                'date' => $date,
+                'template_id' => $template->id,
             ]);
 
             foreach ($template->liturgyElements as $element) {
                 $service->liturgyElements()->create([
-                    "type" => $element->type,
-                    "order" => $element->order,
-                    "assigned_to" => $element->assigned_to,
-                    "content_type" => $element->content_type,
-                    "content_id" => $element->content_id,
+                    'type' => $element->type,
+                    'order' => $element->order,
+                    'assigned_to' => $element->assigned_to,
+                    'content_type' => $element->content_type,
+                    'content_id' => $element->content_id,
                 ]);
             }
         });
 
         return redirect()
-            ->route("services.index")
-            ->with("success", "Service created successfully from template.");
+            ->route('services.index')
+            ->with('success', 'Service created successfully from template.');
     }
 }

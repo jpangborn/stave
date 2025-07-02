@@ -12,7 +12,7 @@ class Reading extends Model
     /** @use HasFactory<\Database\Factories\ReadingFactory> */
     use HasFactory;
 
-    protected $fillable = ["title", "type", "text"];
+    protected $fillable = ['title', 'type', 'text'];
 
     /**
      * Get the attributes that should be cast.
@@ -22,7 +22,7 @@ class Reading extends Model
     protected function casts(): array
     {
         return [
-            "type" => ReadingType::class,
+            'type' => ReadingType::class,
         ];
     }
 
@@ -31,6 +31,6 @@ class Reading extends Model
      */
     public function liturgyElements(): MorphMany
     {
-        return $this->morphMany(LiturgyElement::class, "content");
+        return $this->morphMany(LiturgyElement::class, 'content');
     }
 }
