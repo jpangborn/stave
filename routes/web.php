@@ -3,49 +3,53 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get("/", function () {
+    return view("welcome");
+})->name("home");
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::view("dashboard", "dashboard")
+    ->middleware(["auth", "verified"])
+    ->name("dashboard");
 
-Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
+Route::middleware(["auth"])->group(function () {
+    Route::redirect("settings", "settings/profile");
 
-    Volt::route('settings/profile', 'settings.profile')->name(
-        'settings.profile'
-    );
-    Volt::route('settings/password', 'settings.password')->name(
-        'settings.password'
-    );
-    Volt::route('settings/appearance', 'settings.appearance')->name(
-        'settings.appearance'
-    );
+    Route::name("settings.")
+        ->prefix("settings")
+        ->group(function () {
+            Volt::route("profile", "settings.profile")->name("profile");
+            Volt::route("password", "settings.password")->name("password");
+            Volt::route("appearance", "settings.appearance")->name(
+                "appearance"
+            );
+        });
 
-    Volt::route('songs', 'songs.index')->name('songs.index');
-    Volt::route('songs/create', 'songs.create')->name('songs.create');
-    Volt::route('songs/{song}', 'songs.show')->name('songs.show');
-    Volt::route('songs/{song}/edit', 'songs.edit')->name('songs.edit');
+    Route::name("songs.")
+        ->prefix("songs")
+        ->group(function () {
+            Volt::route("/", "songs.index")->name("index");
+            Volt::route("/create", "songs.create")->name("create");
+            Volt::route("/{song}", "songs.show")->name("show");
+            Volt::route("/{song}/edit", "songs.edit")->name("edit");
+        });
 
-    Volt::route('readings', 'readings.index')->name('readings.index');
-    Volt::route('readings/create', 'readings.create')->name('readings.create');
-    Volt::route('readings/{reading}', 'readings.show')->name('readings.show');
-    Volt::route('readings/{reading}/edit', 'readings.edit')->name(
-        'readings.edit'
-    );
+    Route::name("readings.")
+        ->prefix("readings")
+        ->group(function () {
+            Volt::route("/", "readings.index")->name("index");
+            Volt::route("/create", "readings.create")->name("create");
+            Volt::route("/{reading}", "readings.show")->name("show");
+            Volt::route("/{reading}/edit", "readings.edit")->name("edit");
+        });
 
-    Volt::route('templates', 'templates.index')->name('templates.index');
-    Volt::route('templates/create', 'templates.create')->name(
-        'templates.create'
-    );
-    Volt::route('templates/{template}', 'templates.show')->name(
-        'templates.show'
-    );
-    Volt::route('templates/{template}/edit', 'templates.edit')->name(
-        'templates.edit'
-    );
+    Route::name("templates.")
+        ->prefix("templates")
+        ->group(function () {
+            Volt::route("/", "templates.index")->name("index");
+            Volt::route("/create", "templates.create")->name("create");
+            Volt::route("/{template}", "templates.show")->name("show");
+            Volt::route("/{template}/edit", "templates.edit")->name("edit");
+        });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . "/auth.php";
