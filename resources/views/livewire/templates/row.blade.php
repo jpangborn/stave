@@ -33,28 +33,28 @@ new class extends Component {
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
         </flux:drowdown>
-
-        <flux:modal name="delete-song" class="min-w-[22rem]">
-            <form wire:submit="$parent.delete({{ $template->id }})" class="space-y-6">
-                <div>
-                    <flux:heading size="lg">Delete template?</flux:heading>
-
-                    <flux:subheading>
-                        <p>This will permanently delete the template.</p>
-                        <p>It cannot be undone.</p>
-                    </flux:subheading>
-                </div>
-
-                <div class="flex gap-2">
-                    <flux:spacer />
-
-                    <flux:modal.close>
-                        <flux:button variant="ghost">Cancel</flux:button>
-                    </flux:modal.close>
-
-                    <flux:button type="submit" variant="danger">Delete template</flux:button>
-                </div>
-            </form>
-        </flux:modal>
     </flux:table.cell>
+
+    <flux:modal name="delete-template" class="min-w-[22rem]">
+        <form wire:submit="$parent.delete({{ $template->id }})" class="space-y-6">
+            <div>
+                <flux:heading size="lg">Delete template?</flux:heading>
+
+                <flux:subheading>
+                    <p>This will permanently delete the template.</p>
+                    <p>It cannot be undone.</p>
+                </flux:subheading>
+            </div>
+
+            <div class="flex gap-2">
+                <flux:spacer />
+
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+
+                <flux:button type="submit" variant="danger">Delete template</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </flux:table.row>
