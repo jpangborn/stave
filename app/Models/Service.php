@@ -12,6 +12,20 @@ class Service extends Model
     /** @use HasFactory<\Database\Factories\ServiceFactory> */
     use HasFactory;
 
+    protected $fillable = ["title", "date", "template_id", "notes"];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            "date" => "date",
+        ];
+    }
+
     /**
      * @return BelongsTo<Template,Service>
      */
