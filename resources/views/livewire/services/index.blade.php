@@ -2,7 +2,6 @@
 
 use Flux\Flux;
 use App\Models\Service;
-use App\Enums\Permission;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
