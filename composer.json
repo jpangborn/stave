@@ -13,10 +13,11 @@
         "laravel/framework": "^12.0",
         "laravel/nightwatch": "^1.7",
         "laravel/tinker": "^2.10.1",
-        "livewire/livewire": "^3.0",
         "livewire/flux": "^2.1.1",
         "livewire/flux-pro": "^2.1",
-        "livewire/volt": "^1.7.0"
+        "livewire/livewire": "^3.0",
+        "livewire/volt": "^1.7.0",
+        "spatie/laravel-comments": "^2.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -86,6 +87,10 @@
         "flux-pro": {
             "type": "composer",
             "url": "https://composer.fluxui.dev"
+        },
+        "laravel-comments": {
+            "type": "composer",
+            "url": "https://satis.spatie.be"
         }
     }
 }
