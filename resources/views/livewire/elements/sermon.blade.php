@@ -1,29 +1,50 @@
 <?php
+
 use App\Models\LiturgyElement;
+use App\Models\User;
+use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
 
 new class extends Component {
     public LiturgyElement $element;
 
     public $description;
+    public $assigneeId;
 
     public function mount()
     {
         $this->description = $this->element->description;
+        $this->assigneeId = $this->element->assignee_id;
     }
 
     public function updated($name, $value)
     {
-        if ($name === "description") {
-            $this->element->description = $value;
-            $this->element->save();
-            Flux::toast(variant: "success", text: "Sermon description saved.");
+        switch ($name) {
+            case "description":
+                $this->element->description = $value;
+                $this->element->save();
+                Flux::toast(
+                    variant: "success",
+                    text: "Sermon description saved."
+                );
+                break;
+            case "assigneeId":
+                $this->element->assignee_id = $value;
+                $this->element->save();
+                Flux::toast(variant: "success", text: "Assignee saved.");
+                break;
         }
     }
 
     public function delete()
     {
         $this->modal("delete-element")->show();
+    }
+
+    #[Computed]
+    public function users()
+    {
+        return User::all();
     }
 };
 ?>
@@ -38,6 +59,13 @@ new class extends Component {
                 <flux:heading>{{ $element->name }}</flux:heading>
             </div>
             <flux:spacer />
+            <div>
+                <flux:select variant="combobox" size="sm" wire:model.live="assigneeId" placeholder="Assign element...">
+                    @foreach($this->users as $user)
+                        <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:option>
+                    @endforeach
+                </flux:select>
+            </div>
             <div class="w-[226px]">
                 <flux:input size="sm" placeholder="Enter title or reference" wire:model.blur="description" />
             </div>

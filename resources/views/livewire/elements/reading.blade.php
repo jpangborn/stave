@@ -2,6 +2,7 @@
 
 use App\Models\LiturgyElement;
 use App\Models\Reading;
+use App\Models\User;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
 
@@ -9,19 +10,31 @@ new class extends Component {
     public LiturgyElement $element;
 
     public $selectedContent;
+    public $assigneeId;
 
     public function mount()
     {
         $this->selectedContent = $this->element->content_id;
+        $this->assigneeId = $this->element->assignee_id;
     }
 
     public function updated($name, $value)
     {
-        if ($name === "selectedContent") {
-            $reading = Reading::findOrFail($value);
-            $this->element->content()->associate($reading);
-            $this->element->save();
-            Flux::toast(variant: "success", text: "Reading selection saved.");
+        switch ($name) {
+            case "selectedContent":
+                $reading = Reading::findOrFail($value);
+                $this->element->content()->associate($reading);
+                $this->element->save();
+                Flux::toast(
+                    variant: "success",
+                    text: "Reading selection saved."
+                );
+                break;
+            case "assigneeId":
+                $this->element->assignee_id = $value;
+                $this->element->save();
+                Flux::toast(variant: "success", text: "Assignee saved.");
+                break;
         }
     }
 
@@ -34,6 +47,12 @@ new class extends Component {
     public function readings()
     {
         return Reading::all();
+    }
+
+    #[Computed]
+    public function users()
+    {
+        return User::all();
     }
 };
 ?>
@@ -51,6 +70,13 @@ new class extends Component {
                 @endif
             </div>
             <flux:spacer />
+            <div>
+                <flux:select variant="combobox" size="sm" wire:model.live="assigneeId" placeholder="Assign element...">
+                    @foreach($this->users as $user)
+                        <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:option>
+                    @endforeach
+                </flux:select>
+            </div>
             <div>
                 <flux:select variant="combobox" size="sm" wire:model.live="selectedContent" placeholder="Select a reading...">
                     @foreach($this->readings as $reading)
