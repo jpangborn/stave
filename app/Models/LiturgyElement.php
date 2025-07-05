@@ -77,4 +77,9 @@ class LiturgyElement extends Model
     {
         return $this->type === LiturgyElementType::READING;
     }
+
+    public function hasContent(): bool
+    {
+        return $this->content_type && $this->content_id;
+    }
 }

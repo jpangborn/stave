@@ -12,7 +12,7 @@ new class extends Component {
     public ServiceForm $form;
 
     #[Url]
-    public $tab = "details";
+    public $tab = "service-order";
 
     protected $listeners = [
         "refreshParent" => '$refresh',
@@ -41,7 +41,18 @@ new class extends Component {
         <flux:button size="sm" variant="primary" href="{{ route('services.edit', ['service' => $form->service]) }}">Edit</flux:button>
     </div>
 
-    <div class="mt-6">
-        <livewire:services.elements :service-id="$form->service->id" />
-    </div>
+    <flux:tab.group class="mt-8">
+        <flux:tabs wire:model="tab">
+            <flux:tab name="service-order" icon="queue-list">Service Order</flux:tab>
+            <flux:tab name="bulletin" icon="document-text">Bulletin</flux:tab>
+        </flux:tabs>
+
+        <flux:tab.panel name="service-order">
+            <livewire:services.elements :service-id="$form->service->id" />
+        </flux:tab.panel>
+
+        <flux:tab.panel name="bulletin">
+            <livewire:services.bulletin :service-id="$form->service->id" />
+        </flux:tab.panel>
+    </flux:tab.group>
 </section>
