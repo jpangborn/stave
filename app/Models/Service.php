@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\Comments\Models\Concerns\HasComments;
 
 class Service extends Model
 {
     /** @use HasFactory<\Database\Factories\ServiceFactory> */
-    use HasFactory;
+    use HasFactory, HasComments;
 
     protected $fillable = ["title", "date", "template_id", "notes"];
 
@@ -39,5 +40,23 @@ class Service extends Model
         return $this->morphMany(LiturgyElement::class, "liturgy")->orderBy(
             "order"
         );
+    }
+
+    /*
+     * This string will be used in notifications on what a new comment
+     * was made.
+     */
+    public function commentableName(): string
+    {
+        return "Service";
+    }
+
+    /*
+     * This URL will be used in notifications to let the user know
+     * where the comment itself can be read.
+     */
+    public function commentUrl(): string
+    {
+        return route("services.show", $this);
     }
 }
