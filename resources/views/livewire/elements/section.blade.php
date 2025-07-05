@@ -18,7 +18,7 @@ new class extends Component {
         <div class="flex items-center gap-x-2">
             <div class="pl-2">
                 <flux:heading size="lg">{{ $element->name }}</flux:heading>
-                <flux:subheading>{{ $element->description }}</flux:subheading>
+                <flux:subheading size="sm">{{ $element->description }}</flux:subheading>
             </div>
             <flux:spacer />
             <div class="pr-2">

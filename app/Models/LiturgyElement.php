@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\LiturgyElementType;
+use App\Enums\ReadingType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class LiturgyElement extends Model
@@ -12,7 +14,13 @@ class LiturgyElement extends Model
     /** @use HasFactory<\Database\Factories\ElementFactory> */
     use HasFactory;
 
-    protected $fillable = ['type', 'order', 'name', 'description'];
+    protected $fillable = [
+        "type",
+        "order",
+        "name",
+        "assignee_id",
+        "description",
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -22,8 +30,16 @@ class LiturgyElement extends Model
     protected function casts(): array
     {
         return [
-            'type' => LiturgyElementType::class,
+            "type" => LiturgyElementType::class,
+            "reading_type" => ReadingType::class,
         ];
+    }
+    /**
+     * @return BelongsTo<User,LiturgyElement>
+     */
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, "assignee_id");
     }
 
     /**

@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Template;
-use App\Enums\Permission;
 use Livewire\Volt\Component;
 
 new class extends Component {

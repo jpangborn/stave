@@ -3,6 +3,8 @@
 use App\Livewire\Forms\LiturgyElementForm;
 use Flux\Flux;
 use App\Models\Template;
+use App\Models\User;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Volt\Component;
@@ -18,6 +20,12 @@ new class extends Component {
     public function mount(Template $template)
     {
         $this->form->setTemplate($template);
+    }
+
+    #[Computed]
+    public function users()
+    {
+        return User::all();
     }
 
     #[On("related-model-added")]
@@ -137,6 +145,14 @@ new class extends Component {
                 @endforeach
             </flux:select>
 
+            @if(isset($elementForm->type) && $elementForm->type === App\Enums\LiturgyElementType::READING->value)
+            <flux:select label="Reading Type" variant="listbox" wire:model="elementForm.reading_type">
+                @foreach(App\Enums\ReadingType::cases() as $reading_type)
+                    <flux:select.option value="{{ $reading_type->value }}">{{ $reading_type->label() }}</flux:select.option>
+                @endforeach
+            </flux:select>
+            @endif
+
             <flux:field>
                 <flux:label for="element_name">Name</flux:label>
                 <flux:input id="element_name" placeholder="Enter a name..." wire:model="elementForm.name" />
@@ -148,6 +164,12 @@ new class extends Component {
                 <flux:input id="element_description" wire:model="elementForm.description" />
                 <flux:error name="elementForm.description" />
             </flux:field>
+
+            <flux:select label="Assignee" variant="listbox" wire:model="elementForm.assignee_id" placeholder="Select an assignee...">
+                @foreach($this->users as $user)
+                    <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
 
             <div class="flex">
                 <flux:spacer />

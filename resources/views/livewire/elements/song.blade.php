@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\LiturgyElement;
+use App\Models\Song;
+use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
 
 new class extends Component {
@@ -9,6 +11,12 @@ new class extends Component {
     public function delete()
     {
         $this->modal("delete-element")->show();
+    }
+
+    #[Computed]
+    public function songs()
+    {
+        return Song::all();
     }
 };
 ?>
@@ -26,6 +34,13 @@ new class extends Component {
                 @endif
             </div>
             <flux:spacer />
+            <div>
+                <flux:select variant="combobox" size="sm" wire:model="selectedContent" placeholder="Select a song..." clearable>
+                    @foreach($this->songs as $song)
+                        <flux:select.option value="{{ $song->id }}">{{ $song->name }}</flux:option>
+                    @endforeach
+                </flux:select>
+            </div>
             <div class="pr-2">
                 <flux:dropdown align="end" offset="-15">
                     <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
