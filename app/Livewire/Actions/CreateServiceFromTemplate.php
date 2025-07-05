@@ -11,6 +11,8 @@ class CreateServiceFromTemplate
 {
     public function __invoke(Template $template, Carbon $date)
     {
+        $template->loadMissing(["liturgyElements", "liturgyElements.content"]);
+
         DB::transaction(function () use ($template, $date) {
             $service = Service::create([
                 "title" =>
@@ -25,7 +27,8 @@ class CreateServiceFromTemplate
                     "order" => $element->order,
                     "name" => $element->name,
                     "description" => $element->description,
-                    "content" => $element->content,
+                    "content_type" => $element->content_type,
+                    "content_id" => $element->content_id,
                 ]);
             }
         });

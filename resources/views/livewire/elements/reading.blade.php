@@ -10,6 +10,21 @@ new class extends Component {
 
     public $selectedContent;
 
+    public function mount()
+    {
+        $this->selectedContent = $this->element->content_id;
+    }
+
+    public function updated($name, $value)
+    {
+        if ($name === "selectedContent") {
+            $reading = Reading::findOrFail($value);
+            $this->element->content()->associate($reading);
+            $this->element->save();
+            Flux::toast(variant: "success", text: "Reading selection saved.");
+        }
+    }
+
     public function delete()
     {
         $this->modal("delete-element")->show();
@@ -37,7 +52,7 @@ new class extends Component {
             </div>
             <flux:spacer />
             <div>
-                <flux:select variant="combobox" size="sm" wire:model="selectedContent" placeholder="Select a reading...">
+                <flux:select variant="combobox" size="sm" wire:model.live="selectedContent" placeholder="Select a reading...">
                     @foreach($this->readings as $reading)
                         <flux:select.option value="{{ $reading->id }}">{{ $reading->title }}</flux:option>
                     @endforeach
@@ -48,6 +63,7 @@ new class extends Component {
                     <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
                     <flux:menu class="min-w-32">
+                        <flux:menu.item href="{{ route('readings.create') }}" icon="plus-circle">New Reading</flux:menu.item>
                         <flux:menu.item wire:click="editElement({{ $element->id }})" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
                         <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
                     </flux:menu>

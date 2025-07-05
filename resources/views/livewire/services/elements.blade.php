@@ -48,13 +48,14 @@ new class extends Component {
                         <livewire:elements.song :$element :key="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::READING)
+                    @case(App\Enums\LiturgyElementType::PRAYER)
                         <livewire:elements.reading :$element :key="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::SERMON)
                         <livewire:elements.sermon :$element :key="$element->id" />
                         @break
                     @default
-                        <livewire:elements.reading :$element :key="$element->id" />
+                        <livewire:elements.other :$element :key="$element->id" />
                         @break
                 @endswitch
             @endforeach

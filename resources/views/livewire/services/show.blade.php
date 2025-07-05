@@ -35,7 +35,7 @@ new class extends Component {
     <div class="flex items-center">
         <header>
             <flux:heading size="xl" level="1">{{ $form->title }}</flux:heading>
-            <flux:subheading>{{ $form->date->toFormattedDayDateString() }} @if($form->template_id) - {{ $form->service->template->name }}@endif</flux:subheading>
+            <flux:subheading>{{ $form->date->toFormattedDayDateString() }} @if($form->template_id) - Template: {{ $form->service->template->name }}@endif</flux:subheading>
         </header>
         <flux:spacer />
         <flux:button size="sm" variant="primary" href="{{ route('services.edit', ['service' => $form->service]) }}">Edit</flux:button>

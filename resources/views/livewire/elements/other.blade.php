@@ -5,22 +5,6 @@ use Livewire\Volt\Component;
 new class extends Component {
     public LiturgyElement $element;
 
-    public $description;
-
-    public function mount()
-    {
-        $this->description = $this->element->description;
-    }
-
-    public function updated($name, $value)
-    {
-        if ($name === "description") {
-            $this->element->description = $value;
-            $this->element->save();
-            Flux::toast(variant: "success", text: "Sermon description saved.");
-        }
-    }
-
     public function delete()
     {
         $this->modal("delete-element")->show();
@@ -36,11 +20,11 @@ new class extends Component {
             </div>
             <div>
                 <flux:heading>{{ $element->name }}</flux:heading>
+                @if($element->description)
+                    <flux:subheading>{{ $element->description }}</flux:subheading>
+                @endif
             </div>
             <flux:spacer />
-            <div class="w-[226px]">
-                <flux:input size="sm" placeholder="Enter title or reference" wire:model.blur="description" />
-            </div>
             <div class="pr-2">
                 <flux:dropdown align="end" offset="-15">
                     <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />

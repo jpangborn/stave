@@ -20,6 +20,8 @@ class LiturgyElement extends Model
         "name",
         "assignee_id",
         "description",
+        "content_type",
+        "content_id",
     ];
 
     /**

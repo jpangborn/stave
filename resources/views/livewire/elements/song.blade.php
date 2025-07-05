@@ -8,6 +8,23 @@ use Livewire\Volt\Component;
 new class extends Component {
     public LiturgyElement $element;
 
+    public $selectedContent;
+
+    public function mount()
+    {
+        $this->selectedContent = $this->element->content_id;
+    }
+
+    public function updated($name, $value)
+    {
+        if ($name === "selectedContent") {
+            $song = Song::findOrFail($value);
+            $this->element->content()->associate($song);
+            $this->element->save();
+            Flux::toast(variant: "success", text: "Song selection saved.");
+        }
+    }
+
     public function delete()
     {
         $this->modal("delete-element")->show();
@@ -35,7 +52,7 @@ new class extends Component {
             </div>
             <flux:spacer />
             <div>
-                <flux:select variant="combobox" size="sm" wire:model="selectedContent" placeholder="Select a song..." clearable>
+                <flux:select variant="combobox" size="sm" wire:model.live="selectedContent" placeholder="Select a song...">
                     @foreach($this->songs as $song)
                         <flux:select.option value="{{ $song->id }}">{{ $song->name }}</flux:option>
                     @endforeach

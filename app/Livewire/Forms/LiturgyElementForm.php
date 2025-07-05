@@ -66,6 +66,7 @@ class LiturgyElementForm extends Form
         $this->name = $element->name;
         $this->description = $element->description;
         $this->type = $element?->type?->value ?? "";
+        $this->reading_type = $element?->reading_type?->value ?? "";
         $this->order = $element->order;
     }
 
@@ -84,7 +85,16 @@ class LiturgyElementForm extends Form
 
         $this->parent
             ->liturgyElements()
-            ->create($this->only(["name", "description", "type", "order"]));
+            ->create(
+                $this->only([
+                    "name",
+                    "description",
+                    "type",
+                    "reading_type",
+                    "assignee_id",
+                    "order",
+                ])
+            );
     }
 
     public function update(): void
@@ -92,7 +102,14 @@ class LiturgyElementForm extends Form
         $this->validate();
 
         $this->element->update(
-            $this->only(["name", "description", "type", "order"])
+            $this->only([
+                "name",
+                "description",
+                "type",
+                "reading_type",
+                "assignee_id",
+                "order",
+            ])
         );
     }
 }
