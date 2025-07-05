@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\LiturgyElement;
+use App\Models\Service;
 use App\Models\Template;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
@@ -33,27 +34,27 @@ new class extends Component {
 
 <flux:table class="w-full">
     <flux:table.rows>
-        @if($this->template->liturgyElements->isEmpty())
+        @if($this->service->liturgyElements->isEmpty())
             <flux:table.row>
                 <flux:table.cell align="center">No Service Elements</flux:table.cell>
             </flux:table.row>
         @else
-            @foreach($this->template->liturgyElements as $element)
+            @foreach($this->service->liturgyElements as $element)
                 @switch($element->type)
                     @case(App\Enums\LiturgyElementType::SECTION)
-                        <livewire:templates.elements.section :$element :key="$element->id" />
+                        <livewire:elements.section :$element :key="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::SONG)
-                        <livewire:templates.elements.song :$element :key="$element->id" />
+                        <livewire:elements.song :$element :key="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::READING)
-                        <livewire:templates.elements.reading :$element :key="$element->id" />
+                        <livewire:elements.reading :$element :key="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::SERMON)
-                        <livewire:templates.elements.sermon :$element :key="$element->id" />
+                        <livewire:elements.sermon :$element :key="$element->id" />
                         @break
                     @default
-                        <livewire:templates.elements.reading :$element :key="$element->id" />
+                        <livewire:elements.reading :$element :key="$element->id" />
                         @break
                 @endswitch
             @endforeach
