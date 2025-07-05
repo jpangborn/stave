@@ -10,8 +10,8 @@ use Livewire\Attributes\Computed;
 new class extends Component {
     use WithPagination;
 
-    public $sortBy = "name";
-    public $sortDirection = "asc";
+    public $sortBy = "date";
+    public $sortDirection = "desc";
     public $search = "";
 
     public function sort($column)
@@ -30,12 +30,12 @@ new class extends Component {
     {
         return Service::query()
             ->when($this->search, function ($query) {
-                $query->whereLike("name", "%{$this->search}%");
+                $query->whereLike("title", "%{$this->search}%");
             })
             ->tap(
                 fn($query) => $this->sortBy
                     ? $query->orderBy($this->sortBy, $this->sortDirection)
-                    : $query->orderBy("date", "desc")
+                    : $query
             )
             ->with("template")
             ->paginate(15);

@@ -23,9 +23,9 @@ class CreateServiceFromTemplate
                 $service->liturgyElements()->create([
                     "type" => $element->type,
                     "order" => $element->order,
-                    "assigned_to" => $element->assigned_to,
-                    "content_type" => $element->content_type,
-                    "content_id" => $element->content_id,
+                    "name" => $element->name,
+                    "description" => $element->description,
+                    "content" => $element->content,
                 ]);
             }
         });

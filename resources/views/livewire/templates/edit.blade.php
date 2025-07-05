@@ -69,6 +69,9 @@ new class extends Component {
 
 <section class="w-full">
     <flux:heading size="xl" level="1">{{ $form->name }}</flux:heading>
+    @if($this->form->default)
+    <flux:subheading><flux:badge color="green">Default</flux:badge></flux:subheading>
+    @endif
 
     <flux:tab.group class="mt-8">
         <flux:tabs wire:model="tab">

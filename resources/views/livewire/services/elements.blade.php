@@ -1,0 +1,62 @@
+<?php
+
+use App\Models\LiturgyElement;
+use App\Models\Template;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Reactive;
+use Livewire\Volt\Component;
+
+new class extends Component {
+    #[Reactive]
+    public int $serviceId;
+
+    public function getServiceProperty()
+    {
+        return Service::with("liturgyElements")->find($this->serviceId);
+    }
+
+    #[On("related-model-added")]
+    public function refreshElements()
+    {
+        // Force re-computation of the template property
+        unset($this->service);
+    }
+
+    public function delete($id)
+    {
+        LiturgyElement::findOrFail($id)->delete();
+        Flux::modal("delete-element")->close();
+        Flux::toast(variant: "danger", text: "Liturgy element deleted.");
+    }
+};
+?>
+
+<flux:table class="w-full">
+    <flux:table.rows>
+        @if($this->template->liturgyElements->isEmpty())
+            <flux:table.row>
+                <flux:table.cell align="center">No Service Elements</flux:table.cell>
+            </flux:table.row>
+        @else
+            @foreach($this->template->liturgyElements as $element)
+                @switch($element->type)
+                    @case(App\Enums\LiturgyElementType::SECTION)
+                        <livewire:templates.elements.section :$element :key="$element->id" />
+                        @break
+                    @case(App\Enums\LiturgyElementType::SONG)
+                        <livewire:templates.elements.song :$element :key="$element->id" />
+                        @break
+                    @case(App\Enums\LiturgyElementType::READING)
+                        <livewire:templates.elements.reading :$element :key="$element->id" />
+                        @break
+                    @case(App\Enums\LiturgyElementType::SERMON)
+                        <livewire:templates.elements.sermon :$element :key="$element->id" />
+                        @break
+                    @default
+                        <livewire:templates.elements.reading :$element :key="$element->id" />
+                        @break
+                @endswitch
+            @endforeach
+        @endif
+    </flux:table.rows>
+</flux:table>

@@ -35,8 +35,8 @@ new class extends Component {
         </flux:drowdown>
     </flux:table.cell>
 
-    <flux:modal name="delete-song" class="min-w-[22rem]">
-        <form wire:submit="$parent.delete({{ $reading->id }})" class="space-y-6">
+    <flux:modal name="delete-reading" class="min-w-[22rem]">
+        <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Delete reading?</flux:heading>
 
@@ -53,8 +53,8 @@ new class extends Component {
                     <flux:button variant="ghost">Cancel</flux:button>
                 </flux:modal.close>
 
-                <flux:button type="submit" variant="danger">Delete reading</flux:button>
+                <flux:button type="button" wire:click="$parent.delete({{ $reading->id }})" variant="danger">Delete reading</flux:button>
             </div>
-        </form>
+        </div>
     </flux:modal>
 </flux:table.row>
