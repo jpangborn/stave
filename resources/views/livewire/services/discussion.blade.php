@@ -76,7 +76,7 @@ new class extends Component {
                     ])>
                         {!! $comment->text !!}
                     </div>
-                    <div class="flex flex-row-reverse items-center space-x-2 -mt-2">
+                    <div class="flex flex-row-reverse items-center space-x-3 -mt-1.5">
                         <flux:dropdown hover position="{{ $comment->commentator()->is(auth()->user()) ? 'left' : 'right' }}" align="center">
                             <flux:button size="sm" variant="ghost" icon="face-smile" />
                             <flux:popover>
@@ -93,7 +93,7 @@ new class extends Component {
                             </flux:popover>
                         </flux:dropdown>
                         @foreach($comment->reactions->summary() as $reaction)
-                            <span>{{ $reaction['reaction'] }} {{ $reaction['count'] }}</span>
+                            <span class="bg-zinc-100 rounded-full py-1 px-2">{{ $reaction['reaction'] }} {{ $reaction['count'] }}</span>
                         @endforeach
                     </div>
                 </div>
