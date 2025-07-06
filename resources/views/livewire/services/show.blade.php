@@ -44,11 +44,16 @@ new class extends Component {
     <flux:tab.group class="mt-8">
         <flux:tabs wire:model="tab">
             <flux:tab name="service-order" icon="queue-list">Service Order</flux:tab>
+            <flux:tab name="discussion" icon="chat-bubble-left-right">Discussion</flux:tab>
             <flux:tab name="bulletin" icon="document-text">Bulletin</flux:tab>
         </flux:tabs>
 
         <flux:tab.panel name="service-order">
             <livewire:services.elements :service-id="$form->service->id" />
+        </flux:tab.panel>
+
+        <flux:tab.panel name="discussion">
+            <livewire:services.discussion :service-id="$form->service->id" />
         </flux:tab.panel>
 
         <flux:tab.panel name="bulletin">

@@ -3,7 +3,6 @@
 use Spatie\Comments\Actions\ApproveCommentAction;
 use Spatie\Comments\Actions\RejectCommentAction;
 use Spatie\Comments\Actions\ResolveMentionsAutocompleteAction;
-use Spatie\Comments\CommentTransformers\MentionsTransformer;
 use Spatie\Comments\Notifications\ApprovedCommentNotification;
 use Spatie\Comments\Notifications\PendingCommentNotification;
 use Spatie\Comments\Actions\SendNotificationsForApprovedCommentAction;
@@ -11,7 +10,6 @@ use Spatie\Comments\Actions\SendNotificationsForPendingCommentAction;
 use Spatie\Comments\Actions\ProcessCommentAction;
 use Spatie\Comments\Models\Reaction;
 use Spatie\Comments\Models\Comment;
-use Spatie\Comments\CommentTransformers\MarkdownToHtmlTransformer;
 use Spatie\Comments\Models\CommentNotificationSubscription;
 use Spatie\Comments\Support\CommentSanitizer;
 
@@ -20,7 +18,7 @@ return [
      * These are the reactions that can be made on a comment. We highly recommend
      * only enabling positive ones for getting good vibes in your community.
      */
-    "allowed_reactions" => ["👍", "✅", "❤️", "🔥", "🙏", "❓", "🤯"],
+    "allowed_reactions" => ["👍", "✅", "❤️", "🔥", "🙏", "❓", "🤯", "🎉"],
 
     /*
      * You can allow guests to post comments. They will not be able to use
@@ -33,8 +31,8 @@ return [
      * for example from Markdown to HTML
      */
     "comment_transformers" => [
-        MarkdownToHtmlTransformer::class,
-        MentionsTransformer::class,
+        //MarkdownToHtmlTransformer::class,
+        //MentionsTransformer::class,
     ],
 
     /*
