@@ -14,9 +14,9 @@ use Livewire\Form;
 
 class LiturgyElementForm extends Form
 {
-    public ?LiturgyElement $element;
+    public ?LiturgyElement $element = null;
 
-    public Template|Service|null $parent;
+    public Template|Service|null $parent = null;
 
     #[Validate]
     public string $name;
@@ -42,19 +42,19 @@ class LiturgyElementForm extends Form
     public function rules(): array
     {
         return [
-            "name" => "required|string|max:255",
-            "description" => "nullable|string|max:255",
-            "type" => [
-                "required",
-                "string",
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:255',
+            'type' => [
+                'required',
+                'string',
                 new Enum(LiturgyElementType::class),
             ],
-            "reading_type" => [
-                "nullable",
-                "string",
+            'reading_type' => [
+                'nullable',
+                'string',
                 new Enum(ReadingType::class),
             ],
-            "order" => "integer|min:0|max:1000",
+            'order' => 'integer|min:0|max:1000',
         ];
     }
 
@@ -65,8 +65,8 @@ class LiturgyElementForm extends Form
 
         $this->name = $element->name;
         $this->description = $element->description;
-        $this->type = $element?->type?->value ?? "";
-        $this->reading_type = $element?->reading_type?->value ?? "";
+        $this->type = $element?->type?->value ?? '';
+        $this->reading_type = $element?->reading_type?->value ?? '';
         $this->order = $element->order;
     }
 
@@ -79,20 +79,20 @@ class LiturgyElementForm extends Form
     {
         $this->validate();
 
-        if (!$this->parent) {
-            throw new Exception("Parent not set");
+        if (! $this->parent) {
+            throw new Exception('Parent not set');
         }
 
         $this->parent
             ->liturgyElements()
             ->create(
                 $this->only([
-                    "name",
-                    "description",
-                    "type",
-                    "reading_type",
-                    "assignee_id",
-                    "order",
+                    'name',
+                    'description',
+                    'type',
+                    'reading_type',
+                    'assignee_id',
+                    'order',
                 ])
             );
     }
@@ -103,12 +103,12 @@ class LiturgyElementForm extends Form
 
         $this->element->update(
             $this->only([
-                "name",
-                "description",
-                "type",
-                "reading_type",
-                "assignee_id",
-                "order",
+                'name',
+                'description',
+                'type',
+                'reading_type',
+                'assignee_id',
+                'order',
             ])
         );
     }

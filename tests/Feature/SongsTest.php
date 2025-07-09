@@ -7,24 +7,24 @@ use Livewire\Volt\Volt as LivewireVolt;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 /** @group songs */
-test('guests are redirected from the songs index', function () {
+test('guests are redirected from the songs index', function (): void {
     $response = $this->get('/songs');
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the songs index', function () {
+test('authenticated users can view the songs index', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user)
         ->get('/songs')
         ->assertStatus(200);
 });
 
-test('guests are redirected from the song create page', function () {
+test('guests are redirected from the song create page', function (): void {
     $response = $this->get('/songs/create');
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the song create page', function () {
+test('authenticated users can view the song create page', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user)
         ->get('/songs/create')
@@ -32,7 +32,7 @@ test('authenticated users can view the song create page', function () {
         ->assertSee('Add a Song');
 });
 
-test('song name is required when creating a song', function () {
+test('song name is required when creating a song', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -41,7 +41,7 @@ test('song name is required when creating a song', function () {
         ->assertHasErrors(['form.name' => 'required']);
 });
 
-test('authenticated users can create a song', function () {
+test('authenticated users can create a song', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -57,7 +57,7 @@ test('authenticated users can create a song', function () {
     $this->assertDatabaseHas('songs', ['name' => 'Amazing Grace']);
 });
 
-test('guests are redirected from the song show page', function () {
+test('guests are redirected from the song show page', function (): void {
     $song = Song::create([
         'name' => 'Test Song',
         'ccli_number' => null,
@@ -68,7 +68,7 @@ test('guests are redirected from the song show page', function () {
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the song show page', function () {
+test('authenticated users can view the song show page', function (): void {
     $user = User::factory()->create();
     $song = Song::create([
         'name' => 'Test Song',
@@ -83,7 +83,7 @@ test('authenticated users can view the song show page', function () {
         ->assertSee('Test Song');
 });
 
-test('guests are redirected from the song edit page', function () {
+test('guests are redirected from the song edit page', function (): void {
     $song = Song::create([
         'name' => 'Edit Me',
         'ccli_number' => null,
@@ -94,7 +94,7 @@ test('guests are redirected from the song edit page', function () {
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the song edit page', function () {
+test('authenticated users can view the song edit page', function (): void {
     $user = User::factory()->create();
     $song = Song::create([
         'name' => 'Edit Me',
@@ -110,7 +110,7 @@ test('authenticated users can view the song edit page', function () {
         ->assertSee('Edit Me');
 });
 
-test('authenticated users can update a song', function () {
+test('authenticated users can update a song', function (): void {
     $user = User::factory()->create();
     $song = Song::create([
         'name' => 'Old Title',
@@ -131,7 +131,7 @@ test('authenticated users can update a song', function () {
     expect($song->fresh()->name)->toBe('New Title');
 });
 
-test('authenticated users can delete a song', function () {
+test('authenticated users can delete a song', function (): void {
     $user = User::factory()->create();
     $song = Song::create([
         'name' => 'Delete Me',

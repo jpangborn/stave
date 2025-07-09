@@ -15,7 +15,7 @@ new class extends Component {
     public $search = "";
     public $types = [];
 
-    public function sort($column)
+    public function sort($column): void
     {
         if ($this->sortBy === $column) {
             $this->sortDirection =
@@ -30,10 +30,10 @@ new class extends Component {
     public function readings()
     {
         return Reading::query()
-            ->when($this->search, function ($query) {
+            ->when($this->search, function ($query): void {
                 $query->whereLike("title", "%{$this->search}%");
             })
-            ->when($this->types, function ($query) {
+            ->when($this->types, function ($query): void {
                 $query->whereIn("type", $this->types);
             })
             ->tap(
@@ -44,7 +44,7 @@ new class extends Component {
             ->paginate(15);
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
         Reading::findOrFail($id)->delete();
         Flux::modal("delete-reading")->close();

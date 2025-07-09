@@ -9,26 +9,25 @@ use Illuminate\Support\Facades\DB;
 
 class CreateServiceFromTemplate
 {
-    public function __invoke(Template $template, Carbon $date)
+    public function __invoke(Template $template, Carbon $date): void
     {
-        $template->loadMissing(["liturgyElements", "liturgyElements.content"]);
+        $template->loadMissing(['liturgyElements', 'liturgyElements.content']);
 
-        DB::transaction(function () use ($template, $date) {
+        DB::transaction(function () use ($template, $date): void {
             $service = Service::create([
-                "title" =>
-                    $template->name . " – " . $date->toFormattedDateString(),
-                "date" => $date,
-                "template_id" => $template->id,
+                'title' => $template->name.' – '.$date->toFormattedDateString(),
+                'date' => $date,
+                'template_id' => $template->id,
             ]);
 
             foreach ($template->liturgyElements as $element) {
                 $service->liturgyElements()->create([
-                    "type" => $element->type,
-                    "order" => $element->order,
-                    "name" => $element->name,
-                    "description" => $element->description,
-                    "content_type" => $element->content_type,
-                    "content_id" => $element->content_id,
+                    'type' => $element->type,
+                    'order' => $element->order,
+                    'name' => $element->name,
+                    'description' => $element->description,
+                    'content_type' => $element->content_type,
+                    'content_id' => $element->content_id,
                 ]);
             }
         });

@@ -12,7 +12,7 @@ new class extends Component {
     #[Url]
     public $tab = "details";
 
-    public function mount(Song $song)
+    public function mount(Song $song): void
     {
         $this->form->setSong($song);
     }

@@ -16,7 +16,7 @@ new class extends Component {
         "refreshParent" => '$refresh',
     ];
 
-    public function mount(Template $template)
+    public function mount(Template $template): void
     {
         $this->form->setTemplate($template);
     }

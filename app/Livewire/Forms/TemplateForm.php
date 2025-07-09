@@ -8,7 +8,7 @@ use Livewire\Form;
 
 class TemplateForm extends Form
 {
-    public ?Template $template;
+    public ?Template $template = null;
 
     #[Validate]
     public string $name;
@@ -16,7 +16,7 @@ class TemplateForm extends Form
     #[Validate]
     public bool $default = false;
 
-    public function rules()
+    public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
@@ -24,7 +24,7 @@ class TemplateForm extends Form
         ];
     }
 
-    public function setTemplate(Template $template)
+    public function setTemplate(Template $template): void
     {
         $this->template = $template;
 
@@ -32,14 +32,14 @@ class TemplateForm extends Form
         $this->default = $template->default;
     }
 
-    public function store()
+    public function store(): void
     {
         $this->validate();
 
         Template::create($this->only(['name', 'default']));
     }
 
-    public function update()
+    public function update(): void
     {
         $this->validate();
 

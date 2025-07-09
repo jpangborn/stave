@@ -16,14 +16,14 @@ new class extends Component {
         return Service::with("comments")->find($this->serviceId);
     }
 
-    public function saveComment()
+    public function saveComment(): void
     {
         $this->service->comment($this->comment);
         $this->reset("comment");
         unset($this->service);
     }
 
-    public function saveProxyComment()
+    public function saveProxyComment(): void
     {
         $user = User::where("email", "test@example.com")->first();
         $this->service->comment($this->comment, $user);
@@ -31,7 +31,7 @@ new class extends Component {
         unset($this->service);
     }
 
-    public function react(int $commentId, string $reaction)
+    public function react(int $commentId, string $reaction): void
     {
         $comment = $this->service->comments()->find($commentId);
         $comment->react($reaction);

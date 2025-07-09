@@ -14,7 +14,7 @@ new class extends Component {
     public $sortDirection = "asc";
     public $search = "";
 
-    public function sort($column)
+    public function sort($column): void
     {
         if ($this->sortBy === $column) {
             $this->sortDirection =
@@ -29,7 +29,7 @@ new class extends Component {
     public function templates()
     {
         return Template::query()
-            ->when($this->search, function ($query) {
+            ->when($this->search, function ($query): void {
                 $query->whereLike("name", "%{$this->search}%");
             })
             ->tap(
@@ -40,7 +40,7 @@ new class extends Component {
             ->paginate(15);
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
         Template::findOrFail($id)->delete();
         Flux::modal("delete-template")->close();

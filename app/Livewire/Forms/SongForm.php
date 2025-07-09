@@ -8,7 +8,7 @@ use Livewire\Form;
 
 class SongForm extends Form
 {
-    public ?Song $song;
+    public ?Song $song = null;
 
     #[Validate('required|string')]
     public string $name;

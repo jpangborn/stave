@@ -11,13 +11,13 @@ new class extends Component {
     public $description;
     public $assigneeId;
 
-    public function mount()
+    public function mount(): void
     {
         $this->description = $this->element->description;
         $this->assigneeId = $this->element->assignee_id;
     }
 
-    public function updated($name, $value)
+    public function updated($name, $value): void
     {
         switch ($name) {
             case "description":
@@ -36,7 +36,7 @@ new class extends Component {
         }
     }
 
-    public function delete()
+    public function delete(): void
     {
         $this->modal("delete-element")->show();
     }

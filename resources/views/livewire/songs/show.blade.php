@@ -17,7 +17,7 @@ new class extends Component
         'refreshParent' => '$refresh',
     ];
 
-    public function mount(Song $song)
+    public function mount(Song $song): void
     {
         $this->form->setSong($song);
     }

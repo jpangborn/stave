@@ -16,13 +16,13 @@ new class extends Component {
     }
 
     #[On("related-model-added")]
-    public function refreshElements()
+    public function refreshElements(): void
     {
         // Force re-computation of the template property
         unset($this->template);
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
         LiturgyElement::findOrFail($id)->delete();
         Flux::modal("delete-element")->close();

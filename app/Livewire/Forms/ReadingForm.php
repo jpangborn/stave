@@ -8,7 +8,7 @@ use Livewire\Form;
 
 class ReadingForm extends Form
 {
-    public ?Reading $reading;
+    public ?Reading $reading = null;
 
     #[Validate]
     public string $title;
@@ -18,7 +18,7 @@ class ReadingForm extends Form
 
     public ?string $text = null;
 
-    public function rules()
+    public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
@@ -26,7 +26,7 @@ class ReadingForm extends Form
         ];
     }
 
-    public function setReading(Reading $reading)
+    public function setReading(Reading $reading): void
     {
         $this->reading = $reading;
 
@@ -35,14 +35,14 @@ class ReadingForm extends Form
         $this->text = $reading->text;
     }
 
-    public function store()
+    public function store(): void
     {
         $this->validate();
 
         Reading::create($this->only(['title', 'type', 'text']));
     }
 
-    public function update()
+    public function update(): void
     {
         $this->validate();
 

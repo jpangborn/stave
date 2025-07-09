@@ -17,7 +17,7 @@ new class extends Component {
     #[Url]
     public $tab = "details";
 
-    public function mount(Template $template)
+    public function mount(Template $template): void
     {
         $this->form->setTemplate($template);
     }
@@ -29,7 +29,7 @@ new class extends Component {
     }
 
     #[On("related-model-added")]
-    public function refreshTemplate()
+    public function refreshTemplate(): void
     {
         $this->form->setTemplate(
             $this->form->template->fresh(["liturgyElements"])
@@ -44,14 +44,14 @@ new class extends Component {
         return $this->redirect("/templates", navigate: true);
     }
 
-    public function addElement(string $element)
+    public function addElement(string $element): void
     {
         $this->elementForm->type = $element;
 
         Flux::modal("add-element")->show();
     }
 
-    public function saveElement()
+    public function saveElement(): void
     {
         $this->elementForm->order =
             $this->form->template->liturgyElements()->count() + 1;

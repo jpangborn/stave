@@ -1,0 +1,10 @@
+{
+    "present": "laravel",
+    "rules": {
+        "backtick_to_shell_exec": true,
+        "lowercase_keywords": true,
+        "lowercase_static_reference": true,
+        "new_with_parentheses": true,
+        "no_useless_else": true
+    }
+}

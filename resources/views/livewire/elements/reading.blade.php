@@ -12,13 +12,13 @@ new class extends Component {
     public $selectedContent;
     public $assigneeId;
 
-    public function mount()
+    public function mount(): void
     {
         $this->selectedContent = $this->element->content_id;
         $this->assigneeId = $this->element->assignee_id;
     }
 
-    public function updated($name, $value)
+    public function updated($name, $value): void
     {
         switch ($name) {
             case "selectedContent":
@@ -38,7 +38,7 @@ new class extends Component {
         }
     }
 
-    public function delete()
+    public function delete(): void
     {
         $this->modal("delete-element")->show();
     }

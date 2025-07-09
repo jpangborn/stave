@@ -6,7 +6,7 @@ use Livewire\Volt\Component;
 new class extends Component {
     public Service $service;
 
-    public function delete()
+    public function delete(): void
     {
         $this->modal("delete-service")->show();
     }

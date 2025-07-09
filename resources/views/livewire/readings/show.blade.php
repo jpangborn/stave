@@ -16,7 +16,7 @@ new class extends Component {
         "refreshParent" => '$refresh',
     ];
 
-    public function mount(Reading $reading)
+    public function mount(Reading $reading): void
     {
         $this->form->setReading($reading);
     }

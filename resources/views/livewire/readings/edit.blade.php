@@ -12,7 +12,7 @@ new class extends Component {
     #[Url]
     public $tab = "details";
 
-    public function mount(Reading $reading)
+    public function mount(Reading $reading): void
     {
         $this->form->setReading($reading);
     }

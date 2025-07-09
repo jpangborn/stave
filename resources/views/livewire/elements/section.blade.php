@@ -6,7 +6,7 @@ use App\Models\LiturgyElement;
 new class extends Component {
     public LiturgyElement $element;
 
-    public function delete()
+    public function delete(): void
     {
         $this->modal("delete-element")->show();
     }

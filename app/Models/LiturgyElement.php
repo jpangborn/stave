@@ -15,13 +15,13 @@ class LiturgyElement extends Model
     use HasFactory;
 
     protected $fillable = [
-        "type",
-        "order",
-        "name",
-        "assignee_id",
-        "description",
-        "content_type",
-        "content_id",
+        'type',
+        'order',
+        'name',
+        'assignee_id',
+        'description',
+        'content_type',
+        'content_id',
     ];
 
     /**
@@ -32,16 +32,17 @@ class LiturgyElement extends Model
     protected function casts(): array
     {
         return [
-            "type" => LiturgyElementType::class,
-            "reading_type" => ReadingType::class,
+            'type' => LiturgyElementType::class,
+            'reading_type' => ReadingType::class,
         ];
     }
+
     /**
      * @return BelongsTo<User,LiturgyElement>
      */
     public function assignee(): BelongsTo
     {
-        return $this->belongsTo(User::class, "assignee_id");
+        return $this->belongsTo(User::class, 'assignee_id');
     }
 
     /**

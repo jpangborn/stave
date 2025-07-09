@@ -7,32 +7,32 @@ use Livewire\Volt\Volt as LivewireVolt;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 /** @group templates */
-test('guests are redirected from the templates index', function () {
+test('guests are redirected from the templates index', function (): void {
     $response = $this->get('/templates');
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the templates index', function () {
+test('authenticated users can view the templates index', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user)
-         ->get('/templates')
-         ->assertStatus(200);
+        ->get('/templates')
+        ->assertStatus(200);
 });
 
-test('guests are redirected from the template create page', function () {
+test('guests are redirected from the template create page', function (): void {
     $response = $this->get('/templates/create');
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the template create page', function () {
+test('authenticated users can view the template create page', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user)
-         ->get('/templates/create')
-         ->assertStatus(200)
-         ->assertSee('Add a Template');
+        ->get('/templates/create')
+        ->assertStatus(200)
+        ->assertSee('Add a Template');
 });
 
-test('template name is required when creating a template', function () {
+test('template name is required when creating a template', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -41,7 +41,7 @@ test('template name is required when creating a template', function () {
         ->assertHasErrors(['form.name' => 'required']);
 });
 
-test('authenticated users can create a template', function () {
+test('authenticated users can create a template', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -55,7 +55,7 @@ test('authenticated users can create a template', function () {
     $this->assertDatabaseHas('templates', ['name' => 'Test Template']);
 });
 
-test('guests are redirected from the template show page', function () {
+test('guests are redirected from the template show page', function (): void {
     $template = Template::create([
         'name' => 'Test Template',
         'default' => false,
@@ -64,7 +64,7 @@ test('guests are redirected from the template show page', function () {
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the template show page', function () {
+test('authenticated users can view the template show page', function (): void {
     $user = User::factory()->create();
     $template = Template::create([
         'name' => 'Test Template',
@@ -72,12 +72,12 @@ test('authenticated users can view the template show page', function () {
     ]);
 
     $this->actingAs($user)
-         ->get("/templates/{$template->id}")
-         ->assertStatus(200)
-         ->assertSee('Test Template');
+        ->get("/templates/{$template->id}")
+        ->assertStatus(200)
+        ->assertSee('Test Template');
 });
 
-test('guests are redirected from the template edit page', function () {
+test('guests are redirected from the template edit page', function (): void {
     $template = Template::create([
         'name' => 'Edit Me',
         'default' => true,
@@ -86,7 +86,7 @@ test('guests are redirected from the template edit page', function () {
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the template edit page', function () {
+test('authenticated users can view the template edit page', function (): void {
     $user = User::factory()->create();
     $template = Template::create([
         'name' => 'Edit Me',
@@ -94,13 +94,13 @@ test('authenticated users can view the template edit page', function () {
     ]);
 
     $this->actingAs($user)
-         ->get("/templates/{$template->id}/edit")
-         ->assertStatus(200)
-         ->assertSee('Template Details')
-         ->assertSee('Edit Me');
+        ->get("/templates/{$template->id}/edit")
+        ->assertStatus(200)
+        ->assertSee('Template Details')
+        ->assertSee('Edit Me');
 });
 
-test('authenticated users can update a template', function () {
+test('authenticated users can update a template', function (): void {
     $user = User::factory()->create();
     $template = Template::create([
         'name' => 'Old Name',
@@ -118,7 +118,7 @@ test('authenticated users can update a template', function () {
     expect($template->fresh()->name)->toBe('New Name');
 });
 
-test('authenticated users can delete a template', function () {
+test('authenticated users can delete a template', function (): void {
     $user = User::factory()->create();
     $template = Template::create([
         'name' => 'Delete Me',

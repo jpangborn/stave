@@ -1,0 +1,17 @@
+{
+    "preset": "laravel",
+    "ignore": {
+        "words": [
+            "php",
+            "js",
+            "filesystems",
+            "favicon",
+            "navlist",
+            "ccli",
+            "entrypoint",
+            "Dockerfile",
+            "esm"
+        ],
+        "paths": []
+    }
+}

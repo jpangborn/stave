@@ -1,31 +1,31 @@
 <?php
 
+use App\Enums\ReadingType;
 use App\Models\Reading;
 use App\Models\User;
-use App\Enums\ReadingType;
 use Livewire\Volt\Volt as LivewireVolt;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 /** @group readings */
-test('guests are redirected from the readings index', function () {
+test('guests are redirected from the readings index', function (): void {
     $response = $this->get('/readings');
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the readings index', function () {
+test('authenticated users can view the readings index', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user)
         ->get('/readings')
         ->assertStatus(200);
 });
 
-test('guests are redirected from the reading create page', function () {
+test('guests are redirected from the reading create page', function (): void {
     $response = $this->get('/readings/create');
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the reading create page', function () {
+test('authenticated users can view the reading create page', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user)
         ->get('/readings/create')
@@ -33,7 +33,7 @@ test('authenticated users can view the reading create page', function () {
         ->assertSee('Add a Reading');
 });
 
-test('reading title is required when creating a reading', function () {
+test('reading title is required when creating a reading', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -43,7 +43,7 @@ test('reading title is required when creating a reading', function () {
         ->assertHasErrors(['form.title' => 'required']);
 });
 
-test('reading type is required when creating a reading', function () {
+test('reading type is required when creating a reading', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -53,7 +53,7 @@ test('reading type is required when creating a reading', function () {
         ->assertHasErrors(['form.type' => 'required']);
 });
 
-test('authenticated users can create a reading', function () {
+test('authenticated users can create a reading', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
@@ -68,7 +68,7 @@ test('authenticated users can create a reading', function () {
     $this->assertDatabaseHas('readings', ['title' => 'Test Reading']);
 });
 
-test('guests are redirected from the reading show page', function () {
+test('guests are redirected from the reading show page', function (): void {
     $reading = Reading::create([
         'title' => 'Test Reading',
         'type' => ReadingType::CREED->value,
@@ -78,7 +78,7 @@ test('guests are redirected from the reading show page', function () {
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the reading show page', function () {
+test('authenticated users can view the reading show page', function (): void {
     $user = User::factory()->create();
     $reading = Reading::create([
         'title' => 'Test Reading',
@@ -92,7 +92,7 @@ test('authenticated users can view the reading show page', function () {
         ->assertSee('Test Reading');
 });
 
-test('guests are redirected from the reading edit page', function () {
+test('guests are redirected from the reading edit page', function (): void {
     $reading = Reading::create([
         'title' => 'Edit Me',
         'type' => ReadingType::LAW->value,
@@ -102,7 +102,7 @@ test('guests are redirected from the reading edit page', function () {
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can view the reading edit page', function () {
+test('authenticated users can view the reading edit page', function (): void {
     $user = User::factory()->create();
     $reading = Reading::create([
         'title' => 'Edit Me',
@@ -117,7 +117,7 @@ test('authenticated users can view the reading edit page', function () {
         ->assertSee('Edit Me');
 });
 
-test('authenticated users can update a reading', function () {
+test('authenticated users can update a reading', function (): void {
     $user = User::factory()->create();
     $reading = Reading::create([
         'title' => 'Old Title',
@@ -137,7 +137,7 @@ test('authenticated users can update a reading', function () {
     expect($reading->fresh()->title)->toBe('New Title');
 });
 
-test('authenticated users can delete a reading', function () {
+test('authenticated users can delete a reading', function (): void {
     $user = User::factory()->create();
     $reading = Reading::create([
         'title' => 'Delete Me',

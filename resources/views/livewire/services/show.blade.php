@@ -18,7 +18,7 @@ new class extends Component {
         "refreshParent" => '$refresh',
     ];
 
-    public function mount(Service $service)
+    public function mount(Service $service): void
     {
         $this->form->setService($service);
     }

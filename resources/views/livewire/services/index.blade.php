@@ -13,7 +13,7 @@ new class extends Component {
     public $sortDirection = "desc";
     public $search = "";
 
-    public function sort($column)
+    public function sort($column): void
     {
         if ($this->sortBy === $column) {
             $this->sortDirection =
@@ -28,7 +28,7 @@ new class extends Component {
     public function services()
     {
         return Service::query()
-            ->when($this->search, function ($query) {
+            ->when($this->search, function ($query): void {
                 $query->whereLike("title", "%{$this->search}%");
             })
             ->tap(
@@ -40,7 +40,7 @@ new class extends Component {
             ->paginate(15);
     }
 
-    public function delete($id)
+    public function delete($id): void
     {
         Service::findOrFail($id)->delete();
         Flux::modal("delete-service")->close();

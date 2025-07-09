@@ -7,7 +7,7 @@ use Livewire\Volt\Component;
 new class extends Component {
     public Reading $reading;
 
-    public function delete()
+    public function delete(): void
     {
         $this->modal("delete-reading")->show();
     }
