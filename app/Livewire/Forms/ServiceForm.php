@@ -9,7 +9,9 @@ use Livewire\Form;
 
 class ServiceForm extends Form
 {
-    public ?Service $service;
+    public $template;
+
+    public ?Service $service = null;
 
     #[Validate]
     public Carbon $date;
@@ -22,8 +24,8 @@ class ServiceForm extends Form
     public function rules(): array
     {
         return [
-            "date" => "required|date",
-            "title" => "nullable|string|max:255",
+            'date' => 'required|date',
+            'title' => 'nullable|string|max:255',
         ];
     }
 
@@ -40,13 +42,13 @@ class ServiceForm extends Form
     {
         $this->validate();
 
-        Service::create($this->only(["date", "title", "notes"]));
+        Service::create($this->only(['date', 'title', 'notes']));
     }
 
     public function update(): void
     {
         $this->validate();
 
-        $this->template->update($this->only(["date", "title", "notes"]));
+        $this->template->update($this->only(['date', 'title', 'notes']));
     }
 }

@@ -46,6 +46,7 @@ new class extends Component {
             <flux:tab name="service-order" icon="queue-list">Service Order</flux:tab>
             <flux:tab name="discussion" icon="chat-bubble-left-right">Discussion</flux:tab>
             <flux:tab name="bulletin" icon="document-text">Bulletin</flux:tab>
+            <flux:tab name="podium-notes" icon="lectern">Podium Notes</flux:tab>
         </flux:tabs>
 
         <flux:tab.panel name="service-order">
@@ -58,6 +59,10 @@ new class extends Component {
 
         <flux:tab.panel name="bulletin">
             <livewire:services.bulletin :service-id="$form->service->id" />
+        </flux:tab.panel>
+
+        <flux:tab.panel name="podium-notes">
+            <livewire:services.podium-notes :service-id="$form->service->id" />
         </flux:tab.panel>
     </flux:tab.group>
 </section>

@@ -12,7 +12,7 @@ new class extends Component {
 
     public function save(CreateServiceFromTemplate $createServiceFromTemplate)
     {
-        if ($this->form->template_id) {
+        if ($this->form->template_id !== null && $this->form->template_id !== 0) {
             $template = Template::find($this->form->template_id)
                 ->with("liturgyElements")
                 ->first();
