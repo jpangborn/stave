@@ -1,8 +1,0 @@
-#!/bin/sh
-
-echo "Creating Let's Encrypt File"
-for host in $(echo $KAMAL_HOSTS | sed "s/,/ /g")
-do
-    # call your procedure/other scripts here below
-    ssh root@$host 'mkdir -p /letsencrypt && touch /letsencrypt/acme.json && chmod 600 /letsencrypt/acme.json'
-done
