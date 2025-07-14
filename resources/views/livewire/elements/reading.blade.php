@@ -59,7 +59,10 @@ new class extends Component {
 
 <flux:table.row>
     <flux:table.cell>
-        <div class="flex items-center gap-x-2">
+        <div class="flex items-center gap-x-2 pl-1">
+            <div x-sort-handle class="cursor-grab" title="Drag to reorder">
+                <flux:icon class="text-zinc-300" name="grip" />
+            </div>
             <div>
                 <flux:icon icon="{{ $element->type->icon() }}" />
             </div>
