@@ -15,8 +15,8 @@ new class extends Component {
 
 <flux:table.row>
     <flux:table.cell class="bg-zinc-50 dark:bg-zinc-900">
-        <div class="flex items-center gap-x-2 pl-1">
-            <div x-sort-handle class="cursor-grab" title="Drag to reorder">
+        <div class="flex items-center gap-x-2 pl-1 group">
+            <div x-sort-handle class="cursor-grab hidden group-hover:block" title="Drag to reorder">
                 <flux:icon class="text-zinc-300" name="grip" />
             </div>
             <div>
