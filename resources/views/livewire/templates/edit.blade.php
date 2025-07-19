@@ -32,7 +32,7 @@ new class extends Component {
     public function refreshTemplate(): void
     {
         $this->form->setTemplate(
-            $this->form->template->fresh(["liturgyElements"])
+            $this->form->template->fresh(["liturgyElements"]),
         );
     }
 
@@ -53,8 +53,10 @@ new class extends Component {
 
     public function saveElement(): void
     {
+        $elements = $this->form->template->liturgyElements();
+
         $this->elementForm->order =
-            $this->form->template->liturgyElements()->count() + 1;
+            $elements->count() === 0 ? 0 : $elements->max("order")->increment();
 
         $this->elementForm->parent = $this->form->template;
 

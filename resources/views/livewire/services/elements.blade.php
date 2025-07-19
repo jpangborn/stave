@@ -22,6 +22,39 @@ new class extends Component {
         unset($this->service);
     }
 
+    public function sort($item, $position): void
+    {
+        $liturgyElement = LiturgyElement::findOrFail($item);
+
+        DB::transaction(function () use ($liturgyElement, $position) {
+            $before = $liturgyElement->order;
+            $after = $position;
+
+            if ($before === $after) {
+                return;
+            }
+
+            $liturgyElement->update(["order" => 65535]);
+
+            $elementsToShift = $this->service
+                ->liturgyElements()
+                ->whereBetween("order", [
+                    min($before, $after),
+                    max($before, $after),
+                ]);
+
+            $shiftUp = $before < $after;
+
+            $shiftUp
+                ? $elementsToShift->decrement("order")
+                : $elementsToShift->increment("order");
+
+            $liturgyElement->update(["order" => $after]);
+        });
+
+        Flux::toast(variant: "success", text: "Service reordered.");
+    }
+
     public function delete($id): void
     {
         LiturgyElement::findOrFail($id)->delete();
@@ -32,7 +65,7 @@ new class extends Component {
 ?>
 
 <flux:table class="w-full">
-    <flux:table.rows x-sort>
+    <flux:table.rows x-sort="$wire.sort($item, $position)">
         @if($this->service->liturgyElements->isEmpty())
             <flux:table.row>
                 <flux:table.cell align="center">No Service Elements</flux:table.cell>
@@ -41,20 +74,20 @@ new class extends Component {
             @foreach($this->service->liturgyElements as $element)
                 @switch($element->type)
                     @case(App\Enums\LiturgyElementType::SECTION)
-                        <livewire:elements.section :$element :key="$element->id" x-sort:item />
+                        <livewire:elements.section :$element :wire:key="$element->id" :x-sort:item="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::SONG)
-                        <livewire:elements.song :$element :key="$element->id" x-sort:item />
+                        <livewire:elements.song :$element :wire:key="$element->id" :x-sort:item="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::READING)
                     @case(App\Enums\LiturgyElementType::PRAYER)
-                        <livewire:elements.reading :$element :key="$element->id" x-sort:item />
+                        <livewire:elements.reading :$element :wire:key="$element->id" :x-sort:item="$element->id" />
                         @break
                     @case(App\Enums\LiturgyElementType::SERMON)
-                        <livewire:elements.sermon :$element :key="$element->id" x-sort:item />
+                        <livewire:elements.sermon :$element :wire:key="$element->id" :x-sort:item="$element->id" />
                         @break
                     @default
-                        <livewire:elements.other :$element :key="$element->id" x-sort:item />
+                        <livewire:elements.other :$element :wire:key="$element->id" :x-sort:item="$element->id" />
                         @break
                 @endswitch
             @endforeach
