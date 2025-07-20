@@ -25,7 +25,7 @@ new class extends Component {
                 $this->element->save();
                 Flux::toast(
                     variant: "success",
-                    text: "Sermon description saved."
+                    text: "Sermon description saved.",
                 );
                 break;
             case "assigneeId":
@@ -49,9 +49,12 @@ new class extends Component {
 };
 ?>
 
-<flux:table.row>
+<flux:table.row :x-sort:item="$element->id">
     <flux:table.cell>
-        <div class="flex items-center gap-x-2">
+        <div class="flex items-center gap-x-2 pl-1 group">
+            <div x-sort-handle class="cursor-grab hidden group-hover:block" title="Drag to reorder">
+                <flux:icon class="text-zinc-300" name="grip" />
+            </div>
             <div>
                 <flux:icon.lectern />
             </div>

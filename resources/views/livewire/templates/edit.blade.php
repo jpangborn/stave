@@ -28,11 +28,11 @@ new class extends Component {
         return User::all();
     }
 
-    #[On("related-model-added")]
+    #[On("related-model-changed")]
     public function refreshTemplate(): void
     {
         $this->form->setTemplate(
-            $this->form->template->fresh(["liturgyElements"])
+            $this->form->template->fresh(["liturgyElements"]),
         );
     }
 
@@ -53,14 +53,16 @@ new class extends Component {
 
     public function saveElement(): void
     {
+        $elements = $this->form->template->liturgyElements();
+
         $this->elementForm->order =
-            $this->form->template->liturgyElements()->count() + 1;
+            $elements->count() === 0 ? 0 : $elements->max("order")->increment();
 
         $this->elementForm->parent = $this->form->template;
 
         $this->elementForm->store();
         $this->reset("elementForm");
-        $this->dispatch("related-model-added");
+        $this->dispatch("related-model-changed");
         Flux::modal("add-element")->close();
         Flux::toast(variant: "success", text: "Element added to template.");
     }

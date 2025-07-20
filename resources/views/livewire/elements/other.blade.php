@@ -5,18 +5,21 @@ use Livewire\Volt\Component;
 new class extends Component {
     public LiturgyElement $element;
 
-    public function delete(): void
+    public function delete()
     {
         $this->modal("delete-element")->show();
     }
 };
 ?>
 
-<flux:table.row>
+<flux:table.row :x-sort:item="$element->id">
     <flux:table.cell>
-        <div class="flex items-center gap-x-2">
+        <div class="flex items-center gap-x-2 pl-1 group">
+            <div x-sort-handle class="cursor-grab active:cursor-grabbing hidden group-hover:block" title="Drag to reorder">
+                <flux:icon class="text-zinc-300" name="grip" />
+            </div>
             <div>
-                <flux:icon.lectern />
+                <flux:icon icon="{{ $element->type->icon() }}" />
             </div>
             <div>
                 <flux:heading>{{ $element->name }}</flux:heading>

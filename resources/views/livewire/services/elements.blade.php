@@ -2,7 +2,7 @@
 
 use App\Models\LiturgyElement;
 use App\Models\Service;
-use App\Models\Template;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Volt\Component;
@@ -11,16 +11,58 @@ new class extends Component {
     #[Reactive]
     public int $serviceId;
 
-    public function getServiceProperty()
+    public Service $service;
+
+    public function mount()
     {
-        return Service::with("liturgyElements")->find($this->serviceId);
+        $this->loadService();
     }
 
-    #[On("related-model-added")]
+    public function loadService()
+    {
+        $this->service = Service::with("liturgyElements")->find(
+            $this->serviceId,
+        );
+    }
+
+    #[On("related-model-changed")]
     public function refreshElements(): void
     {
-        // Force re-computation of the template property
-        unset($this->service);
+        $this->loadService();
+    }
+
+    public function sort($item, $position): void
+    {
+        $liturgyElement = $this->service->liturgyElements()->findOrFail($item);
+
+        DB::transaction(function () use ($liturgyElement, $position) {
+            $before = $liturgyElement->order;
+            $after = $position;
+
+            if ($before === $after) {
+                return;
+            }
+
+            $liturgyElement->update(["order" => 65535]);
+
+            $elementsToShift = $this->service
+                ->liturgyElements()
+                ->whereBetween("order", [
+                    min($before, $after),
+                    max($before, $after),
+                ]);
+
+            $shiftUp = $before < $after;
+
+            $shiftUp
+                ? $elementsToShift->decrement("order")
+                : $elementsToShift->increment("order");
+
+            $liturgyElement->update(["order" => $after]);
+        });
+
+        $this->loadService();
+        Flux::toast(variant: "success", text: "Service reordered.");
     }
 
     public function delete($id): void
@@ -33,31 +75,14 @@ new class extends Component {
 ?>
 
 <flux:table class="w-full">
-    <flux:table.rows>
+    <flux:table.rows x-sort="$wire.sort($item, $position)">
         @if($this->service->liturgyElements->isEmpty())
             <flux:table.row>
                 <flux:table.cell align="center">No Service Elements</flux:table.cell>
             </flux:table.row>
         @else
             @foreach($this->service->liturgyElements as $element)
-                @switch($element->type)
-                    @case(App\Enums\LiturgyElementType::SECTION)
-                        <livewire:elements.section :$element :key="$element->id" />
-                        @break
-                    @case(App\Enums\LiturgyElementType::SONG)
-                        <livewire:elements.song :$element :key="$element->id" />
-                        @break
-                    @case(App\Enums\LiturgyElementType::READING)
-                    @case(App\Enums\LiturgyElementType::PRAYER)
-                        <livewire:elements.reading :$element :key="$element->id" />
-                        @break
-                    @case(App\Enums\LiturgyElementType::SERMON)
-                        <livewire:elements.sermon :$element :key="$element->id" />
-                        @break
-                    @default
-                        <livewire:elements.other :$element :key="$element->id" />
-                        @break
-                @endswitch
+                @livewire($element->type->component(), ['element' => $element], key($element->id))
             @endforeach
         @endif
     </flux:table.rows>

@@ -10,16 +10,58 @@ new class extends Component {
     #[Reactive]
     public int $templateId;
 
-    public function getTemplateProperty()
+    public Template $template;
+
+    public function mount()
     {
-        return Template::with("liturgyElements")->find($this->templateId);
+        $this->loadTemplate();
     }
 
-    #[On("related-model-added")]
+    public function loadTemplate()
+    {
+        $this->template = Template::with("liturgyElements")->find(
+            $this->templateId,
+        );
+    }
+
+    #[On("related-model-changed")]
     public function refreshElements(): void
     {
-        // Force re-computation of the template property
-        unset($this->template);
+        $this->loadTemplate();
+    }
+
+    public function sort($item, $position): void
+    {
+        $liturgyElement = $this->template->liturgyElements()->findOrFail($item);
+
+        DB::transaction(function () use ($liturgyElement, $position) {
+            $before = $liturgyElement->order;
+            $after = $position;
+
+            if ($before === $after) {
+                return;
+            }
+
+            $liturgyElement->update(["order" => 65535]);
+
+            $elementsToShift = $this->template
+                ->liturgyElements()
+                ->whereBetween("order", [
+                    min($before, $after),
+                    max($before, $after),
+                ]);
+
+            $shiftUp = $before < $after;
+
+            $shiftUp
+                ? $elementsToShift->decrement("order")
+                : $elementsToShift->increment("order");
+
+            $liturgyElement->update(["order" => $after]);
+        });
+
+        $this->loadTemplate();
+        Flux::toast(variant: "success", text: "Template reordered.");
     }
 
     public function delete($id): void
@@ -32,31 +74,14 @@ new class extends Component {
 ?>
 
 <flux:table class="w-full">
-    <flux:table.rows>
+    <flux:table.rows x-sort="$wire.sort($item, $position)">
         @if($this->template->liturgyElements->isEmpty())
             <flux:table.row>
                 <flux:table.cell align="center">No Service Elements</flux:table.cell>
             </flux:table.row>
         @else
             @foreach($this->template->liturgyElements as $element)
-                @switch($element->type)
-                    @case(App\Enums\LiturgyElementType::SECTION)
-                        <livewire:elements.section :$element :key="$element->id" />
-                        @break
-                    @case(App\Enums\LiturgyElementType::SONG)
-                        <livewire:elements.song :$element :key="$element->id" />
-                        @break
-                    @case(App\Enums\LiturgyElementType::READING)
-                    @case(App\Enums\LiturgyElementType::PRAYER)
-                        <livewire:elements.reading :$element :key="$element->id" />
-                        @break
-                    @case(App\Enums\LiturgyElementType::SERMON)
-                        <livewire:elements.sermon :$element :key="$element->id" />
-                        @break
-                    @default
-                        <livewire:elements.other :$element :key="$element->id" />
-                        @break
-                @endswitch
+                @livewire($element->type->component(), ['element' => $element], key($element->id))
             @endforeach
         @endif
     </flux:table.rows>
