@@ -82,7 +82,7 @@ new class extends Component {
             </flux:table.row>
         @else
             @foreach($this->service->liturgyElements as $element)
-               @livewire($element->type->component(), ['element' => $element], key($element->id))
+                @livewire($element->type->component(), ['element' => $element], key($element->id))
             @endforeach
         @endif
     </flux:table.rows>
