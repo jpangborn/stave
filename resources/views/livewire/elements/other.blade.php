@@ -12,7 +12,7 @@ new class extends Component {
 };
 ?>
 
-<flux:table.row>
+<flux:table.row :x-sort:item="$element->id">
     <flux:table.cell>
         <div class="flex items-center gap-x-2 pl-1 group">
             <div x-sort-handle class="cursor-grab active:cursor-grabbing hidden group-hover:block" title="Drag to reorder">

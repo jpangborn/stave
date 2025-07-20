@@ -28,7 +28,7 @@ new class extends Component {
         return User::all();
     }
 
-    #[On("related-model-added")]
+    #[On("related-model-changed")]
     public function refreshTemplate(): void
     {
         $this->form->setTemplate(
@@ -62,7 +62,7 @@ new class extends Component {
 
         $this->elementForm->store();
         $this->reset("elementForm");
-        $this->dispatch("related-model-added");
+        $this->dispatch("related-model-changed");
         Flux::modal("add-element")->close();
         Flux::toast(variant: "success", text: "Element added to template.");
     }

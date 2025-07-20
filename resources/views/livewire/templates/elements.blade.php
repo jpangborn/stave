@@ -15,7 +15,7 @@ new class extends Component {
         return Template::with("liturgyElements")->find($this->templateId);
     }
 
-    #[On("related-model-added")]
+    #[On("related-model-changed")]
     public function refreshElements(): void
     {
         // Force re-computation of the template property
