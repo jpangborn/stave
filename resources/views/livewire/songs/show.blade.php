@@ -1,27 +1,26 @@
 <?php
 
 use App\Models\Song;
-use App\Enums\Permission;
 use Livewire\Attributes\Url;
 use Livewire\Volt\Component;
 use App\Livewire\Forms\SongForm;
 
-new class extends Component
-{
+new class extends Component {
     public SongForm $form;
 
     #[Url]
-    public $tab = 'details';
+    public $tab = "details";
 
     protected $listeners = [
-        'refreshParent' => '$refresh',
+        "refreshParent" => '$refresh',
     ];
 
     public function mount(Song $song): void
     {
         $this->form->setSong($song);
     }
-} ?>
+};
+?>
 
 <section class="w-full">
     <flux:heading size="xl" level="1">{{ $form->name }}</flux:heading>
@@ -84,9 +83,7 @@ new class extends Component
                     @else
                         <flux:card>
                             <flux:heading size="lg" level="3">No Recordings Yet</flux:heading>
-                            @can(Permission::EDIT_SONGS)
-                                <flux:subheading>Add recordings by uploading files below.</flux:subheading>
-                            @endcan
+                            <flux:subheading>Add recordings by uploading files below.</flux:subheading>
                         </flux:card>
                     @endif
                 </div>
@@ -102,9 +99,7 @@ new class extends Component
                     @else
                         <flux:card>
                             <flux:heading size="lg" level="3">No Sheets Yet</flux:heading>
-                            @can(Permission::EDIT_SONGS)
-                                <flux:subheading>Add sheets by uploading files below.</flux:subheading>
-                            @endcan
+                            <flux:subheading>Add sheets by uploading files below.</flux:subheading>
                         </flux:card>
                     @endif
                 </div>
@@ -112,9 +107,7 @@ new class extends Component
 
             <flux:separator variant="subtle" />
 
-            @can(Permission::EDIT_SONGS)
-                <livewire:upload-song-files :song="$form->song"/>
-            @endcan
+            <livewire:songs.upload-files :song="$form->song"/>
         </flux:tab.panel>
     </flux:tab.group>
 </section>
