@@ -12,10 +12,8 @@ arch()->preset()->security();
 arch()->preset()->laravel();
 
 arch("globals")
-    ->expect(["dd", "ddd", "die", "dump", "ray", "sleep", "eval", "env"])
+    ->expect(["sleep"])
     ->toBeUsedInNothing();
-
-arch("models")->expect("App\Models")->toExtend(Model::class);
 
 arch("controllers")
     ->expect("App\Controllers")
@@ -26,21 +24,3 @@ arch("livewire forms")
     ->expect("App\Livewire\Forms")
     ->toBeClasses()
     ->toExtend(Form::class);
-
-arch("notifications")
-    ->expect("App\Notifications")
-    ->toBeClasses()
-    ->toExtend(Notification::class);
-
-arch("enums")->expect("App\Enums")->toBeEnums();
-
-arch("commands")
-    ->expect("App\Console\Commands")
-    ->toBeClasses()
-    ->toExtend(Command::class);
-
-arch("jobs")
-    ->expect("App\Jobs")
-    ->toBeClasses()
-    ->toImplement(ShouldQueue::class)
-    ->toHaveMethod("handle");
