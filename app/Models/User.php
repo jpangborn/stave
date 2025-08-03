@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Traits\HasGravatar;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,7 +15,7 @@ use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 class User extends Authenticatable implements CanComment
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, InteractsWithComments, Notifiable;
+    use HasFactory, InteractsWithComments, Notifiable, HasGravatar;
 
     /**
      * The attributes that are mass assignable.
