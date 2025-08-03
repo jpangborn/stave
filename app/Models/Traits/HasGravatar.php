@@ -10,8 +10,8 @@ trait HasGravatar
     {
         return Attribute::make(
             get: function () {
-                $email = $this->email ?? "";
-                $hash = hash("sha256", strtolower(trim($email)));
+                $email = $this->email ?? '';
+                $hash = hash('sha256', strtolower(trim($email)));
 
                 return "https://www.gravatar.com/avatar/{$hash}";
             },

@@ -7,17 +7,16 @@ arch()->preset()->php();
 arch()->preset()->security();
 arch()->preset()->laravel();
 
-arch("globals")
-    ->expect(["sleep"])
+arch('globals')
+    ->expect(['sleep'])
     ->toBeUsedInNothing();
 
-arch("controllers")
+arch('controllers')
     ->expect("App\Controllers")
     ->toBeClasses()
     ->toExtend(Controller::class);
 
-arch("livewire forms")
+arch('livewire forms')
     ->expect("App\Livewire\Forms")
     ->toBeClasses()
     ->toExtend(Form::class);
-g

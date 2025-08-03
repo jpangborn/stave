@@ -13,7 +13,7 @@ class Service extends Model
     /** @use HasFactory<\Database\Factories\ServiceFactory> */
     use HasComments, HasFactory;
 
-    protected $fillable = ["title", "date", "template_id", "notes"];
+    protected $fillable = ['title', 'date', 'template_id', 'notes'];
 
     /**
      * Get the attributes that should be cast.
@@ -23,7 +23,7 @@ class Service extends Model
     protected function casts(): array
     {
         return [
-            "date" => "date",
+            'date' => 'date',
         ];
     }
 
@@ -37,8 +37,8 @@ class Service extends Model
 
     public function liturgyElements(): MorphMany
     {
-        return $this->morphMany(LiturgyElement::class, "liturgy")->orderBy(
-            "order",
+        return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(
+            'order',
         );
     }
 
@@ -48,7 +48,7 @@ class Service extends Model
      */
     public function commentableName(): string
     {
-        return "Service";
+        return 'Service';
     }
 
     /*
@@ -57,6 +57,6 @@ class Service extends Model
      */
     public function commentUrl(): string
     {
-        return route("services.show", $this);
+        return route('services.show', $this);
     }
 }
