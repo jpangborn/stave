@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Gender;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,11 @@ class PersonFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'first_name' => fake()->name(),
+            'last_name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'birth_date' => fake()->date(),
+            'gender' => fake()->randomElement(Gender::cases()),
         ];
     }
 }
