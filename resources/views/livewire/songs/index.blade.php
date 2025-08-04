@@ -32,13 +32,13 @@ new class extends Component {
                 $query->whereAny(
                     ["name", "ccli_number"],
                     "like",
-                    "%{$this->search}%"
+                    "%{$this->search}%",
                 );
             })
             ->tap(
                 fn($query) => $this->sortBy
                     ? $query->orderBy($this->sortBy, $this->sortDirection)
-                    : $query
+                    : $query,
             )
             ->paginate(12);
     }
