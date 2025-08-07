@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Person;
-use App\Enums\Permission;
 use Flux\Flux;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
