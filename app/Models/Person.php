@@ -15,11 +15,11 @@ class Person extends Model
     use HasFactory, HasGravatar;
 
     protected $fillable = [
-        "first_name",
-        "last_name",
-        "email",
-        "birth_date",
-        "gender",
+        'first_name',
+        'last_name',
+        'email',
+        'birth_date',
+        'gender',
     ];
 
     /**
@@ -30,8 +30,8 @@ class Person extends Model
     protected function casts(): array
     {
         return [
-            "gender" => Gender::class,
-            "birth_date" => "date",
+            'gender' => Gender::class,
+            'birth_date' => 'date',
         ];
     }
 
@@ -47,10 +47,10 @@ class Person extends Model
     protected function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn(
+            get: fn (
                 $value,
                 $attributes,
-            ) => "{$attributes["first_name"]} {$attributes["last_name"]}",
+            ) => "{$attributes['first_name']} {$attributes['last_name']}",
         );
     }
 }

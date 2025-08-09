@@ -27,12 +27,12 @@ class UserFactory extends Factory
         $person = Person::factory()->create();
 
         return [
-            "person_id" => $person->id,
-            "name" => $person->fullName,
-            "email" => $person->email,
-            "email_verified_at" => now(),
-            "password" => (static::$password ??= Hash::make("password")),
-            "remember_token" => Str::random(10),
+            'person_id' => $person->id,
+            'name' => $person->fullName,
+            'email' => $person->email,
+            'email_verified_at' => now(),
+            'password' => (static::$password ??= Hash::make('password')),
+            'remember_token' => Str::random(10),
         ];
     }
 
@@ -42,8 +42,8 @@ class UserFactory extends Factory
     public function unverified(): static
     {
         return $this->state(
-            fn(array $attributes) => [
-                "email_verified_at" => null,
+            fn (array $attributes) => [
+                'email_verified_at' => null,
             ],
         );
     }
