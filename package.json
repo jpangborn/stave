@@ -3,7 +3,15 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "pint": "vendor/bin/pint",
+        "pint:fix": "vendor/bin/pint --dirty",
+        "pest": "vendor/bin/pest --parallel",
+        "test": "vendor/bin/pest",
+        "peck": "vendor/bin/peck",
+        "larastan": "vendor/bin/phpstan analyse --memory-limit=1024M",
+        "rector": "vendor/bin/rector",
+        "rector:dry": "vendor/bin/rector --dry-run"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.0.7",

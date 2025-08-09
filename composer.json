@@ -22,6 +22,7 @@
         "spatie/laravel-comments": "^2.1"
     },
     "require-dev": {
+        "calebdw/larastan-livewire": "^2.2",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
         "laravel/pail": "^1.2.2",

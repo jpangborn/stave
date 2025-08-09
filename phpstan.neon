@@ -1,6 +1,7 @@
 includes:
     - vendor/larastan/larastan/extension.neon
     - vendor/nesbot/carbon/extension.neon
+    - vendor/calebdw/larastan-livewire/extension.neon
 
 parameters:
 
@@ -12,8 +13,8 @@ parameters:
     # Level 10 is the highest level
     level: 5
 
-#    ignoreErrors:
-#        - '#PHPDoc tag @var#'
+    ignoreErrors:
+        - '#Expression "new class extends \\Livewire\\Volt\\Component.*"#'
 #
 #    excludePaths:
 #        - ./*/*/FileToBeExcluded.php
