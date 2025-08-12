@@ -9,7 +9,7 @@ builder:
 
 # Deploy to these servers.
 servers:
-  - 134.199.194.198
+  - 134.199.207.4
 
 # Credentials for your image host.
 registry:
@@ -34,7 +34,7 @@ env:
 accessories:
   db:
     image: mysql:8.0
-    host: 134.199.194.198
+    host: 134.199.207.4
     port: 3306
     env:
       clear:
