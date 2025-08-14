@@ -1,4 +1,4 @@
-FROM serversideup/php:8.3-unit
+FROM serversideup/php:8.4-unit
 
 ENV SSL_MODE=off
 ENV PHP_OPCACHE_ENABLE=1
