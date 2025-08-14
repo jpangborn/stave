@@ -29,6 +29,7 @@ proxy:
 env:
   secret:
     - LARAVEL_ENV_ENCRYPTION_KEY
+    - COMPOSER_AUTH_JSON_BASE64
 
 # Use accessory services (secrets come from .env).
 accessories:
