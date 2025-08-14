@@ -2,12 +2,11 @@
 set -e
 
 echo "Setup Composer Private Repo Authentication"
-echo "$COMPOSER_AUTH_JSON_BASE64"
 
 if [ -n "$COMPOSER_AUTH_JSON_BASE64" ]; then
-    mkdir -p /root/.composer
-    echo "$COMPOSER_AUTH_JSON_BASE64" | base64 -d > /root/.composer/auth.json
-    chmod 600 /root/.composer/auth.json
+    mkdir -p ~/.composer
+    echo "$COMPOSER_AUTH_JSON_BASE64" | base64 -d > ~/.composer/auth.json
+    chmod 600 ~/.composer/auth.json
 fi
 
 echo "Install Composer Dependencies"
