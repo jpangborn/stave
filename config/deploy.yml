@@ -6,6 +6,8 @@ image: jpangborn/stave
 
 builder:
   arch: amd64
+  secrets:
+    - COMPOSER_AUTH_JSON_BASE64
 
 # Deploy to these servers.
 servers:
@@ -29,7 +31,6 @@ proxy:
 env:
   secret:
     - LARAVEL_ENV_ENCRYPTION_KEY
-    - COMPOSER_AUTH_JSON_BASE64
 
 # Use accessory services (secrets come from .env).
 accessories:

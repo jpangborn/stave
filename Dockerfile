@@ -3,11 +3,17 @@ FROM serversideup/php:8.4-cli AS composer
 WORKDIR /app
 
 # Install composer
+USER root
 RUN apt-get update && apt-get install -y git
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
+# Install Composer Dependencies
+RUN --mount=type=secret,id=COMPOSER_AUTH_JSON_BASE64 \
+    export COMPOSER_AUTH="$(cat /run/secrets/COMPOSER_AUTH_JSON_BASE64 | base64 -d)" && \
+    composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# Optimize PHP Classes
 COPY . ./
 RUN composer dump-autoload --optimize
 
