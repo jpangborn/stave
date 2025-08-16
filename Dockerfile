@@ -1,33 +1,49 @@
-# Stage 1: Build assets with Node
+# Stage 1: Composer dependencies
+FROM serversideup/php:8.4-cli AS composer
+WORKDIR /app
+
+# Install composer
+RUN apt-get update && apt-get install -y git
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+COPY . ./
+RUN composer dump-autoload --optimize
+
+# Stage 2: Assets build
 FROM node:22 AS assets
 WORKDIR /app
 
-# Install Node deps
+# Copy composer vendor so assets build can see CSS/JS from PHP packages
+COPY --from=composer /app/vendor ./vendor
+
+# Copy node deps and install
 COPY package*.json ./
 RUN npm ci
 
-# Copy source and build
-COPY . .
+# Copy application code
+COPY . ./
+
+# Build assets
 RUN npm run build
 
-# Stage 2: PHP runtime (no Node in final image)
+# Stage 3: Final runtime image
 FROM serversideup/php:8.4-unit
 
 ENV SSL_MODE=off
 ENV PHP_OPCACHE_ENABLE=1
 
 USER root
-
-# Install Git
 RUN apt-get update && apt-get install -y git
-
 USER www-data
 
-# Copy entrypoint scripts
+# Entrypoint scripts
 COPY --chmod=755 ./entrypoint.d/ /etc/entrypoint.d/
 
-# Copy app source
+# Copy app code
 COPY --chown=www-data:www-data . /var/www/html
 
-# Copy built assets from Node stage into public/build
+# Copy vendor and build artifacts
+COPY --from=composer /app/vendor /var/www/html/vendor
 COPY --from=assets /app/public/build /var/www/html/public/build
