@@ -1,0 +1,20 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/Users/jpangborn/Library/Application Support/Herd/bin/php83",
+            "args": [
+                "/Users/jpangborn/Developer/stave/artisan",
+                "boost:mcp"
+            ]
+        },
+        "herd": {
+            "command": "/Users/jpangborn/Library/Application Support/Herd/bin/php83",
+            "args": [
+                "/Applications/Herd.app/Contents/Resources/herd-mcp.phar"
+            ],
+            "env": {
+                "SITE_PATH": "/Users/jpangborn/Developer/stave"
+            }
+        }
+    }
+}
