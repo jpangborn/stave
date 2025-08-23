@@ -10,7 +10,7 @@ use Livewire\Attributes\Computed;
 new class extends Component {
     use WithPagination;
 
-    public $sortBy = "name";
+    public $sortBy = "title";
     public $sortDirection = "asc";
     public $search = "";
     public $types = [];
