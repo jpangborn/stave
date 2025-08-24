@@ -20,6 +20,7 @@
         "livewire/livewire": "^3.0",
         "livewire/volt": "^1.7.0",
         "spatie/laravel-comments": "^2.1",
+        "symfony/http-client": "^7.3",
         "symfony/postmark-mailer": "^7.3"
     },
     "require-dev": {
