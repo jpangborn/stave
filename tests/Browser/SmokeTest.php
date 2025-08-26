@@ -2,7 +2,7 @@
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-it('has not smoke on key pages', function (): void {
+it('renders key pages without smoke', function (): void {
     $routes = ['/', '/login', '/register'];
 
     $this->visit($routes)->assertNoSmoke();
