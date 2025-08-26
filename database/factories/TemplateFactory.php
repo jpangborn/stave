@@ -2,8 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\LiturgyElement;
-use App\Models\Template;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

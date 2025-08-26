@@ -1,9 +1,9 @@
 <?php
 
 use App\Livewire\Actions\CreateServiceFromTemplate;
+use App\Models\LiturgyElement;
 use App\Models\Service;
 use App\Models\Template;
-use App\Models\LiturgyElement;
 use Illuminate\Support\Carbon;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);

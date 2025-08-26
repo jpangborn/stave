@@ -32,11 +32,11 @@ class LiturgyElementFactory extends Factory
     }
 
     /**
-    * State: assign a random user
-    */
+     * State: assign a random user
+     */
     /**
-        * Assign a random new user
-        */
+     * Assign a random new user
+     */
     public function withAssignee(): static
     {
         return $this->state(fn () => [
@@ -45,8 +45,8 @@ class LiturgyElementFactory extends Factory
     }
 
     /**
-        * Assign a specific user
-        */
+     * Assign a specific user
+     */
     public function assignedTo(User $user): static
     {
         return $this->state(fn () => [
