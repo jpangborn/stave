@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class LiturgyElement extends Model
 {
-    /** @use HasFactory<\Database\Factories\ElementFactory> */
+    /** @use HasFactory<\Database\Factories\LiturgyElementFactory> */
     use HasFactory;
 
     protected $fillable = [
