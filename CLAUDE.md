@@ -12,7 +12,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 ## Foundational Context
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.3.24
+- php - 8.3.25
 - laravel/framework (LARAVEL) - v12
 - laravel/nightwatch (NIGHTWATCH) - v1
 - laravel/prompts (PROMPTS) - v0
@@ -22,15 +22,17 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - livewire/volt (VOLT) - v1
 - larastan/larastan (LARASTAN) - v3
 - laravel/pint (PINT) - v1
+- laravel/sail (SAIL) - v1
 - pestphp/pest (PEST) - v4
+- phpunit/phpunit (PHPUNIT) - v12
 - rector/rector (RECTOR) - v2
 - tailwindcss (TAILWINDCSS) - v4
+
 
 ## Conventions
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, naming.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
-- Always use `use` statements to import classes at the top of PHP files rather than using fully qualified class names inline (e.g., use `Person::create()` instead of `\App\Models\Person::create()`).
 
 ## Verification Scripts
 - Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.
@@ -420,14 +422,12 @@ $delete = fn(Product $product) => $product->delete();
 <!-- HTML / UI Here -->
 </code-snippet>
 
-
 <code-snippet name="Real-Time Search With Volt" lang="php">
     <flux:input
         wire:model.live.debounce.300ms="search"
         placeholder="Search..."
     />
 </code-snippet>
-
 
 <code-snippet name="Loading States With Volt" lang="php">
     <flux:button wire:click="save" wire:loading.attr="disabled">
@@ -536,7 +536,6 @@ it('may reset the password', function () {
     Notification::assertSent(ResetPassword::class);
 });
 </code-snippet>
-
 
 <code-snippet name="Pest Smoke Testing Example" lang="php">
 $pages = visit(['/', '/about', '/contact']);
@@ -650,6 +649,10 @@ npm run build                              # Production build
 - **Element Components**: Service/Template element views in `livewire/elements/`
 - **Testing**: Feature tests with Pest v4 including browser testing capability
 - **File Storage**: Songs can have Sheet and Recording attachments via local filesystem
+
+#### Application Conventions
+
+- Always use `use` statements to import classes at the top of PHP files rather than using fully qualified class names inline (e.g., use `Person::create()` instead of `\App\Models\Person::create()`).
 
 #### Database Schema
 

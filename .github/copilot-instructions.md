@@ -8,7 +8,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 ## Foundational Context
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.3.24
+- php - 8.3.25
 - laravel/framework (LARAVEL) - v12
 - laravel/nightwatch (NIGHTWATCH) - v1
 - laravel/prompts (PROMPTS) - v0
@@ -18,7 +18,9 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - livewire/volt (VOLT) - v1
 - larastan/larastan (LARASTAN) - v3
 - laravel/pint (PINT) - v1
+- laravel/sail (SAIL) - v1
 - pestphp/pest (PEST) - v4
+- phpunit/phpunit (PHPUNIT) - v12
 - rector/rector (RECTOR) - v2
 - tailwindcss (TAILWINDCSS) - v4
 
@@ -416,16 +418,12 @@ $delete = fn(Product $product) => $product->delete();
 <!-- HTML / UI Here -->
 </code-snippet>
 
-
-
 <code-snippet name="Real-Time Search With Volt" lang="php">
     <flux:input
         wire:model.live.debounce.300ms="search"
         placeholder="Search..."
     />
 </code-snippet>
-
-
 
 <code-snippet name="Loading States With Volt" lang="php">
     <flux:button wire:click="save" wire:loading.attr="disabled">
@@ -534,8 +532,6 @@ it('may reset the password', function () {
     Notification::assertSent(ResetPassword::class);
 });
 </code-snippet>
-
-
 
 <code-snippet name="Pest Smoke Testing Example" lang="php">
 $pages = visit(['/', '/about', '/contact']);

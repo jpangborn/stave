@@ -4,31 +4,28 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+        <flux:sidebar sticky collapsible persist class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:sidebar.header>
+                <flux:sidebar.brand href="{{ route('dashboard') }}" logo="/stave-logo.webp" name="Stave" class="font-bold" />
+                <flux:sidebar.collapse />
+            </flux:sidebar.header>
 
-            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
-                <x-app-logo />
-            </a>
+            <flux:sidebar.nav>
+                <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:sidebar.item>
 
-            <flux:navlist variant="outline" class="space-y-3">
-                <flux:navlist.group :heading="__('Platform')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                </flux:navlist.group>
+                <flux:sidebar.group expandable icon="lectern" :heading="__('Liturgy')">
+                    <flux:sidebar.item icon="calendar-days" :href="route('services.index')" :current="request()->routeIs('services.*')" wire:navigate>{{ __('Services') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="notepad-text-dashed" :href="route('templates.index')" :current="request()->routeIs('templates.*')" wire:navigate>{{ __('Templates') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="musical-note" :href="route('songs.index')" :current="request()->routeIs('songs.*')" wire:navigate>{{ __('Songs') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="book-open-text" :href="route('readings.index')" :current="request()->routeIs('readings.*')" wire:navigate>{{ __('Readings') }}</flux:sidebar.item>
+                </flux:sidebar.group>
 
-                <flux:navlist.group :heading="__('Liturgy')" class="grid">
-                    <flux:navlist.item icon="calendar-days" :href="route('services.index')" :current="request()->routeIs('services.*')" wire:navigate>{{ __('Services') }}</flux:navlist.item>
-                    <flux:navlist.item icon="notepad-text-dashed" :href="route('templates.index')" :current="request()->routeIs('templates.*')" wire:navigate>{{ __('Templates') }}</flux:navlist.item>
-                    <flux:navlist.item icon="musical-note" :href="route('songs.index')" :current="request()->routeIs('songs.*')" wire:navigate>{{ __('Songs') }}</flux:navlist.item>
-                    <flux:navlist.item icon="book-open-text" :href="route('readings.index')" :current="request()->routeIs('readings.*')" wire:navigate>{{ __('Readings') }}</flux:navlist.item>
-                </flux:navlist.group>
-
-                <flux:navlist.group :heading="__('Congregation')" class="grid">
-                    <flux:navlist.item icon="users" :href="route('people.index')" :current="request()->routeIs('people.*')" wire:navigate>{{ __('People') }}</flux:navlist.item>
-                    <flux:navlist.item icon="user-group" wire:navigate>{{ __('Groups') }}</flux:navlist.item>
-                    <flux:navlist.item icon="calendar-date-range" wire:navigate>{{ __('Prayer Schedule') }}</flux:navlist.item>
-                </flux:navlist.group>
-            </flux:navlist>
+                <flux:sidebar.group expandable icon="church" :heading="__('Congregation')">
+                    <flux:sidebar.item icon="users" :href="route('people.index')" :current="request()->routeIs('people.*')" wire:navigate>{{ __('People') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="user-group" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-date-range" wire:navigate>{{ __('Prayer Schedule') }}</flux:sidebar.item>
+                </flux:sidebar.group>
+            </flux:sidebar.nav>
 
             <flux:spacer />
 
