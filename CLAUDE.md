@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -21,7 +25,6 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - pestphp/pest (PEST) - v4
 - rector/rector (RECTOR) - v2
 - tailwindcss (TAILWINDCSS) - v4
-
 
 ## Conventions
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, naming.
@@ -417,14 +420,12 @@ $delete = fn(Product $product) => $product->delete();
 </code-snippet>
 
 
-
 <code-snippet name="Real-Time Search With Volt" lang="php">
     <flux:input
         wire:model.live.debounce.300ms="search"
         placeholder="Search..."
     />
 </code-snippet>
-
 
 
 <code-snippet name="Loading States With Volt" lang="php">
@@ -536,7 +537,6 @@ it('may reset the password', function () {
 </code-snippet>
 
 
-
 <code-snippet name="Pest Smoke Testing Example" lang="php">
 $pages = visit(['/', '/about', '/contact']);
 
@@ -603,3 +603,60 @@ $pages->assertNoJavascriptErrors()->assertNoConsoleLogs();
 | decoration-slice | box-decoration-slice |
 | decoration-clone | box-decoration-clone |
 </laravel-boost-guidelines>
+
+
+=== Application-Specific Information ===
+
+### Stave - Worship Service Planning System
+
+This is a Laravel 12 application for managing worship services, liturgy elements, songs, and readings.
+
+#### Core Domain Models
+
+- **Service**: A worship service on a specific date, based on a template
+- **Template**: Reusable service structure with liturgy elements  
+- **LiturgyElement**: Individual service components that can belong to Services or Templates via polymorphic relationship
+  - Types: section, song, reading, sermon, prayer, supper, baptism, other (defined in `LiturgyElementType` enum)
+  - Has optional content relationship to Song or Reading models
+  - Can have assignee (User)
+- **Song**: Worship songs with lyrics, CCLI info, sheets (PDFs), and recordings (audio)
+- **Reading**: Scripture or other readings with type classification
+- **Person/User**: People management with User accounts linked to Person records
+
+#### Key Development Commands
+
+```bash
+# Testing
+npm run pest                                # Run all tests
+php artisan test tests/Feature/ServiceTest  # Test specific file
+php artisan test --filter=testName          # Filter by test name
+vendor/bin/pest --parallel                  # Run tests in parallel
+
+# Code Quality
+npm run pint:fix                            # Format changed files
+npm run larastan                            # Static analysis
+npm run rector:dry                          # Preview refactoring
+npm run rector                              # Apply refactoring
+
+# Building
+npm run build                              # Production build
+```
+
+#### Application Architecture
+
+- **Livewire Components**: Located in `app/Livewire/` with Forms subdirectory
+- **Views**: Blade templates in `resources/views/livewire/`
+- **Element Components**: Service/Template element views in `livewire/elements/`
+- **Testing**: Feature tests with Pest v4 including browser testing capability
+- **File Storage**: Songs can have Sheet and Recording attachments via local filesystem
+
+#### Database Schema
+
+- SQLite database at `database/database.sqlite`
+- Polymorphic relationships for liturgy elements (can belong to Service or Template)
+- Content polymorphism for Songs and Readings
+- Comments system via Spatie Laravel Comments package
+
+#### URL & Serving
+
+Application served via Laravel Herd at: `https://stave.test`
