@@ -12,7 +12,7 @@ class Song extends Model
     /** @use HasFactory<\Database\Factories\SongFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'ccli_number', 'copyright', 'lyrics'];
+    protected $fillable = ['name', 'authors', 'ccli_number', 'copyright', 'lyrics'];
 
     /**
      * @return HasMany<Recording,Song>

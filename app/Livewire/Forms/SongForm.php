@@ -13,6 +13,8 @@ class SongForm extends Form
     #[Validate('required|string')]
     public string $name;
 
+    public ?string $authors = null;
+
     public ?string $ccli_number = null;
 
     public ?string $copyright = null;
@@ -24,6 +26,7 @@ class SongForm extends Form
         $this->song = $song;
 
         $this->name = $song->name;
+        $this->authors = $song->authors;
         $this->ccli_number = $song->ccli_number;
         $this->copyright = $song->copyright;
         $this->lyrics = $song->lyrics;
@@ -34,7 +37,7 @@ class SongForm extends Form
         $this->validate();
 
         Song::create(
-            $this->only(['name', 'ccli_number', 'copyright', 'lyrics'])
+            $this->only(['name', 'authors', 'ccli_number', 'copyright', 'lyrics'])
         );
     }
 
@@ -43,7 +46,7 @@ class SongForm extends Form
         $this->validate();
 
         $this->song->update(
-            $this->only(['name', 'ccli_number', 'copyright', 'lyrics'])
+            $this->only(['name', 'authors', 'ccli_number', 'copyright', 'lyrics'])
         );
     }
 }

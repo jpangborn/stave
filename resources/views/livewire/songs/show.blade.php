@@ -50,6 +50,12 @@ new class extends Component {
                     </flux:field>
 
                     <flux:field>
+                        <flux:label>Authors</flux:label>
+                        <flux:input type="text" name="authors" wire:model="form.authors" variant="filled" readonly copyable/>
+                        <flux:error name="form.authors" />
+                    </flux:field>
+
+                    <flux:field>
                         <flux:label>CCLI Number</flux:label>
                         <flux:input type="text" name="ccli_number" wire:model="form.ccli_number" variant="filled" readonly copyable />
                         <flux:error name="form.ccli_number" />

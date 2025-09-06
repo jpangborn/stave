@@ -148,3 +148,78 @@ test('authenticated users can delete a song', function (): void {
 
     $this->assertDatabaseMissing('songs', ['id' => $song->id]);
 });
+
+test('authenticated users can create a song with authors', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    LivewireVolt::test('songs.create')
+        ->set('form.name', 'Amazing Grace')
+        ->set('form.authors', 'John Newton, William Cowper')
+        ->set('form.ccli_number', '12345')
+        ->set('form.copyright', 'Public Domain')
+        ->set('form.lyrics', 'Lorem ipsum')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect('/songs');
+
+    $this->assertDatabaseHas('songs', [
+        'name' => 'Amazing Grace',
+        'authors' => 'John Newton, William Cowper',
+    ]);
+});
+
+test('authenticated users can update a song with authors', function (): void {
+    $user = User::factory()->create();
+    $song = Song::create([
+        'name' => 'Old Title',
+        'authors' => null,
+        'ccli_number' => '11111',
+        'copyright' => '©',
+        'lyrics' => 'Old lyrics',
+    ]);
+
+    $this->actingAs($user);
+
+    LivewireVolt::test('songs.edit', ['song' => $song->id])
+        ->set('form.name', 'New Title')
+        ->set('form.authors', 'John Smith, Jane Doe')
+        ->set('form.lyrics', 'New lyrics')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect('/songs');
+
+    expect($song->fresh()->authors)->toBe('John Smith, Jane Doe');
+});
+
+test('song authors field is optional', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    LivewireVolt::test('songs.create')
+        ->set('form.name', 'Song Without Authors')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect('/songs');
+
+    $this->assertDatabaseHas('songs', [
+        'name' => 'Song Without Authors',
+        'authors' => null,
+    ]);
+});
+
+test('song show page displays authors when present', function (): void {
+    $user = User::factory()->create();
+    $song = Song::create([
+        'name' => 'Test Song',
+        'authors' => 'John Newton, William Cowper',
+        'ccli_number' => null,
+        'copyright' => null,
+        'lyrics' => null,
+    ]);
+
+    $this->actingAs($user)
+        ->get("/songs/{$song->id}")
+        ->assertStatus(200)
+        ->assertSee('John Newton, William Cowper');
+});
