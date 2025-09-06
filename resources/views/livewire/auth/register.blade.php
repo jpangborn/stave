@@ -28,15 +28,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
-
         $user = DB::transaction(function () use ($validated) {
-            [$first, $last] = array_pad(explode(' ', trim($validated['name']), 2), 2, '');
+            [$first, $last] = array_pad(preg_split('/\s+/', trim($validated['name']), 2), 2, '');
 
-            $person = Person::firstOrCreate(['email' => $validated['email']], [
+            $person = Person::firstOrCreate([
+                'email' => $validated['email']
+            ], [
                 'first_name' => $first,
                 'last_name'  => $last,
-                'email'      => $validated['email'],
             ]);
 
             $data = $validated;
