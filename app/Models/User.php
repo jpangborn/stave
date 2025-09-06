@@ -56,7 +56,7 @@ class User extends Authenticatable implements CanComment
     }
 
     /**
-     * @return BelongsTo<Person,Person>
+     * @return BelongsTo<Person,User>
      */
     public function person(): BelongsTo
     {
