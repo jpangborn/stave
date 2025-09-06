@@ -22,7 +22,7 @@ class User extends Authenticatable implements CanComment
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'person_id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -56,7 +56,7 @@ class User extends Authenticatable implements CanComment
     }
 
     /**
-     * @return BelongsTo<Person,Person>
+     * @return BelongsTo<Person,User>
      */
     public function person(): BelongsTo
     {

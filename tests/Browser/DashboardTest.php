@@ -2,6 +2,4 @@
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-it('renders dashboard page', function (): void {
-
-})->skip();
+it('renders dashboard page', function (): void {})->skip();
