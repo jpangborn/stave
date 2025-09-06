@@ -6,7 +6,7 @@
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky collapsible persist class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <flux:sidebar.brand href="{{ route('dashboard') }}" logo="/stave-logo.webp" name="Stave" class="font-bold" />
+                <flux:sidebar.brand :href="route('dashboard')" logo="/stave-logo.webp" name="Stave" class="font-bold" />
                 <flux:sidebar.collapse />
             </flux:sidebar.header>
 
