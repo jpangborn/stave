@@ -42,6 +42,11 @@ ENV PHP_OPCACHE_ENABLE=1
 
 USER root
 RUN apt-get update && apt-get install -y git
+
+# Install the intl extension with root permissions
+RUN install-php-extensions intl
+
+# Drop back to our unprivileged user
 USER www-data
 
 # Entrypoint scripts
