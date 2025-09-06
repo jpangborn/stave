@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Person;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,18 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
+
+        // Create Person record first
+        $nameParts = explode(' ', $validated['name'], 2);
+
+        $person = Person::create([
+            'first_name' => $nameParts[0],
+            'last_name' => $nameParts[1] ?? '',
+            'email' => $validated['email'],
+        ]);
+
+        // Create User with person_id
+        $validated['person_id'] = $person->id;
 
         event(new Registered(($user = User::create($validated))));
 
