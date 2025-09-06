@@ -1,9 +1,11 @@
 <?php
 
+
 use App\Models\Person;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
@@ -28,19 +30,22 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $validated['password'] = Hash::make($validated['password']);
 
-        // Create Person record first
-        $nameParts = explode(' ', $validated['name'], 2);
+        $user = DB::transaction(function () use ($validated) {
+            [$first, $last] = array_pad(explode(' ', trim($validated['name']), 2), 2, '');
 
-        $person = Person::create([
-            'first_name' => $nameParts[0],
-            'last_name' => $nameParts[1] ?? '',
-            'email' => $validated['email'],
-        ]);
+            $person = Person::firstOrCreate(['email' => $validated['email']], [
+                'first_name' => $first,
+                'last_name'  => $last,
+                'email'      => $validated['email'],
+            ]);
 
-        // Create User with person_id
-        $validated['person_id'] = $person->id;
+            $data = $validated;
+            $data['person_id'] = $person->id;
 
-        event(new Registered(($user = User::create($validated))));
+            return User::create($data);
+        });
+
+        event(new Registered($user));
 
         Auth::login($user);
 
