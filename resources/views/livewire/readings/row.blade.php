@@ -22,6 +22,13 @@ new class extends Component {
         <flux:badge size="sm" color="{{ $reading->type->color() }}" inset="top bottom">{{ $reading->type->label() }}</flux:badge>
     </flux:table.cell>
     <flux:table.cell>
+        @if($reading->last_used_date)
+            {{ $reading->last_used_date->toFormattedDayDateString() }}
+        @else
+            <span class="text-zinc-500">Never</span>
+        @endif
+    </flux:table.cell>
+    <flux:table.cell>
         {{ $reading->created_at->toFormattedDayDateString() }}
     </flux:table.cell>
     <flux:table.cell  class="max-w-6">

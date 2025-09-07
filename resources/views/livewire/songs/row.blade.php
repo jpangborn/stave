@@ -23,6 +23,13 @@ new class extends Component {
         @endif
     </flux:table.cell>
     <flux:table.cell>
+        @if($song->last_used_date)
+            {{ $song->last_used_date->toFormattedDayDateString() }}
+        @else
+            <span class="text-zinc-500">Never</span>
+        @endif
+    </flux:table.cell>
+    <flux:table.cell>
         {{ $song->created_at->toFormattedDayDateString() }}
     </flux:table.cell>
     <flux:table.cell class="max-w-6">
