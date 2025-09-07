@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,39 @@ class Song extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'authors', 'ccli_number', 'copyright', 'lyrics'];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'last_used_date' => 'date',
+        ];
+    }
+
+    /**
+     * Add last used date from services to the query.
+     *
+     * @param Builder<Song> $query
+     * @return Builder<Song>
+     */
+    public function scopeWithLastUsedDate(Builder $query): Builder
+    {
+        return $query->selectRaw("songs.*, (
+            SELECT MAX(services.date)
+            FROM liturgy_elements
+            INNER JOIN services ON liturgy_elements.liturgy_id = services.id
+              AND liturgy_elements.liturgy_type = 'App\\Models\\Service'
+            WHERE liturgy_elements.content_type = 'App\\Models\\Song'
+              AND liturgy_elements.content_id = songs.id
+              AND services.date <= ?
+        ) as last_used_date", [
+            now()->toDateString(),
+        ]);
+    }
 
     /**
      * @return HasMany<Recording,Song>
