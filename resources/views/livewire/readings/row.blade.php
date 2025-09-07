@@ -22,6 +22,13 @@ new class extends Component {
         <flux:badge size="sm" color="{{ $reading->type->color() }}" inset="top bottom">{{ $reading->type->label() }}</flux:badge>
     </flux:table.cell>
     <flux:table.cell>
+        @if($reading->last_used_date)
+            {{ $reading->last_used_date->toFormattedDayDateString() }}
+        @else
+            <span class="text-zinc-500">Never</span>
+        @endif
+    </flux:table.cell>
+    <flux:table.cell>
         {{ $reading->created_at->toFormattedDayDateString() }}
     </flux:table.cell>
     <flux:table.cell  class="max-w-6">
@@ -32,7 +39,7 @@ new class extends Component {
                 <flux:menu.item href="{{ route('readings.edit', ['reading' => $reading]) }}" icon="pencil-square" class="cursor-default">Edit</flux:menu.item>
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
-        </flux:drowdown>
+        </flux:dropdown>
 
         <flux:modal name="delete-reading" class="min-w-[22rem]">
             <div class="space-y-6">

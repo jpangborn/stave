@@ -17,7 +17,10 @@ class ServiceFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => $this->faker->sentence(3),
+            'date' => $this->faker->dateTimeBetween('-1 year', '+1 month'),
+            'template_id' => null,
+            'notes' => $this->faker->optional()->paragraph(),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 use Flux\Flux;
 use App\Models\Song;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
@@ -24,10 +25,24 @@ new class extends Component {
         }
     }
 
+    private function buildOrderByClause(): string
+    {
+        $allowedColumns = ['name', 'ccli_number', 'last_used_date', 'created_at'];
+        $column = in_array($this->sortBy, $allowedColumns, true) ? $this->sortBy : 'name';
+        $direction = $this->sortDirection === 'desc' ? 'desc' : 'asc';
+
+        if ($column === 'last_used_date') {
+            return "CASE WHEN last_used_date IS NULL THEN 0 ELSE 1 END {$direction}, {$column} {$direction}";
+        }
+
+        return "{$column} {$direction}";
+    }
+
     #[Computed]
     public function songs()
     {
         return Song::query()
+            ->withLastUsedDate()
             ->when($this->search, function ($query): void {
                 $query->whereAny(
                     ["name", "ccli_number"],
@@ -35,11 +50,7 @@ new class extends Component {
                     "%{$this->search}%",
                 );
             })
-            ->tap(
-                fn($query) => $this->sortBy
-                    ? $query->orderBy($this->sortBy, $this->sortDirection)
-                    : $query,
-            )
+            ->orderByRaw($this->buildOrderByClause())
             ->paginate(12);
     }
 
@@ -66,6 +77,7 @@ new class extends Component {
         <flux:table.columns>
             <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Name</flux:table.column>
             <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'ccli_number'" :direction="$sortDirection" wire:click="sort('ccli_number')">CCLI Number</flux:table.column>
+            <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'last_used_date'" :direction="$sortDirection" wire:click="sort('last_used_date')">Last Used</flux:table.column>
             <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')">Added</flux:table.column>
             <flux:table.column class="font-semibold"></flux:table.column>
         </flux:table.columns>

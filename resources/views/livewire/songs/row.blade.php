@@ -23,6 +23,13 @@ new class extends Component {
         @endif
     </flux:table.cell>
     <flux:table.cell>
+        @if($song->last_used_date)
+            {{ $song->last_used_date->toFormattedDayDateString() }}
+        @else
+            <span class="text-zinc-500">Never</span>
+        @endif
+    </flux:table.cell>
+    <flux:table.cell>
         {{ $song->created_at->toFormattedDayDateString() }}
     </flux:table.cell>
     <flux:table.cell class="max-w-6">
@@ -33,7 +40,7 @@ new class extends Component {
                 <flux:menu.item href="{{ route('songs.edit', ['song' => $song]) }}" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
-        </flux:drowdown>
+        </flux:dropdown>
 
         <flux:modal name="delete-song" class="min-w-[22rem]">
             <form wire:submit="$parent.delete({{ $song->id }})" class="space-y-6">
