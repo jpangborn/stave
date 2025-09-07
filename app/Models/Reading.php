@@ -31,7 +31,7 @@ class Reading extends Model
     /**
      * Add last used date from services to the query.
      *
-     * @param Builder<Reading> $query
+     * @param  Builder<Reading>  $query
      * @return Builder<Reading>
      */
     public function scopeWithLastUsedDate(Builder $query): Builder

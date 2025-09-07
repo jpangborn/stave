@@ -30,7 +30,7 @@ class Song extends Model
     /**
      * Add last used date from services to the query.
      *
-     * @param Builder<Song> $query
+     * @param  Builder<Song>  $query
      * @return Builder<Song>
      */
     public function scopeWithLastUsedDate(Builder $query): Builder

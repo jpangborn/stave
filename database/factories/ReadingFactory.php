@@ -20,7 +20,7 @@ class ReadingFactory extends Factory
         return [
             'title' => $this->faker->sentence(3),
             'type' => $this->faker->randomElement(ReadingType::cases()),
-            'text' => '<p>' . $this->faker->paragraph() . '</p>',
+            'text' => '<p>'.$this->faker->paragraph().'</p>',
         ];
     }
 }

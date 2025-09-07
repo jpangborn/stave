@@ -2,7 +2,6 @@
 
 use Flux\Flux;
 use App\Models\Song;
-use Illuminate\Support\Facades\Cache;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
