@@ -36,16 +36,16 @@ class Reading extends Model
      */
     public function scopeWithLastUsedDate(Builder $query): Builder
     {
-        return $query->selectRaw("readings.*, (
-            SELECT MAX(services.date)
-            FROM liturgy_elements
-            INNER JOIN services ON liturgy_elements.liturgy_id = services.id
-              AND liturgy_elements.liturgy_type = 'App\\Models\\Service'
-            WHERE liturgy_elements.content_type = 'App\\Models\\Reading'
-              AND liturgy_elements.content_id = readings.id
-              AND services.date <= ?
-        ) as last_used_date", [
-            now()->toDateString(),
+        return $query->addSelect([
+            'last_used_date' => LiturgyElement::query()
+                ->selectRaw('MAX(services.date)')
+                ->join('services', function ($join) {
+                    $join->on('liturgy_elements.liturgy_id', '=', 'services.id')
+                        ->where('liturgy_elements.liturgy_type', '=', Service::class);
+                })
+                ->where('liturgy_elements.content_type', '=', Reading::class)
+                ->whereColumn('liturgy_elements.content_id', 'readings.id')
+                ->where('services.date', '<=', now()->toDateString()),
         ]);
     }
 

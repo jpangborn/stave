@@ -35,16 +35,16 @@ class Song extends Model
      */
     public function scopeWithLastUsedDate(Builder $query): Builder
     {
-        return $query->selectRaw("songs.*, (
-            SELECT MAX(services.date)
-            FROM liturgy_elements
-            INNER JOIN services ON liturgy_elements.liturgy_id = services.id
-              AND liturgy_elements.liturgy_type = 'App\\Models\\Service'
-            WHERE liturgy_elements.content_type = 'App\\Models\\Song'
-              AND liturgy_elements.content_id = songs.id
-              AND services.date <= ?
-        ) as last_used_date", [
-            now()->toDateString(),
+        return $query->addSelect([
+            'last_used_date' => LiturgyElement::query()
+                ->selectRaw('MAX(services.date)')
+                ->join('services', function ($join) {
+                    $join->on('liturgy_elements.liturgy_id', '=', 'services.id')
+                        ->where('liturgy_elements.liturgy_type', '=', Service::class);
+                })
+                ->where('liturgy_elements.content_type', '=', Song::class)
+                ->whereColumn('liturgy_elements.content_id', 'songs.id')
+                ->where('services.date', '<=', now()->toDateString()),
         ]);
     }
 
