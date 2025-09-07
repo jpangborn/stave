@@ -40,7 +40,7 @@ new class extends Component {
                 <flux:menu.item href="{{ route('songs.edit', ['song' => $song]) }}" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
-        </flux:drowdown>
+        </flux:dropdown>
 
         <flux:modal name="delete-song" class="min-w-[22rem]">
             <form wire:submit="$parent.delete({{ $song->id }})" class="space-y-6">

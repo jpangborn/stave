@@ -39,7 +39,7 @@ new class extends Component {
                 <flux:menu.item href="{{ route('readings.edit', ['reading' => $reading]) }}" icon="pencil-square" class="cursor-default">Edit</flux:menu.item>
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
-        </flux:drowdown>
+        </flux:dropdown>
 
         <flux:modal name="delete-reading" class="min-w-[22rem]">
             <div class="space-y-6">
