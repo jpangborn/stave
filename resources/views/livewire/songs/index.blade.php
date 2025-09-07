@@ -27,11 +27,15 @@ new class extends Component {
 
     private function buildOrderByClause(): string
     {
-        if ($this->sortBy === 'last_used_date') {
-            return "CASE WHEN last_used_date IS NULL THEN 0 ELSE 1 END {$this->sortDirection}, {$this->sortBy} {$this->sortDirection}";
+        $allowedColumns = ['name', 'ccli_number', 'last_used_date', 'created_at'];
+        $column = in_array($this->sortBy, $allowedColumns, true) ? $this->sortBy : 'name';
+        $direction = $this->sortDirection === 'desc' ? 'desc' : 'asc';
+
+        if ($column === 'last_used_date') {
+            return "CASE WHEN last_used_date IS NULL THEN 0 ELSE 1 END {$direction}, {$column} {$direction}";
         }
 
-        return "{$this->sortBy} {$this->sortDirection}";
+        return "{$column} {$direction}";
     }
 
     #[Computed]
