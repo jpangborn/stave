@@ -23,10 +23,13 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: "8.4"
 
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      - name: Add Spatie Comments Credentials Loaded From ENV
+        run: composer config http-basic.satis.spatie.be "${{ secrets.SPATIE_COMMENTS_USERNAME }}" "${{ secrets.SPATIE_COMMENTS_PASSWORD }}"
 
       - name: Install Dependencies
         run: |
@@ -36,11 +39,10 @@ jobs:
       - name: Run Pint
         run: vendor/bin/pint
 
-      # - name: Commit Changes
-      #   uses: stefanzweifel/git-auto-commit-action@v5
-      #   with:
-      #     commit_message: fix code style
-      #     commit_options: '--no-verify'
-      #     file_pattern: |
-      #       **/*
-      #       !.github/workflows/*
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Pint formatting
+          commit_user_name: Pint
+          commit_user_email: pint@pangborn.cloud
+          commit_author: Pint <pint@pangborn.cloud>
