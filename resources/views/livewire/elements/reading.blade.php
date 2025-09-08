@@ -96,7 +96,7 @@ new class extends Component {
                         <flux:menu.item wire:click="editElement({{ $element->id }})" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
                         <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
                     </flux:menu>
-                </flux:drowdown>
+                </flux:dropdown>
             </div>
         </div>
 

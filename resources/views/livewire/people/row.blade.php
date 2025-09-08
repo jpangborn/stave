@@ -29,7 +29,7 @@ new class extends Component {
         <flux:badge size="sm" inset="top bottom" :color="$person->gender?->color()">{{ $person->gender?->label() }}</flux:badge>
     </flux:table.cell>
     <flux:table.cell class="whitespace-nowrap">{{ $person->created_at->toFormattedDayDateString() }}</flux:table.cell>
-    <flux:table.cell class="max-w-6">
+    <flux:table.cell align="end">
         <flux:dropdown align="end" offset="-15">
             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
@@ -37,7 +37,7 @@ new class extends Component {
                 <flux:menu.item href="{{ route('people.edit', ['person' => $person]) }}" icon="pencil-square">Edit</flux:menu.item>
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
-        </flux:drowdown>
+        </flux:dropdown>
 
         <flux:modal name="delete-person" class="min-w-[22rem]">
             <form wire:submit="$parent.delete({{ $person->id }})" class="space-y-6">
