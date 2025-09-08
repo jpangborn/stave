@@ -29,14 +29,17 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Install Node Dependencies
         run: npm i
 
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      - name: Add Spatie Comments Credentials Loaded From ENV
+        run: composer config http-basic.satis.spatie.be "${{ secrets.SPATIE_COMMENTS_USERNAME }}" "${{ secrets.SPATIE_COMMENTS_PASSWORD }}"
 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
