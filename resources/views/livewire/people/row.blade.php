@@ -37,7 +37,7 @@ new class extends Component {
                 <flux:menu.item href="{{ route('people.edit', ['person' => $person]) }}" icon="pencil-square">Edit</flux:menu.item>
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
-        </flux:drowdown>
+        </flux:dropdown>
 
         <flux:modal name="delete-person" class="min-w-[22rem]">
             <form wire:submit="$parent.delete({{ $person->id }})" class="space-y-6">
