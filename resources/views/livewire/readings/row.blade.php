@@ -31,7 +31,7 @@ new class extends Component {
     <flux:table.cell>
         {{ $reading->created_at->toFormattedDayDateString() }}
     </flux:table.cell>
-    <flux:table.cell  class="max-w-6">
+    <flux:table.cell align="end">
         <flux:dropdown align="end" offset="-15">
             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 

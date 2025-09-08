@@ -25,7 +25,7 @@ new class extends Component {
             <flux:link variant="ghost" href="{{ route('templates.show', ['template' => $service->template]) }}" >{{ $service->template->name }}</flux:link>
        @endif
     </flux:table.cell>
-    <flux:table.cell class="max-w-6">
+    <flux:table.cell align="end">
         <flux:dropdown align="end" offset="-15">
             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
