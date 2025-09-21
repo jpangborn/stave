@@ -47,8 +47,8 @@ new class extends Component {
     public function readings()
     {
         return $this->element->reading_type
-            ? Reading::where('type', $this->element->reading_type->value)->get()
-            : Reading::all();
+            ? Reading::where('type', $this->element->reading_type)->orderBy('title')->get()
+            : Reading::orderBy('title')->get();
     }
 
     #[Computed]
