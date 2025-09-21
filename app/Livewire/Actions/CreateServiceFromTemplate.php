@@ -23,6 +23,7 @@ class CreateServiceFromTemplate
             foreach ($template->liturgyElements as $element) {
                 $service->liturgyElements()->create([
                     'type' => $element->type,
+                    'reading_type' => $element->reading_type,
                     'order' => $element->order,
                     'name' => $element->name,
                     'description' => $element->description,
