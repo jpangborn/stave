@@ -33,7 +33,7 @@ new class extends Component {
                     <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
                     <flux:menu class="min-w-32">
-                        <flux:menu.item wire:click="editElement({{ $element->id }})" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
+                        <flux:menu.item wire:click="$dispatch('edit-element', { id: {{ $element->id }} })" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
                         <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
@@ -43,7 +43,7 @@ new class extends Component {
         <flux:modal name="delete-element" class="min-w-[22rem]">
             <form wire:submit="$parent.delete({{ $element->id }})" class="space-y-6">
                 <div>
-                    <flux:heading size="lg">Delete song?</flux:heading>
+                    <flux:heading size="lg">Delete liturgy element?</flux:heading>
 
                     <flux:subheading>
                         <p>This will permanently delete the liturgy element.</p>

@@ -50,10 +50,12 @@ class LiturgyElementForm extends Form
                 new Enum(LiturgyElementType::class),
             ],
             'reading_type' => [
-                'nullable',
+                'exclude_unless:type,'.LiturgyElementType::READING->value,
+                'required',
                 'string',
                 new Enum(ReadingType::class),
             ],
+            'assignee_id' => 'nullable|integer|exists:users,id',
             'order' => 'integer|min:0|max:1000',
         ];
     }
@@ -61,13 +63,14 @@ class LiturgyElementForm extends Form
     public function setLiturgyElement(LiturgyElement $element): void
     {
         $this->element = $element;
-        $this->parent = $element->parent;
+        $this->parent = $element->liturgy;
 
         $this->name = $element->name;
         $this->description = $element->description;
         $this->type = $element?->type?->value ?? '';
-        $this->reading_type = $element?->reading_type?->value ?? '';
+        $this->reading_type = $element?->reading_type?->value ?? null;
         $this->order = $element->order;
+        $this->assignee_id = $element->assignee_id;
     }
 
     public function setParent(Template|Service $parent): void
@@ -101,15 +104,19 @@ class LiturgyElementForm extends Form
     {
         $this->validate();
 
-        $this->element->update(
-            $this->only([
-                'name',
-                'description',
-                'type',
-                'reading_type',
-                'assignee_id',
-                'order',
-            ])
-        );
+        $data = $this->only([
+            'name',
+            'description',
+            'type',
+            'reading_type',
+            'assignee_id',
+            'order',
+        ]);
+
+        if (($data['type'] ?? null) !== LiturgyElementType::READING->value) {
+            $data['reading_type'] = null;
+        }
+
+        $this->element->update($data);
     }
 }
