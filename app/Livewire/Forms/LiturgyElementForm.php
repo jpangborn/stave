@@ -55,6 +55,7 @@ class LiturgyElementForm extends Form
                 'string',
                 new Enum(ReadingType::class),
             ],
+            'assignee_id' => 'nullable|integer|exists:users,id',
             'order' => 'integer|min:0|max:1000',
         ];
     }
