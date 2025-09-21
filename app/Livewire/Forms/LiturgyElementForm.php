@@ -102,15 +102,19 @@ class LiturgyElementForm extends Form
     {
         $this->validate();
 
-        $this->element->update(
-            $this->only([
-                'name',
-                'description',
-                'type',
-                'reading_type',
-                'assignee_id',
-                'order',
-            ])
-        );
+        $data = $this->only([
+            'name',
+            'description',
+            'type',
+            'reading_type',
+            'assignee_id',
+            'order',
+        ]);
+
+        if (($data['type'] ?? null) !== LiturgyElementType::READING->value) {
+            $data['reading_type'] = null;
+        }
+
+        $this->element->update($data);
     }
 }
