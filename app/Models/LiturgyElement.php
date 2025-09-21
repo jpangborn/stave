@@ -16,6 +16,7 @@ class LiturgyElement extends Model
 
     protected $fillable = [
         'type',
+        'reading_type',
         'order',
         'name',
         'assignee_id',

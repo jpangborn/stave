@@ -55,8 +55,7 @@ new class extends Component {
     {
         $elements = $this->form->template->liturgyElements();
 
-        $this->elementForm->order =
-            $elements->count() === 0 ? 0 : $elements->max("order")->increment();
+        $this->elementForm->order = (int) (($elements->max('order')) ?? -1) + 1;
 
         $this->elementForm->parent = $this->form->template;
 
