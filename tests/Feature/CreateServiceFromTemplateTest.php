@@ -33,8 +33,8 @@ it('creates a service from a template with liturgy elements', function () {
         $this->assertDatabaseHas('liturgy_elements', [
             'liturgy_type' => Service::class,
             'liturgy_id' => $service->id,
-            'type' => $templateElement->type->value,
-            'reading_type' => $templateElement->reading_type->value,
+            'type' => $templateElement->type,
+            'reading_type' => $templateElement->reading_type,
             'order' => $templateElement->order,
             'assignee_id' => $templateElement->assignee_id,
             'content_id' => $templateElement->content_id,
