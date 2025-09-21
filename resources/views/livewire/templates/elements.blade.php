@@ -84,7 +84,7 @@ new class extends Component {
     #[On('edit-element')]
     public function editElement($id): void
     {
-        $element = LiturgyElement::findOrFail($id);
+        $element = $this->template->liturgyElements()->findOrFail($id);
         $this->elementForm->setLiturgyElement($element);
         Flux::modal("edit-element")->show();
     }
