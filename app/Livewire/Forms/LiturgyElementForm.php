@@ -50,7 +50,7 @@ class LiturgyElementForm extends Form
                 new Enum(LiturgyElementType::class),
             ],
             'reading_type' => [
-                'exclude_unless:type,' . LiturgyElementType::READING->value,
+                'exclude_unless:type,'.LiturgyElementType::READING->value,
                 'required',
                 'string',
                 new Enum(ReadingType::class),
