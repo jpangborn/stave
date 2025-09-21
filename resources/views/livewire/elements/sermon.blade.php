@@ -77,7 +77,7 @@ new class extends Component {
                     <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
                     <flux:menu class="min-w-32">
-                        <flux:menu.item wire:click="editElement({{ $element->id }})" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
+                        <flux:menu.item wire:click="$dispatch('edit-element', { id: {{ $element->id }} })" icon="pencil-square"  class="cursor-default">Edit</flux:menu.item>
                         <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>

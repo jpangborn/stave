@@ -61,13 +61,14 @@ class LiturgyElementForm extends Form
     public function setLiturgyElement(LiturgyElement $element): void
     {
         $this->element = $element;
-        $this->parent = $element->parent;
+        $this->parent = $element->liturgy;
 
         $this->name = $element->name;
         $this->description = $element->description;
         $this->type = $element?->type?->value ?? '';
-        $this->reading_type = $element?->reading_type?->value ?? '';
+        $this->reading_type = $element?->reading_type?->value ?? null;
         $this->order = $element->order;
+        $this->assignee_id = $element->assignee_id;
     }
 
     public function setParent(Template|Service $parent): void
