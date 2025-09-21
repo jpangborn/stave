@@ -105,7 +105,7 @@ new class extends Component {
         <flux:modal name="delete-element" class="min-w-[22rem]">
             <form wire:submit="$parent.delete({{ $element->id }})" class="space-y-6">
                 <div>
-                    <flux:heading size="lg">Delete song?</flux:heading>
+                    <flux:heading size="lg">Delete liturgy element?</flux:heading>
 
                     <flux:subheading>
                         <p>This will permanently delete the liturgy element.</p>
