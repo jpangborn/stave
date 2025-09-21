@@ -76,7 +76,7 @@ new class extends Component {
 
     public function delete($id): void
     {
-        LiturgyElement::findOrFail($id)->delete();
+        $this->template->liturgyElements()->findOrFail($id)->delete();
         Flux::modal("delete-element")->close();
         Flux::toast(variant: "danger", text: "Liturgy element deleted.");
     }
