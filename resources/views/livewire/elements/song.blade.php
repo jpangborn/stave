@@ -56,28 +56,25 @@ new class extends Component {
 
 <flux:table.row :x-sort:item="$element->id">
     <flux:table.cell>
-        <div class="flex items-center gap-x-2 pl-1 group">
+        <div class="flex flex-col md:flex-row gap-2 md:gap-x-2 md:items-center pl-1 group">
             <div x-sort-handle class="cursor-grab hidden group-hover:block" title="Drag to reorder">
                 <flux:icon class="text-zinc-300" name="grip" />
             </div>
             <div>
                 <flux:icon.musical-note />
             </div>
-            <div>
+            <div class="flex-1">
                 <flux:heading>{{ $element->name }}</flux:heading>
                 @if($element->description)
                     <flux:subheading>{{ $element->description }}</flux:subheading>
                 @endif
             </div>
-            <flux:spacer />
-            <div>
+            <div class="w-full md:w-auto flex flex-col md:flex-row gap-2">
                 <flux:select variant="combobox" size="sm" wire:model.live="assigneeId" placeholder="Assign element...">
                     @foreach($this->users as $user)
                         <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:option>
                     @endforeach
                 </flux:select>
-            </div>
-            <div>
                 <flux:select variant="combobox" size="sm" wire:model.live="selectedContent" placeholder="Select a song...">
                     @foreach($this->songs as $song)
                         <flux:select.option value="{{ $song->id }}">{{ $song->name }}</flux:option>
