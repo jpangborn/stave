@@ -55,23 +55,25 @@ new class extends Component {
             <div x-sort-handle class="cursor-grab hidden group-hover:block" title="Drag to reorder">
                 <flux:icon class="text-zinc-300" name="grip" />
             </div>
+            <div class="flex-1 flex items-center gap-1">
+                <div>
+                    <flux:icon.lectern />
+                </div>
+                <div>
+                    <flux:heading>{{ $element->name }}</flux:heading>
+                </div>
+            </div>
             <div>
-                <flux:icon.lectern />
-            </div>
-            <div class="flex-1">
-                <flux:heading>{{ $element->name }}</flux:heading>
-            </div>
-            <div class="w-full md:w-auto flex flex-col md:flex-row gap-2">
                 <flux:select variant="combobox" size="sm" wire:model.live="assigneeId" placeholder="Assign element...">
                     @foreach($this->users as $user)
                         <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:option>
                     @endforeach
                 </flux:select>
-                <div class="md:w-[226px]">
-                    <flux:input size="sm" placeholder="Enter title or reference" wire:model.blur="description" />
-                </div>
             </div>
-            <div class="pr-2">
+            <div class="md:w-[226px]">
+                <flux:input size="sm" placeholder="Enter title or reference" wire:model.blur="description" />
+            </div>
+            <div class="hidden md:block md:pr-2">
                 <flux:dropdown align="end" offset="-15">
                     <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
