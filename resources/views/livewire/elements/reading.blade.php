@@ -65,19 +65,28 @@ new class extends Component {
             <div x-sort-handle class="cursor-grab hidden group-hover:block" title="Drag to reorder">
                 <flux:icon class="text-zinc-300" name="grip" />
             </div>
-            <div>
-                <flux:icon icon="{{ $element->type->icon() }}" />
-            </div>
-            <div class="flex-1">
-                <flux:heading>{{ $element->name }}</flux:heading>
-                @if($element->description)
-                    <flux:subheading>{{ $element->description }}</flux:subheading>
-                @endif
+            <div class="flex-1 flex items-center gap-1">
+                <div>
+                    <flux:icon icon="{{ $element->type->icon() }}" />
+                </div>
+                <div>
+                    <flux:heading>{{ $element->name }}</flux:heading>
+                    @if($element->description)
+                        <flux:subheading>{{ $element->description }}</flux:subheading>
+                    @endif
+                </div>
             </div>
             <div>
                 <flux:select variant="combobox" size="sm" wire:model.live="assigneeId" placeholder="Assign element...">
                     @foreach($this->users as $user)
                         <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:option>
+                    @endforeach
+                </flux:select>
+            </div>
+            <div>
+                <flux:select variant="combobox" size="sm" wire:model.live="selectedContent" placeholder="Select a reading...">
+                    @foreach($this->readings as $reading)
+                        <flux:select.option value="{{ $reading->id }}">{{ $reading->title }}</flux:option>
                     @endforeach
                 </flux:select>
             </div>

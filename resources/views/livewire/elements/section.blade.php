@@ -23,7 +23,7 @@ new class extends Component {
                 <flux:heading size="lg">{{ $element->name }}</flux:heading>
                 <flux:subheading size="sm">{{ $element->description }}</flux:subheading>
             </div>
-            <div class="pr-2">
+            <div class="hidden md:block md:pr-2">
                 <flux:dropdown align="end" offset="-15">
                     <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
 
