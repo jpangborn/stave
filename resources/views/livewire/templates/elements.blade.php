@@ -102,7 +102,7 @@ new class extends Component {
 
 <div>
     <flux:table class="w-full">
-        <flux:table.rows x-sort="$wire.sort($item, $position)" x-sort:config="{ handle: '[x-sort\\:handle]' }">
+        <flux:table.rows x-sort="$wire.sort($item, $position)" x-sort:config="{ handle: '[x-sort-handle]' }">
             @if($this->template->liturgyElements->isEmpty())
                 <flux:table.row>
                     <flux:table.cell align="center">No Service Elements</flux:table.cell>
