@@ -1,54 +1,82 @@
 <?php
 
 use App\Models\Song;
-use Illuminate\Http\File;
+use Livewire\Attributes\Validate;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
-use Livewire\Attributes\Validate;
-use Illuminate\Support\Facades\Storage;
 
 new class extends Component {
     use WithFileUploads;
 
     public Song $song;
-    public array $files = [];
 
-    #[Validate("required|string")]
-    public $description;
+    #[Validate(['file' => ['nullable', 'file', 'mimes:mp3,m4a,aac,pdf', 'max:10420']])]
+    public ?TemporaryUploadedFile $file = null;
 
-    public function save()
+    #[Validate(['description' => ['required', 'string']])]
+    public string $description = '';
+
+    public function save(): void
     {
         $this->validate();
 
-        $uploadType =
-            $this->files[0]["extension"] === "pdf" ? "sheets" : "recordings";
-        $path = Storage::disk($uploadType)->putFile(
+        $extension = $this->file->getClientOriginalExtension();
+        $uploadType = $extension === 'pdf' ? 'sheets' : 'recordings';
+
+        $path = $this->file->storePublicly(
             $uploadType,
-            new File($this->files[0]["path"]),
-            "public",
+            $uploadType
         );
 
         $this->song->{$uploadType}()->create([
-            "description" => $this->description,
-            "filename" => $path,
+            'description' => $this->description,
+            'filename' => $path,
         ]);
 
-        $this->reset(["files", "description"]);
-        $this->dispatch("refreshParent");
+        $this->reset(['file', 'description']);
+        $this->dispatch('refreshParent');
+    }
+
+    public function removeFile(): void
+    {
+        $this->file = null;
     }
 };
 ?>
 
 <form wire:submit="save">
-    <livewire:dropzone wire:model="files" :rules="['mimes:mp3,m4a,aac,pdf','max:10420']" :multiple="false"/>
+    <flux:file-upload wire:model="file" accept=".mp3,.m4a,.aac,.pdf">
+        @if ($file)
+            <flux:file-item
+                :heading="$file->getClientOriginalName()"
+                :size="$file->getSize()"
+            >
+                <x-slot:actions>
+                    <flux:file-item.remove wire:click="removeFile" />
+                </x-slot:actions>
+            </flux:file-item>
+        @else
+            <flux:file-upload.dropzone
+                with-progress
+                heading="Upload a file"
+                text="Drop here or click to browse. Up to 10MB."
+                subtext="PDF, MP3, M4A, or AAC"
+            />
+        @endif
+    </flux:file-upload>
 
-    <div x-show="$wire.files.length > 0" class="md:max-w-[50%] mt-4 space-y-6">
-        <flux:field>
-            <flux:label>Description</flux:label>
-            <flux:input type="text" name="description" wire:model="description"/>
-            <flux:error name="form.copyright" />
-        </flux:field>
+    <flux:error name="file" />
 
-        <flux:button type="submit" variant="primary">Save</flux:button>
-    </div>
+    @if ($file)
+        <div class="md:max-w-[50%] mt-4 space-y-6">
+            <flux:field>
+                <flux:label>Description</flux:label>
+                <flux:input type="text" name="description" wire:model="description" />
+                <flux:error name="description" />
+            </flux:field>
+
+            <flux:button type="submit" variant="primary">Save</flux:button>
+        </div>
+    @endif
 </form>
