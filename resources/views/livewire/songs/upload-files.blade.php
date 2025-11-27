@@ -11,7 +11,7 @@ new class extends Component {
 
     public Song $song;
 
-    #[Validate(['file' => ['nullable', 'file', 'mimes:mp3,m4a,aac,pdf', 'max:10420']])]
+    #[Validate(['file' => ['required', 'file', 'mimes:mp3,m4a,aac,pdf', 'max:10420']])]
     public ?TemporaryUploadedFile $file = null;
 
     #[Validate(['description' => ['required', 'string']])]
@@ -40,7 +40,7 @@ new class extends Component {
 
     public function removeFile(): void
     {
-        $this->file = null;
+        $this->reset(['file', 'description']);
     }
 };
 ?>
