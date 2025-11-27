@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bbe08dff0c4198b31dba0590522b0936",
+    "content-hash": "cf71c032b1e2d892ec244cf6ea13ec60",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -285,75 +285,6 @@
                 }
             ],
             "time": "2024-02-09T16:56:22+00:00"
-        },
-        {
-            "name": "dasundev/livewire-dropzone",
-            "version": "v2.0.7",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dasundev/livewire-dropzone.git",
-                "reference": "35be50bc7f37a2172a583c60e15b299c31fa0a58"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dasundev/livewire-dropzone/zipball/35be50bc7f37a2172a583c60e15b299c31fa0a58",
-                "reference": "35be50bc7f37a2172a583c60e15b299c31fa0a58",
-                "shasum": ""
-            },
-            "require": {
-                "livewire/livewire": "^3.5",
-                "php": "^8.1",
-                "spatie/laravel-package-tools": "^1.16"
-            },
-            "require-dev": {
-                "larastan/larastan": "^2.9",
-                "laravel/pint": "^1.16",
-                "orchestra/testbench": "^8.23",
-                "pestphp/pest": "^1.23"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "LivewireDropzone": "Dasundev\\LivewireDropzone\\LivewireDropzoneFacade"
-                    },
-                    "providers": [
-                        "Dasundev\\LivewireDropzone\\LivewireDropzoneServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Dasundev\\LivewireDropzone\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Dasun Tharanga",
-                    "email": "hello@dasun.dev",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A Livewire Dropzone component for simple drag-and-drop file uploads.",
-            "keywords": [
-                "dropzone",
-                "livewire"
-            ],
-            "support": {
-                "issues": "https://github.com/dasundev/livewire-dropzone/issues",
-                "source": "https://github.com/dasundev/livewire-dropzone/tree/v2.0.7"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/dasundev",
-                    "type": "github"
-                }
-            ],
-            "time": "2025-07-22T19:01:47+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
