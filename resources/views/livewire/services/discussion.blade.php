@@ -96,24 +96,28 @@ new class extends Component {
         @endif
     </div>
     <div class="max-w-3xl mt-6">
-        <flux:composer wire:submit="saveComment">
-            <x-slot name="input">
-                <flux:editor
-                    wire:model="comment"
-                    variant="borderless"
-                    toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
-                    class="**:data-[slot=content]:min-h-[100px]!"
-                />
-            </x-slot>
-            <x-slot name="actionsTrailing">
-                <flux:button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    icon="paper-airplane"
-                    wire:loading.attr="disabled"
-                />
-            </x-slot>
-        </flux:composer>
+        <form wire:click.prevent="saveComment">
+            <flux:composer wire:model="comment" label="Comment" label:sr-only placeholder="Write your comment...">
+                <x-slot name="input">
+                    <flux:editor
+                        variant="borderless"
+                        toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
+                        class="**:data-[slot=content]:min-h-[100px]!"
+                    />
+                </x-slot>
+                <x-slot name="actionsLeading">
+
+                </x-slot>
+                <x-slot name="actionsTrailing">
+                    <flux:button
+                        type="submit"
+                        variant="primary"
+                        size="sm"
+                        icon="paper-airplane"
+                        wire:loading.attr="disabled"
+                    />
+                </x-slot>
+            </flux:composer>
+        </form>
     </div>
 </div>
