@@ -76,7 +76,7 @@ new class() extends Component
                         <flux:dropdown hover position="{{ $comment->commentator()->is(auth()->user()) ? 'left' : 'right' }}" align="center">
                             <flux:button size="sm" variant="ghost" icon="face-smile" />
                             <flux:popover>
-                                <div class="flex space-x-1">
+                                <div class="flex">
                                     <flux:button size="sm" variant="ghost" square wire:click="react({{$comment->id }}, '👍')">👍</flux:button>
                                     <flux:button size="sm" variant="ghost" square wire:click="react({{$comment->id }}, '✅')">✅</flux:button>
                                     <flux:button size="sm" variant="ghost" square wire:click="react({{$comment->id }}, '❤️')">❤️</flux:button>
