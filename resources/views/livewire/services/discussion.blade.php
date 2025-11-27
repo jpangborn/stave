@@ -4,21 +4,26 @@ use App\Models\Service;
 use Livewire\Attributes\Reactive;
 use Livewire\Volt\Component;
 
-new class extends Component {
+new class() extends Component
+{
     #[Reactive]
     public int $serviceId;
 
-    public string $comment;
+    public string $comment = '';
 
     public function getServiceProperty()
     {
-        return Service::with("comments")->find($this->serviceId);
+        return Service::with('comments')->find($this->serviceId);
     }
 
     public function saveComment(): void
     {
+        if (empty(trim(strip_tags($this->comment)))) {
+            return;
+        }
+
         $this->service->comment($this->comment);
-        $this->reset("comment");
+        $this->reset('comment');
         unset($this->service);
     }
 
@@ -96,7 +101,7 @@ new class extends Component {
         @endif
     </div>
     <div class="max-w-3xl mt-6">
-        <form wire:click.prevent="saveComment">
+        <form wire:submit.prevent="saveComment">
             <flux:composer wire:model="comment" label="Comment" label:sr-only placeholder="Write your comment...">
                 <x-slot name="input">
                     <flux:editor
