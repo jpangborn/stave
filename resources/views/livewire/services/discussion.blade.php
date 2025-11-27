@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Service;
-use App\Models\User;
 use Livewire\Attributes\Reactive;
 use Livewire\Volt\Component;
 
@@ -19,14 +18,6 @@ new class extends Component {
     public function saveComment(): void
     {
         $this->service->comment($this->comment);
-        $this->reset("comment");
-        unset($this->service);
-    }
-
-    public function saveProxyComment(): void
-    {
-        $user = User::where("email", "test@example.com")->first();
-        $this->service->comment($this->comment, $user);
         $this->reset("comment");
         unset($this->service);
     }
@@ -104,12 +95,25 @@ new class extends Component {
             </div>
         @endif
     </div>
-    <div class="max-w-3xl space-y-2 mt-6">
-        <flux:editor wire:model="comment" toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo" class="**:data-[slot=content]:min-h-[100px]!" />
-        <div class="flex space-x-2">
-            <flux:spacer />
-            <flux:button variant="primary" wire:click="saveProxyComment">Proxy Comment</flux:button>
-            <flux:button variant="primary" wire:click="saveComment">Comment</flux:button>
-        </div>
+    <div class="max-w-3xl mt-6">
+        <flux:composer wire:submit="saveComment">
+            <x-slot name="input">
+                <flux:editor
+                    wire:model="comment"
+                    variant="borderless"
+                    toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
+                    class="**:data-[slot=content]:min-h-[100px]!"
+                />
+            </x-slot>
+            <x-slot name="actionsTrailing">
+                <flux:button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    icon="paper-airplane"
+                    wire:loading.attr="disabled"
+                />
+            </x-slot>
+        </flux:composer>
     </div>
 </div>
