@@ -35,7 +35,7 @@ COPY . ./
 RUN npm run build
 
 # Stage 3: Final runtime image
-FROM serversideup/php:8.4-unit
+FROM serversideup/php:8.4-frankenphp
 
 ENV SSL_MODE=off
 ENV PHP_OPCACHE_ENABLE=1
