@@ -56,6 +56,16 @@ new class extends Component {
                     <flux:file-item.remove wire:click="removeFile" />
                 </x-slot:actions>
             </flux:file-item>
+
+            <div class="mt-4 space-y-6">
+                <flux:field>
+                    <flux:label>Description</flux:label>
+                    <flux:input type="text" name="description" wire:model="description" />
+                    <flux:error name="description" />
+                </flux:field>
+
+                <flux:button type="submit" variant="primary">Save</flux:button>
+            </div>
         @else
             <flux:file-upload.dropzone
                 with-progress
@@ -67,16 +77,4 @@ new class extends Component {
     </flux:file-upload>
 
     <flux:error name="file" />
-
-    @if ($file)
-        <div class="md:max-w-[50%] mt-4 space-y-6">
-            <flux:field>
-                <flux:label>Description</flux:label>
-                <flux:input type="text" name="description" wire:model="description" />
-                <flux:error name="description" />
-            </flux:field>
-
-            <flux:button type="submit" variant="primary">Save</flux:button>
-        </div>
-    @endif
 </form>
