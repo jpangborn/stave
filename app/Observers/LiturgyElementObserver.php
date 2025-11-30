@@ -83,10 +83,6 @@ class LiturgyElementObserver
 
     private function getServiceFromElement(LiturgyElement $element): ?Service
     {
-        if ($element->liturgy_type === Service::class) {
-            return Service::find($element->liturgy_id);
-        }
-
-        return null;
+        return $element->liturgy instanceof Service ? $element->liturgy : null;
     }
 }
