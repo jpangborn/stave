@@ -8,7 +8,6 @@ use App\Models\Service;
 use App\Models\Template;
 use App\Models\User;
 use App\Notifications\ServiceCommentNotification;
-use App\Services\ServiceCommentSubscriptionService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Comments\Models\CommentNotificationSubscription;

@@ -9,7 +9,6 @@ use Spatie\Comments\Actions\SendNotificationsForPendingCommentAction;
 use Spatie\Comments\Models\Comment;
 use Spatie\Comments\Models\CommentNotificationSubscription;
 use Spatie\Comments\Models\Reaction;
-use Spatie\Comments\Notifications\ApprovedCommentNotification;
 use Spatie\Comments\Notifications\PendingCommentNotification;
 use Spatie\Comments\Support\CommentSanitizer;
 
