@@ -102,7 +102,7 @@ return [
 
         'notifications' => [
             'pending_comment' => PendingCommentNotification::class,
-            'approved_comment' => ApprovedCommentNotification::class,
+            'approved_comment' => \App\Notifications\ServiceCommentNotification::class,
         ],
 
         /*
