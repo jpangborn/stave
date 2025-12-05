@@ -83,7 +83,7 @@ new class extends Component {
     @endif
 
     <flux:tab.group class="mt-8">
-        <flux:tabs wire:model="tab">
+        <flux:tabs wire:model="tab" scrollable>
             <flux:tab name="details" icon="notepad-text-dashed">Details</flux:tab>
             <flux:tab name="elements" icon="list-collapse">Elements</flux:tab>
         </flux:tabs>
