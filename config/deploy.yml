@@ -4,6 +4,9 @@ service: stave
 # Name of the container image.
 image: jpangborn/stave
 
+aliases:
+  shell: kamal app exec -i --reuse
+
 builder:
   arch: amd64
   secrets:
