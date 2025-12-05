@@ -54,12 +54,12 @@ new class() extends Component
                 $prevUser = null;
             @endphp
             @foreach($this->service->comments as $comment)
-                <div @class([
+                <div wire:key="comment-{{ $comment->id }}" @class([
                     'text-left max-w-3/4 space-y-2',
                     'self-start' => !$comment->commentator?->is(auth()->user()),
                     'self-end'=> $comment->commentator?->is(auth()->user()),
                 ])>
-                    @if($comment->commentator && !$comment->commentator?->is($prevUser))
+                    @if($comment->commentator?->isNot($prevUser))
                     <div class="flex items-center space-x-2">
                         <flux:avatar size="xs" name="{{ $comment->commentator?->name }}" color="auto" />
                         <flux:heading>{{ $comment->commentator?->name }}</flux:heading>
