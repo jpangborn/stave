@@ -56,10 +56,10 @@ new class() extends Component
             @foreach($this->service->comments as $comment)
                 <div @class([
                     'text-left max-w-3/4 space-y-2',
-                    'self-start' => !$comment->commentator()->is(auth()->user()),
-                    'self-end'=> $comment->commentator()->is(auth()->user()),
+                    'self-start' => !$comment->commentator?->is(auth()->user()),
+                    'self-end'=> $comment->commentator?->is(auth()->user()),
                 ])>
-                    @if(!$comment->commentator()->is($prevUser))
+                    @if($comment->commentator && !$comment->commentator()->is($prevUser))
                     <div class="flex items-center space-x-2">
                         <flux:avatar size="xs" name="{{ $comment->commentator->name }}" color="auto" />
                         <flux:heading>{{ $comment->commentator->name }}</flux:heading>
@@ -67,13 +67,13 @@ new class() extends Component
                     @endif
                     <div @class([
                         'rounded-md p-2 space-y-2',
-                        'bg-zinc-100' => !$comment->commentator()->is(auth()->user()),
-                        'bg-accent text-white' => $comment->commentator()->is(auth()->user()),
+                        'bg-zinc-100' => !$comment->commentator?->is(auth()->user()),
+                        'bg-accent text-white' => $comment->commentator?->is(auth()->user()),
                     ])>
                         {!! $comment->text !!}
                     </div>
                     <div class="flex flex-row-reverse items-center space-x-3 -mt-1.5">
-                        <flux:dropdown hover position="{{ $comment->commentator()->is(auth()->user()) ? 'left' : 'right' }}" align="center">
+                        <flux:dropdown hover position="{{ $comment->commentator?->is(auth()->user()) ? 'left' : 'right' }}" align="center">
                             <flux:button size="sm" variant="ghost" icon="face-smile" />
                             <flux:popover>
                                 <div class="flex">
