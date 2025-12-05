@@ -59,10 +59,10 @@ new class() extends Component
                     'self-start' => !$comment->commentator?->is(auth()->user()),
                     'self-end'=> $comment->commentator?->is(auth()->user()),
                 ])>
-                    @if($comment->commentator && !$comment->commentator()->is($prevUser))
+                    @if($comment->commentator && !$comment->commentator?->is($prevUser))
                     <div class="flex items-center space-x-2">
-                        <flux:avatar size="xs" name="{{ $comment->commentator->name }}" color="auto" />
-                        <flux:heading>{{ $comment->commentator->name }}</flux:heading>
+                        <flux:avatar size="xs" name="{{ $comment->commentator?->name }}" color="auto" />
+                        <flux:heading>{{ $comment->commentator?->name }}</flux:heading>
                     </div>
                     @endif
                     <div @class([
