@@ -5,7 +5,7 @@ service: stave
 image: jpangborn/stave
 
 aliases:
-  shell: kamal app exec -i --reuse
+  shell: app exec -i --reuse
 
 builder:
   arch: amd64
