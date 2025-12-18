@@ -38,7 +38,7 @@ class ServiceForm extends Form
 
         $this->date = $service->date;
         $this->title = $service->title;
-        $this->template_id = $service->template->id;
+        $this->template_id = $service->template?->id;
     }
 
     public function store(): void
