@@ -1,28 +1,30 @@
 <?php
 
+use App\Livewire\Actions\CreateServiceFromTemplate;
+use App\Livewire\Forms\ServiceForm;
 use App\Models\Template;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
-use App\Livewire\Actions\CreateServiceFromTemplate;
-use App\Livewire\Forms\ServiceForm;
 
-new class extends Component {
+new class() extends Component
+{
     public ServiceForm $form;
 
     public function save(CreateServiceFromTemplate $createServiceFromTemplate)
     {
+        $this->form->validate();
+
         if ($this->form->template_id !== null && $this->form->template_id !== 0) {
-            $template = Template::find($this->form->template_id)
-                ->with("liturgyElements")
-                ->first();
+            $template = Template::findOrFail($this->form->template_id);
             $createServiceFromTemplate($template, $this->form->date);
         } else {
             $this->form->store();
         }
 
-        Flux::toast(variant: "success", text: "Service added.");
-        return $this->redirect("/services", navigate: true);
+        Flux::toast(variant: 'success', text: 'Service added.');
+
+        return $this->redirect('/services', navigate: true);
     }
 
     #[Computed]

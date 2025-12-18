@@ -9,8 +9,6 @@ use Livewire\Form;
 
 class ServiceForm extends Form
 {
-    public $template;
-
     public ?Service $service = null;
 
     #[Validate]
@@ -45,13 +43,13 @@ class ServiceForm extends Form
     {
         $this->validate();
 
-        Service::create($this->only(['date', 'title', 'notes']));
+        Service::create($this->only(['date', 'title']));
     }
 
     public function update(): void
     {
         $this->validate();
 
-        $this->template->update($this->only(['date', 'title', 'notes']));
+        $this->service?->update($this->only(['date', 'title']));
     }
 }
