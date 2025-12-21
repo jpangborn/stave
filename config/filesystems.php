@@ -45,6 +45,22 @@ return [
             'report' => false,
         ],
 
+        'digital-ocean' => [
+            'driver' => 's3',
+            'key' => env('DO_KEY'),
+            'secret' => env('DO_SECRET'),
+            'region' => env('DO_REGION'),
+            'bucket' => 'stave',
+            'cdn_endpoint' => env('DO_CDN_DOMAIN'),
+            'endpoint' => env('DO_ENDPOINT'),
+            'url' => env('DO_CDN_DOMAIN'),
+            'use_path_style_endpoint' => env(
+                'AWS_USE_PATH_STYLE_ENDPOINT',
+                false,
+            ),
+            'throw' => false,
+        ],
+
         'recordings' => [
             'driver' => 's3',
             'key' => env('DO_KEY'),

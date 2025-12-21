@@ -26,7 +26,7 @@ new class extends Component {
 
         $path = $this->file->storePublicly(
             $uploadType,
-            $uploadType
+            'digital-ocean'
         );
 
         $this->song->{$uploadType}()->create([
