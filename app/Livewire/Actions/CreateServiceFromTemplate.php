@@ -4,16 +4,21 @@ namespace App\Livewire\Actions;
 
 use App\Models\Service;
 use App\Models\Template;
+use App\Services\ServiceCommentSubscriptionService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class CreateServiceFromTemplate
 {
+    public function __construct(
+        private ServiceCommentSubscriptionService $subscriptionService
+    ) {}
+
     public function __invoke(Template $template, Carbon $date): void
     {
         $template->loadMissing(['liturgyElements', 'liturgyElements.content']);
 
-        DB::transaction(function () use ($template, $date): void {
+        $service = DB::transaction(function () use ($template, $date): Service {
             $service = Service::create([
                 'title' => $template->name.' – '.$date->toFormattedDateString(),
                 'date' => $date,
@@ -32,6 +37,10 @@ class CreateServiceFromTemplate
                     'content_id' => $element->content_id,
                 ]);
             }
+
+            return $service;
         });
+
+        $this->subscriptionService->syncServiceSubscriptions($service);
     }
 }
