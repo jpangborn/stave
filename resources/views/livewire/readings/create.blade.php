@@ -30,17 +30,17 @@ new class extends Component {
             <div class="flex-1 max-w-md space-y-6">
                 <flux:field>
                     <flux:label badge="Required">Title</flux:label>
-                    <flux:input type="text" name="title" wire:model="form.title" />
+                    <flux:input type="text" name="title" wire:model.deep="form.title" />
                     <flux:error name="form.title" />
                 </flux:field>
 
-                <flux:select variant="listbox" badge="Required" label="Type" wire:model="form.type" placeholder="Select the type..." required>
+                <flux:select variant="listbox" badge="Required" label="Type" wire:model.deep="form.type" placeholder="Select the type..." required>
                     @foreach(\App\Enums\ReadingType::cases() as $readingType)
                         <flux:select.option value="{{ $readingType->value }}">{{ $readingType->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
-                <flux:editor label="Text" wire:model="form.text" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
+                <flux:editor label="Text" wire:model.deep="form.text" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
 
                 <flux:button type="submit" variant="primary">Save</flux:button>
             </div>

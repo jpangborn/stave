@@ -64,14 +64,14 @@ new class extends Component {
                 </div>
             </div>
             <div>
-                <flux:select variant="combobox" size="sm" wire:model.live="assigneeId" placeholder="Assign element...">
+                <flux:select variant="combobox" size="sm" wire:model.deep.live="assigneeId" placeholder="Assign element...">
                     @foreach($this->users as $user)
                         <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:option>
                     @endforeach
                 </flux:select>
             </div>
             <div class="md:w-[226px]">
-                <flux:input size="sm" placeholder="Enter title or reference" wire:model.blur="description" />
+                <flux:input size="sm" placeholder="Enter title or reference" wire:model.deep.blur="description" />
             </div>
             <div class="hidden md:block md:pr-2">
                 <flux:dropdown align="end" offset="-15">

@@ -46,7 +46,7 @@ new class extends Component {
 ?>
 
 <form wire:submit="save">
-    <flux:file-upload wire:model="file" accept=".mp3,.m4a,.aac,.pdf">
+    <flux:file-upload wire:model.deep="file" accept=".mp3,.m4a,.aac,.pdf">
         @if ($file)
             <flux:file-item
                 :heading="$file->getClientOriginalName()"
@@ -60,7 +60,7 @@ new class extends Component {
             <div class="mt-4 space-y-6">
                 <flux:field>
                     <flux:label>Description</flux:label>
-                    <flux:input type="text" name="description" wire:model="description" />
+                    <flux:input type="text" name="description" wire:model.deep="description" />
                     <flux:error name="description" />
                 </flux:field>
 

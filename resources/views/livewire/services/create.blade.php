@@ -49,19 +49,19 @@ new class() extends Component
             <div class="flex-1 max-w-md space-y-6">
                 <flux:field>
                     <flux:label badge="Required">Date</flux:label>
-                    <flux:date-picker name="date" wire:model="form.date" with-today />
+                    <flux:date-picker name="date" wire:model.deep="form.date" with-today />
                     <flux:error name="form.date" />
                 </flux:field>
 
                 <flux:field>
                     <flux:label>Title</flux:label>
-                    <flux:input type="text" name="name" wire:model="form.title" />
+                    <flux:input type="text" name="name" wire:model.deep="form.title" />
                     <flux:error name="form.title" />
                 </flux:field>
 
                 <flux:field>
                     <flux:label>From Template</flux:label>
-                    <flux:select variant="listbox" searchable wire:model="form.template_id" placeholder="Choose template...">
+                    <flux:select variant="listbox" searchable wire:model.deep="form.template_id" placeholder="Choose template...">
                         @foreach($this->templates as $template)
                             <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
                         @endforeach

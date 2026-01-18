@@ -30,7 +30,7 @@ new class extends Component {
     </flux:subheading>
 
     <flux:tab.group class="mt-8">
-        <flux:tabs wire:model="tab" scrollable>
+        <flux:tabs wire:model.deep="tab" scrollable>
             <flux:tab name="details" icon="book-open-text">Text</flux:tab>
         </flux:tabs>
 

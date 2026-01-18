@@ -42,7 +42,7 @@ new class extends Component {
     </flux:subheading>
 
     <flux:tab.group variant="flush" class="mt-8">
-        <flux:tabs wire:model="tab" scrollable>
+        <flux:tabs wire:model.deep="tab" scrollable>
             <flux:tab name="details" icon="book-open-text">Details</flux:tab>
             <flux:tab name="text" icon="text">Text</flux:tab>
         </flux:tabs>
@@ -57,11 +57,11 @@ new class extends Component {
                 <div class="flex-1 max-w-md space-y-6">
                     <flux:field>
                         <flux:label>Title</flux:label>
-                        <flux:input type="text" name="title" wire:model="form.title" />
+                        <flux:input type="text" name="title" wire:model.deep="form.title" />
                         <flux:error name="form.title" />
                     </flux:field>
 
-                    <flux:select variant="listbox" badge="Required" label="Type" wire:model="form.type" placeholder="Select the type..." required>
+                    <flux:select variant="listbox" badge="Required" label="Type" wire:model.deep="form.type" placeholder="Select the type..." required>
                         @foreach(\App\Enums\ReadingType::cases() as $readingType)
                             <flux:select.option value="{{ $readingType->value }}">{{ $readingType->label() }}</flux:select.option>
                         @endforeach
@@ -75,7 +75,7 @@ new class extends Component {
         </flux:tab.panel>
         <flux:tab.panel name="text">
             <form wire:submit="save" class="space-y-6">
-                <flux:editor label="Text" wire:model="form.text" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
+                <flux:editor label="Text" wire:model.deep="form.text" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
                 <div class="flex">
                     <flux:button type="submit" variant="primary">Save</flux:button>
                 </div>

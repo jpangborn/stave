@@ -102,7 +102,7 @@ new class() extends Component
     </div>
     <div class="max-w-3xl mt-6">
         <form wire:submit.prevent="saveComment">
-            <flux:composer wire:model="comment" label="Comment" label:sr-only placeholder="Write your comment...">
+            <flux:composer wire:model.deep="comment" label="Comment" label:sr-only placeholder="Write your comment...">
                 <x-slot name="input">
                     <flux:editor
                         variant="borderless"

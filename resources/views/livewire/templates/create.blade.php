@@ -30,11 +30,11 @@ new class extends Component {
             <div class="flex-1 max-w-md space-y-6">
                 <flux:field>
                     <flux:label badge="Required">Name</flux:label>
-                    <flux:input type="text" name="name" wire:model="form.name" />
+                    <flux:input type="text" name="name" wire:model.deep="form.name" />
                     <flux:error name="form.name" />
                 </flux:field>
 
-                <flux:checkbox wire:model="form.default" label="Default Template" />
+                <flux:checkbox wire:model.deep="form.default" label="Default Template" />
 
                 <flux:button type="submit" variant="primary">Save</flux:button>
             </div>

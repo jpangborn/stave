@@ -67,8 +67,8 @@ new class extends Component {
     <flux:subheading size="lg" class="mb-6">Manage your corporate readings and prayers library.</flux:subheading>
 
     <div class="flex space-x-4 items-center">
-        <flux:input wire:model.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
-        <flux:select variant="listbox" wire:model.live="types" size="sm" placeholder="Type..." class="max-w-64" multiple clearable>
+        <flux:input wire:model.deep.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
+        <flux:select variant="listbox" wire:model.deep.live="types" size="sm" placeholder="Type..." class="max-w-64" multiple clearable>
             @foreach(\App\Enums\ReadingType::cases() as $readingType)
                 <flux:select.option value="{{ $readingType->value }}">{{ $readingType->label() }}</flux:select.option>
             @endforeach

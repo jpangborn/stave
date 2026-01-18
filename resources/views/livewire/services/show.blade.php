@@ -42,7 +42,7 @@ new class extends Component {
     </div>
 
     <flux:tab.group class="mt-8">
-        <flux:tabs wire:model="tab" scrollable>
+        <flux:tabs wire:model.deep="tab" scrollable>
             <flux:tab name="service-order" icon="queue-list">Service Order</flux:tab>
             <flux:tab name="discussion" icon="chat-bubble-left-right">Discussion</flux:tab>
             <flux:tab name="bulletin" icon="document-text">Bulletin</flux:tab>

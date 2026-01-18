@@ -42,7 +42,7 @@ new class extends Component {
     </flux:subheading>
 
     <flux:tab.group variant="flush" class="mt-8">
-        <flux:tabs wire:model="tab" scrollable>
+        <flux:tabs wire:model.deep="tab" scrollable>
             <flux:tab name="details" icon="musical-note">Details</flux:tab>
             <flux:tab name="lyrics" icon="megaphone">Lyrics</flux:tab>
             <flux:tab name="files" icon="document">Files</flux:tab>
@@ -58,26 +58,26 @@ new class extends Component {
                 <div class="flex-1 max-w-md space-y-6">
                     <flux:field>
                         <flux:label>Name</flux:label>
-                        <flux:input type="text" name="name" wire:model="form.name" />
+                        <flux:input type="text" name="name" wire:model.deep="form.name" />
                         <flux:error name="form.name" />
                     </flux:field>
 
                     <flux:field>
                         <flux:label>Authors</flux:label>
-                        <flux:input type="text" name="authors" wire:model="form.authors" placeholder="e.g., John Smith, Jane Doe" />
+                        <flux:input type="text" name="authors" wire:model.deep="form.authors" placeholder="e.g., John Smith, Jane Doe" />
                         <flux:description>Separate multiple authors with commas</flux:description>
                         <flux:error name="form.authors" />
                     </flux:field>
 
                     <flux:field>
                         <flux:label>CCLI Number</flux:label>
-                        <flux:input type="text" name="ccli_number" wire:model="form.ccli_number" />
+                        <flux:input type="text" name="ccli_number" wire:model.deep="form.ccli_number" />
                         <flux:error name="form.ccli_number" />
                     </flux:field>
 
                     <flux:field>
                         <flux:label>Copyright</flux:label>
-                        <flux:input type="text" name="copyright" wire:model="form.copyright" />
+                        <flux:input type="text" name="copyright" wire:model.deep="form.copyright" />
                         <flux:error name="form.copyright" />
                     </flux:field>
 
@@ -89,7 +89,7 @@ new class extends Component {
         </flux:tab.panel>
         <flux:tab.panel name="lyrics">
             <form wire:submit="save" class="space-y-6">
-                <flux:editor label="Lyrics" wire:model="form.lyrics" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
+                <flux:editor label="Lyrics" wire:model.deep="form.lyrics" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
                 <div class="flex">
                     <flux:button type="submit" variant="primary">Save</flux:button>
                 </div>
