@@ -2,7 +2,7 @@
 
 use App\Models\Song;
 use Livewire\Attributes\Url;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use App\Livewire\Forms\SongForm;
 
 new class extends Component {

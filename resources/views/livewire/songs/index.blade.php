@@ -2,7 +2,7 @@
 
 use Flux\Flux;
 use App\Models\Song;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
 

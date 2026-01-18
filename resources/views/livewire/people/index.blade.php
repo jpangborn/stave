@@ -2,7 +2,7 @@
 
 use App\Models\Person;
 use Flux\Flux;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
 

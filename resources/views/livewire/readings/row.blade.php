@@ -2,7 +2,7 @@
 
 use App\Models\Reading;
 use App\Enums\Permission;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class extends Component {
     public Reading $reading;

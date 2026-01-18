@@ -1,6 +1,6 @@
 <?php
 use App\Models\LiturgyElement;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class extends Component {
     public LiturgyElement $element;

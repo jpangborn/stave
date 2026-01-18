@@ -7,7 +7,7 @@ use App\Models\User;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use App\Livewire\Forms\TemplateForm;
 
 new class extends Component {

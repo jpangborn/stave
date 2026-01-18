@@ -1,7 +1,7 @@
 <?php
 
 use Flux\Flux;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Storage;
 

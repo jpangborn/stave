@@ -3,7 +3,7 @@
 use App\Models\LiturgyElement;
 use App\Models\User;
 use Livewire\Attributes\Computed;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class extends Component {
     public LiturgyElement $element;

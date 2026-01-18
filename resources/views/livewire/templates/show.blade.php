@@ -4,7 +4,7 @@ use App\Livewire\Forms\TemplateForm;
 use App\Models\Template;
 use App\Enums\Permission;
 use Livewire\Attributes\Url;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class extends Component {
     public TemplateForm $form;

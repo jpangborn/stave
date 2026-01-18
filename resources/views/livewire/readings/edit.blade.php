@@ -3,7 +3,7 @@
 use App\Models\Reading;
 use App\Enums\Permission;
 use Livewire\Attributes\Url;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use App\Livewire\Forms\ReadingForm;
 
 new class extends Component {

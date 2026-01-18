@@ -5,7 +5,7 @@ use App\Livewire\Forms\ServiceForm;
 use App\Models\Template;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class() extends Component
 {
