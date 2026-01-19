@@ -25,12 +25,16 @@ new class extends Component {
                 $song = Song::findOrFail($value);
                 $this->element->content()->associate($song);
                 $this->element->save();
+                $this->element->refresh();
+                $this->selectedContent = $this->element->content_id;
                 $this->dispatch('service-element-changed');
                 Flux::toast(variant: "success", text: "Song selection saved.");
                 break;
             case "assigneeId":
                 $this->element->assignee_id = $value;
                 $this->element->save();
+                $this->element->refresh();
+                $this->assigneeId = $this->element->assignee_id;
                 $this->dispatch('service-element-changed');
                 Flux::toast(variant: "success", text: "Assignee saved.");
                 break;
