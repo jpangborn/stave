@@ -31,7 +31,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <form wire:submit="sendPasswordResetLink" class="flex flex-col gap-6">
         <!-- Email Address -->
         <flux:input
-            wire:model.deep="email"
+            wire:model="email"
             :label="__('Email Address')"
             type="email"
             required

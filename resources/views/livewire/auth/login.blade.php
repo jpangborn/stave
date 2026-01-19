@@ -82,7 +82,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <form wire:submit="login" class="flex flex-col gap-6">
         <!-- Email Address -->
         <flux:input
-            wire:model.deep="email"
+            wire:model="email"
             :label="__('Email address')"
             type="email"
             required
@@ -94,7 +94,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <!-- Password -->
         <div class="relative">
             <flux:input
-                wire:model.deep="password"
+                wire:model="password"
                 :label="__('Password')"
                 type="password"
                 required
@@ -111,7 +111,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </div>
 
         <!-- Remember Me -->
-        <flux:checkbox wire:model.deep="remember" :label="__('Remember me')" />
+        <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">{{ __('Log in') }}</flux:button>

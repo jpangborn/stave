@@ -54,14 +54,14 @@ new class extends Component {
     <flux:subheading size="lg" class="mb-6">Manage your templates for service liturgies.</flux:subheading>
 
     <div class="flex space-x-4 items-center">
-        <flux:input wire:model.deep.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
+        <flux:input wire:model.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
         <flux:spacer/>
         <flux:button :href="route('templates.create')" size="sm" variant="primary" icon="plus">Add Template</flux:button>
     </div>
 
     <flux:table :paginate="$this->templates" class="mt-4">
         <flux:table.columns>
-            <flux:table.column sortable class="font-semibold max-w-6" :sorted="$sortBy === 'default'" :direction="$sortDirection" wire:click="sort('deafult')">Default</flux:table.column>
+            <flux:table.column sortable class="font-semibold max-w-6" :sorted="$sortBy === 'default'" :direction="$sortDirection" wire:click="sort('default')">Default</flux:table.column>
             <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Name</flux:table.column>
             <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')">Added</flux:table.column>
             <flux:table.column class="font-semibold" ></flux:table.column>

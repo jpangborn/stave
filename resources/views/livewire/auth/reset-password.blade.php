@@ -77,7 +77,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <form wire:submit="resetPassword" class="flex flex-col gap-6">
         <!-- Email Address -->
         <flux:input
-            wire:model.deep="email"
+            wire:model="email"
             :label="__('Email')"
             type="email"
             required
@@ -86,7 +86,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         <!-- Password -->
         <flux:input
-            wire:model.deep="password"
+            wire:model="password"
             :label="__('Password')"
             type="password"
             required
@@ -97,7 +97,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         <!-- Confirm Password -->
         <flux:input
-            wire:model.deep="password_confirmation"
+            wire:model="password_confirmation"
             :label="__('Confirm password')"
             type="password"
             required

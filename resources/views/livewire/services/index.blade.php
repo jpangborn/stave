@@ -54,14 +54,14 @@ new class extends Component {
     <flux:subheading size="lg" class="mb-6">Manage your services.</flux:subheading>
 
     <div class="flex space-x-4 items-center">
-        <flux:input wire:model.deep.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
+        <flux:input wire:model.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
         <flux:spacer/>
         <flux:button :href="route('services.create')" size="sm" variant="primary" icon="plus">Add Service</flux:button>
     </div>
 
     <flux:table :paginate="$this->services" class="mt-4">
         <flux:table.columns>
-            <flux:table.column sortable class="font-semibold max-w-6" :sorted="$sortBy === 'date'" :direction="$sortDirection" wire:click="sort('deafult')">Date</flux:table.column>
+            <flux:table.column sortable class="font-semibold max-w-6" :sorted="$sortBy === 'date'" :direction="$sortDirection" wire:click="sort('date')">Date</flux:table.column>
             <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'title'" :direction="$sortDirection" wire:click="sort('name')">Title</flux:table.column>
             <flux:table.column class="font-semibold">Template</flux:table.column>
             <flux:table.column class="font-semibold"></flux:table.column>

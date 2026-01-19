@@ -83,7 +83,7 @@ new class extends Component {
     @endif
 
     <flux:tab.group class="mt-8">
-        <flux:tabs wire:model.deep="tab" scrollable>
+        <flux:tabs wire:model="tab" scrollable>
             <flux:tab name="details" icon="notepad-text-dashed">Details</flux:tab>
             <flux:tab name="elements" icon="list-collapse">Elements</flux:tab>
         </flux:tabs>
@@ -98,11 +98,11 @@ new class extends Component {
                 <div class="flex-1 max-w-md space-y-6">
                     <flux:field>
                         <flux:label badge="Required">Name</flux:label>
-                        <flux:input type="text" name="name" wire:model.deep="form.name" />
+                        <flux:input type="text" name="name" wire:model="form.name" />
                         <flux:error name="form.name" />
                     </flux:field>
 
-                    <flux:checkbox wire:model.deep="form.default" label="Default Template" />
+                    <flux:checkbox wire:model="form.default" label="Default Template" />
 
                     <div class="flex space-x-2">
                         <flux:button type="submit" variant="primary">Save</flux:button>
@@ -136,7 +136,7 @@ new class extends Component {
                 <flux:heading size="lg">Add Liturgy Element</flux:heading>
             </div>
 
-            <flux:select label="Type" variant="listbox" wire:model.deep="elementForm.type">
+            <flux:select label="Type" variant="listbox" wire:model="elementForm.type">
                 @foreach(App\Enums\LiturgyElementType::cases() as $element)
                     <flux:select.option value="{{ $element->value }}">
                         <div class="flex items-center gap-x-2">
@@ -147,7 +147,7 @@ new class extends Component {
             </flux:select>
 
             @if(isset($elementForm->type) && $elementForm->type === App\Enums\LiturgyElementType::READING->value)
-            <flux:select label="Reading Type" variant="listbox" wire:model.deep="elementForm.reading_type">
+            <flux:select label="Reading Type" variant="listbox" wire:model="elementForm.reading_type">
                 @foreach(App\Enums\ReadingType::cases() as $reading_type)
                     <flux:select.option value="{{ $reading_type->value }}">{{ $reading_type->label() }}</flux:select.option>
                 @endforeach
@@ -156,17 +156,17 @@ new class extends Component {
 
             <flux:field>
                 <flux:label for="element_name">Name</flux:label>
-                <flux:input id="element_name" placeholder="Enter a name..." wire:model.deep="elementForm.name" />
+                <flux:input id="element_name" placeholder="Enter a name..." wire:model="elementForm.name" />
                 <flux:error name="elementForm.name" />
             </flux:field>
 
             <flux:field>
                 <flux:label for="element_description">Description</flux:label>
-                <flux:input id="element_description" wire:model.deep="elementForm.description" />
+                <flux:input id="element_description" wire:model="elementForm.description" />
                 <flux:error name="elementForm.description" />
             </flux:field>
 
-            <flux:select label="Assignee" variant="listbox" wire:model.deep="elementForm.assignee_id" placeholder="Select an assignee...">
+            <flux:select label="Assignee" variant="listbox" wire:model="elementForm.assignee_id" placeholder="Select an assignee...">
                 @foreach($this->users as $user)
                     <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:select.option>
                 @endforeach

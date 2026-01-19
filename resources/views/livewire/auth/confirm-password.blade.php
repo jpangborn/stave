@@ -44,7 +44,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <form wire:submit="confirmPassword" class="flex flex-col gap-6">
         <!-- Password -->
         <flux:input
-            wire:model.deep="password"
+            wire:model="password"
             :label="__('Password')"
             type="password"
             required

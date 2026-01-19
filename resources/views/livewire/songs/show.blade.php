@@ -29,7 +29,7 @@ new class extends Component {
     </flux:subheading>
 
     <flux:tab.group class="mt-8">
-        <flux:tabs wire:model.deep="tab" scrollable>
+        <flux:tabs wire:model="tab" scrollable>
             <flux:tab name="details" icon="musical-note">Details</flux:tab>
             <flux:tab name="lyrics" icon="megaphone">Lyrics</flux:tab>
             <flux:tab name="files" icon="document">Files</flux:tab>
@@ -45,25 +45,25 @@ new class extends Component {
                 <div class="flex-1 max-w-md space-y-6">
                     <flux:field>
                         <flux:label>Name</flux:label>
-                        <flux:input type="text" name="name" wire:model.deep="form.name" variant="filled" readonly copyable/>
+                        <flux:input type="text" name="name" wire:model="form.name" variant="filled" readonly copyable/>
                         <flux:error name="form.name" />
                     </flux:field>
 
                     <flux:field>
                         <flux:label>Authors</flux:label>
-                        <flux:input type="text" name="authors" wire:model.deep="form.authors" variant="filled" readonly copyable/>
+                        <flux:input type="text" name="authors" wire:model="form.authors" variant="filled" readonly copyable/>
                         <flux:error name="form.authors" />
                     </flux:field>
 
                     <flux:field>
                         <flux:label>CCLI Number</flux:label>
-                        <flux:input type="text" name="ccli_number" wire:model.deep="form.ccli_number" variant="filled" readonly copyable />
+                        <flux:input type="text" name="ccli_number" wire:model="form.ccli_number" variant="filled" readonly copyable />
                         <flux:error name="form.ccli_number" />
                     </flux:field>
 
                     <flux:field>
                         <flux:label>Copyright</flux:label>
-                        <flux:input type="text" name="copyright" wire:model.deep="form.copyright" variant="filled" readonly copyable/>
+                        <flux:input type="text" name="copyright" wire:model="form.copyright" variant="filled" readonly copyable/>
                         <flux:error name="form.copyright" />
                     </flux:field>
                 </div>
