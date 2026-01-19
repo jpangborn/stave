@@ -26,6 +26,7 @@ new class extends Component {
     }
 
     #[On("related-model-changed")]
+    #[On("service-element-changed")]
     public function refreshElements(): void
     {
         $this->loadService();

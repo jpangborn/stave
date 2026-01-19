@@ -23,6 +23,7 @@ new class extends Component {
             case "description":
                 $this->element->description = $value;
                 $this->element->save();
+                $this->dispatch('service-element-changed');
                 Flux::toast(
                     variant: "success",
                     text: "Sermon description saved.",
@@ -31,6 +32,7 @@ new class extends Component {
             case "assigneeId":
                 $this->element->assignee_id = $value;
                 $this->element->save();
+                $this->dispatch('service-element-changed');
                 Flux::toast(variant: "success", text: "Assignee saved.");
                 break;
         }

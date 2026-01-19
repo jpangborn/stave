@@ -25,6 +25,7 @@ new class extends Component {
                 $reading = Reading::findOrFail($value);
                 $this->element->content()->associate($reading);
                 $this->element->save();
+                $this->dispatch('service-element-changed');
                 Flux::toast(
                     variant: "success",
                     text: "Reading selection saved.",
@@ -33,6 +34,7 @@ new class extends Component {
             case "assigneeId":
                 $this->element->assignee_id = $value;
                 $this->element->save();
+                $this->dispatch('service-element-changed');
                 Flux::toast(variant: "success", text: "Assignee saved.");
                 break;
         }
