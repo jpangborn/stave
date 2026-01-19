@@ -1,9 +1,11 @@
 <?php
 
+
 use App\Livewire\Forms\LiturgyElementForm;
 use App\Models\LiturgyElement;
 use App\Models\Template;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
@@ -34,7 +36,7 @@ new class extends Component {
         return User::all();
     }
 
-    #[On("related-model-changed")]
+    #[On("service-element-changed")]
     public function refreshElements(): void
     {
         $this->loadTemplate();
