@@ -34,7 +34,6 @@ new class extends Component {
         return User::all();
     }
 
-    #[On("related-model-changed")]
     #[On("service-element-changed")]
     public function refreshElements(): void
     {
