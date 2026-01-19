@@ -2,12 +2,13 @@
 
 use Flux\Flux;
 use Livewire\Component;
+use Livewire\Features\SupportRedirects\Redirector;
 use App\Livewire\Forms\TemplateForm;
 
 new class extends Component {
     public TemplateForm $form;
 
-    public function save()
+    public function save(): Redirector
     {
         $this->form->store();
         Flux::toast(variant: "success", text: "Template added.");

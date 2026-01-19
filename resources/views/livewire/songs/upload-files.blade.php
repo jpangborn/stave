@@ -64,7 +64,10 @@ new class extends Component {
                     <flux:error name="description" />
                 </flux:field>
 
-                <flux:button type="submit" variant="primary">Save</flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                    <span wire:loading.remove>Save</span>
+                    <span wire:loading>Saving...</span>
+                </flux:button>
             </div>
         @else
             <flux:file-upload.dropzone
