@@ -42,7 +42,7 @@ new class extends Component {
         <flux:badge color="{{ $form->reading->type->color() }}">{{ $form->reading->type->label() }}</flux:badge>
     </flux:subheading>
 
-    <flux:tab.group variant="flush" class="mt-8">
+    <flux:tab.group class="mt-8">
         <flux:tabs wire:model="tab" scrollable>
             <flux:tab name="details" icon="book-open-text">Details</flux:tab>
             <flux:tab name="text" icon="text">Text</flux:tab>

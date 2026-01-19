@@ -41,7 +41,7 @@ new class extends Component {
         @if($form->ccli_number)<flux:badge>{{ $form->ccli_number }}</flux:badge>@endif {{ $form->copyright }}
     </flux:subheading>
 
-    <flux:tab.group variant="flush" class="mt-8">
+    <flux:tab.group class="mt-8">
         <flux:tabs wire:model="tab" scrollable>
             <flux:tab name="details" icon="musical-note">Details</flux:tab>
             <flux:tab name="lyrics" icon="megaphone">Lyrics</flux:tab>
