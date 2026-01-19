@@ -2,7 +2,7 @@
 
 use Flux\Flux;
 use App\Models\Service;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
 
@@ -61,8 +61,8 @@ new class extends Component {
 
     <flux:table :paginate="$this->services" class="mt-4">
         <flux:table.columns>
-            <flux:table.column sortable class="font-semibold max-w-6" :sorted="$sortBy === 'date'" :direction="$sortDirection" wire:click="sort('deafult')">Date</flux:table.column>
-            <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'title'" :direction="$sortDirection" wire:click="sort('name')">Title</flux:table.column>
+            <flux:table.column sortable class="font-semibold max-w-6" :sorted="$sortBy === 'date'" :direction="$sortDirection" wire:click="sort('date')">Date</flux:table.column>
+            <flux:table.column sortable class="font-semibold" :sorted="$sortBy === 'title'" :direction="$sortDirection" wire:click="sort('title')">Title</flux:table.column>
             <flux:table.column class="font-semibold">Template</flux:table.column>
             <flux:table.column class="font-semibold"></flux:table.column>
         </flux:table.columns>

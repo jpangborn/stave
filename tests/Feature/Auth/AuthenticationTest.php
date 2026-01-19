@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use Livewire\Volt\Volt as LivewireVolt;
+use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -14,7 +14,7 @@ test('login screen can be rendered', function (): void {
 test('users can authenticate using the login screen', function (): void {
     $user = User::factory()->create();
 
-    $response = LivewireVolt::test('auth.login')
+    $response = Livewire::test('pages::auth.login')
         ->set('email', $user->email)
         ->set('password', 'password')
         ->call('login');
@@ -29,7 +29,7 @@ test('users can authenticate using the login screen', function (): void {
 test('users can not authenticate with invalid password', function (): void {
     $user = User::factory()->create();
 
-    $response = LivewireVolt::test('auth.login')
+    $response = Livewire::test('pages::auth.login')
         ->set('email', $user->email)
         ->set('password', 'wrong-password')
         ->call('login');
@@ -42,7 +42,9 @@ test('users can not authenticate with invalid password', function (): void {
 test('users can logout', function (): void {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post('/logout');
+    $response = $this->actingAs($user)
+        ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+        ->post('/logout');
 
     $response->assertRedirect('/');
 

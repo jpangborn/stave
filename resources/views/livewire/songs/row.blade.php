@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Song;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class extends Component {
     public Song $song;

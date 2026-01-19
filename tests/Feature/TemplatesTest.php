@@ -2,7 +2,7 @@
 
 use App\Models\Template;
 use App\Models\User;
-use Livewire\Volt\Volt as LivewireVolt;
+use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -36,7 +36,7 @@ test('template name is required when creating a template', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('templates.create')
+    Livewire::test('pages::templates.create')
         ->call('save')
         ->assertHasErrors(['form.name' => 'required']);
 });
@@ -45,7 +45,7 @@ test('authenticated users can create a template', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('templates.create')
+    Livewire::test('pages::templates.create')
         ->set('form.name', 'Test Template')
         ->set('form.default', true)
         ->call('save')
@@ -109,7 +109,7 @@ test('authenticated users can update a template', function (): void {
 
     $this->actingAs($user);
 
-    LivewireVolt::test('templates.edit', ['template' => $template->id])
+    Livewire::test('pages::templates.edit', ['template' => $template->id])
         ->set('form.name', 'New Name')
         ->call('save')
         ->assertHasNoErrors()
@@ -127,7 +127,7 @@ test('authenticated users can delete a template', function (): void {
 
     $this->actingAs($user);
 
-    LivewireVolt::test('templates.edit', ['template' => $template->id])
+    Livewire::test('pages::templates.edit', ['template' => $template->id])
         ->call('delete')
         ->assertRedirect('/templates');
 

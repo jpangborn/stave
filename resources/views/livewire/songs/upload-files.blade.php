@@ -3,7 +3,7 @@
 use App\Models\Song;
 use Livewire\Attributes\Validate;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
 new class extends Component {
@@ -64,7 +64,10 @@ new class extends Component {
                     <flux:error name="description" />
                 </flux:field>
 
-                <flux:button type="submit" variant="primary">Save</flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                    <span wire:loading.remove>Save</span>
+                    <span wire:loading>Saving...</span>
+                </flux:button>
             </div>
         @else
             <flux:file-upload.dropzone

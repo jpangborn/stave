@@ -1,7 +1,7 @@
 <?php
 
 use Flux\Flux;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use App\Livewire\Forms\TemplateForm;
 
 new class extends Component {
@@ -10,7 +10,7 @@ new class extends Component {
     public function save()
     {
         $this->form->store();
-        Flux::toast(variant: "success", text: "Tempalte added.");
+        Flux::toast(variant: "success", text: "Template added.");
         return $this->redirect("/templates", navigate: true);
     }
 };

@@ -2,7 +2,7 @@
 
 use App\Models\Service;
 use Livewire\Attributes\Reactive;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class extends Component {
     #[Reactive]

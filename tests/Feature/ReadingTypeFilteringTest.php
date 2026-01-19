@@ -5,7 +5,7 @@ use App\Enums\ReadingType;
 use App\Models\LiturgyElement;
 use App\Models\Reading;
 use App\Models\Service;
-use Livewire\Volt\Volt;
+use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -36,7 +36,7 @@ it('filters readings by reading_type when element has reading_type specified', f
     ]);
 
     // Test the reading element component
-    $component = Volt::test('elements.reading', ['element' => $readingElement]);
+    $component = Livewire::test('elements.reading', ['element' => $readingElement]);
 
     // The computed readings property should only return readings that match the reading_type
     $readings = $component->readings;
@@ -62,7 +62,7 @@ it('returns all readings when element has no reading_type specified', function (
     ]);
 
     // Test the reading element component
-    $component = Volt::test('elements.reading', ['element' => $readingElement]);
+    $component = Livewire::test('elements.reading', ['element' => $readingElement]);
 
     // The computed readings property should return all readings
     $readings = $component->readings;

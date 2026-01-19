@@ -5,7 +5,7 @@ use App\Models\Service;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class extends Component {
     #[Reactive]

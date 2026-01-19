@@ -1,7 +1,7 @@
 <?php
 
 use Flux\Flux;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use App\Livewire\Forms\ReadingForm;
 
 new class extends Component {

@@ -2,7 +2,7 @@
 
 use App\Models\Service;
 use Livewire\Attributes\Reactive;
-use Livewire\Volt\Component;
+use Livewire\Component;
 
 new class() extends Component
 {
@@ -89,7 +89,7 @@ new class() extends Component
                             </flux:popover>
                         </flux:dropdown>
                         @foreach($comment->reactions->summary() as $reaction)
-                            <span class="bg-zinc-100 rounded-full py-1 px-2">{{ $reaction['reaction'] }} {{ $reaction['count'] }}</span>
+                            <span wire:key="reaction-{{ $comment->id }}-{{ $loop->index }}" class="bg-zinc-100 rounded-full py-1 px-2">{{ $reaction['reaction'] }} {{ $reaction['count'] }}</span>
                         @endforeach
                     </div>
                 </div>

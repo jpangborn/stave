@@ -4,7 +4,7 @@ use App\Enums\ReadingType;
 use App\Models\Reading;
 use App\Models\Service;
 use App\Models\User;
-use Livewire\Volt\Volt as LivewireVolt;
+use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -38,7 +38,7 @@ test('reading title is required when creating a reading', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('readings.create')
+    Livewire::test('pages::readings.create')
         ->set('form.type', ReadingType::WORSHIP_CALL->value)
         ->call('save')
         ->assertHasErrors(['form.title' => 'required']);
@@ -48,7 +48,7 @@ test('reading type is required when creating a reading', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('readings.create')
+    Livewire::test('pages::readings.create')
         ->set('form.title', 'Test Reading')
         ->call('save')
         ->assertHasErrors(['form.type' => 'required']);
@@ -58,7 +58,7 @@ test('authenticated users can create a reading', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('readings.create')
+    Livewire::test('pages::readings.create')
         ->set('form.title', 'Test Reading')
         ->set('form.type', ReadingType::CREED->value)
         ->set('form.text', '<p>Some text</p>')
@@ -128,7 +128,7 @@ test('authenticated users can update a reading', function (): void {
 
     $this->actingAs($user);
 
-    LivewireVolt::test('readings.edit', ['reading' => $reading->id])
+    Livewire::test('pages::readings.edit', ['reading' => $reading->id])
         ->set('form.title', 'New Title')
         ->set('form.text', '<p>New text</p>')
         ->call('save')
@@ -148,7 +148,7 @@ test('authenticated users can delete a reading', function (): void {
 
     $this->actingAs($user);
 
-    LivewireVolt::test('readings.edit', ['reading' => $reading->id])
+    Livewire::test('pages::readings.edit', ['reading' => $reading->id])
         ->call('delete')
         ->assertRedirect('/readings');
 
@@ -227,7 +227,7 @@ test('readings index sorting by last used date works correctly', function (): vo
     $this->actingAs($user);
 
     // Test descending sort (recently used first, never used last)
-    LivewireVolt::test('readings.index')
+    Livewire::test('pages::readings.index')
         ->set('sortBy', 'last_used_date')
         ->set('sortDirection', 'desc')
         ->assertSeeInOrder([
@@ -237,7 +237,7 @@ test('readings index sorting by last used date works correctly', function (): vo
         ]);
 
     // Test ascending sort (never used first, recently used last)
-    LivewireVolt::test('readings.index')
+    Livewire::test('pages::readings.index')
         ->set('sortBy', 'last_used_date')
         ->set('sortDirection', 'asc')
         ->assertSeeInOrder([

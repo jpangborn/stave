@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Service;
 use App\Models\User;
-use Livewire\Volt\Volt;
+use Livewire\Livewire;
 
 uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -14,7 +14,7 @@ test('authenticated user can view discussion component', function (): void {
 
     $this->actingAs($user);
 
-    Volt::test('services.discussion', ['serviceId' => $service->id])
+    Livewire::test('services.discussion', ['serviceId' => $service->id])
         ->assertStatus(200);
 });
 
@@ -24,7 +24,7 @@ test('authenticated user can submit a comment', function (): void {
 
     $this->actingAs($user);
 
-    Volt::test('services.discussion', ['serviceId' => $service->id])
+    Livewire::test('services.discussion', ['serviceId' => $service->id])
         ->set('comment', '<p>Test comment content</p>')
         ->call('saveComment')
         ->assertSet('comment', '');
@@ -39,7 +39,7 @@ test('comment is associated with authenticated user', function (): void {
 
     $this->actingAs($user);
 
-    Volt::test('services.discussion', ['serviceId' => $service->id])
+    Livewire::test('services.discussion', ['serviceId' => $service->id])
         ->set('comment', '<p>My comment</p>')
         ->call('saveComment');
 
@@ -55,7 +55,7 @@ test('user can react to a comment', function (): void {
 
     $this->actingAs($user);
 
-    Volt::test('services.discussion', ['serviceId' => $service->id])
+    Livewire::test('services.discussion', ['serviceId' => $service->id])
         ->call('react', $comment->id, '👍');
 
     expect($comment->fresh()->reactions()->count())->toBe(1);

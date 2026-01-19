@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Livewire\Volt\Volt;
 
 Route::get('/', fn () => view('welcome'))->name('home');
 
@@ -15,56 +14,54 @@ Route::middleware(['auth'])->group(function (): void {
     Route::name('settings.')
         ->prefix('settings')
         ->group(function (): void {
-            Volt::route('profile', 'settings.profile')->name('profile');
-            Volt::route('password', 'settings.password')->name('password');
-            Volt::route('appearance', 'settings.appearance')->name(
-                'appearance',
-            );
+            Route::livewire('profile', 'pages::settings.profile')->name('profile');
+            Route::livewire('password', 'pages::settings.password')->name('password');
+            Route::livewire('appearance', 'pages::settings.appearance')->name('appearance');
         });
 
     Route::name('songs.')
         ->prefix('songs')
         ->group(function (): void {
-            Volt::route('/', 'songs.index')->name('index');
-            Volt::route('/create', 'songs.create')->name('create');
-            Volt::route('/{song}', 'songs.show')->name('show');
-            Volt::route('/{song}/edit', 'songs.edit')->name('edit');
+            Route::livewire('/', 'pages::songs.index')->name('index');
+            Route::livewire('/create', 'pages::songs.create')->name('create');
+            Route::livewire('/{song}', 'pages::songs.show')->name('show');
+            Route::livewire('/{song}/edit', 'pages::songs.edit')->name('edit');
         });
 
     Route::name('readings.')
         ->prefix('readings')
         ->group(function (): void {
-            Volt::route('/', 'readings.index')->name('index');
-            Volt::route('/create', 'readings.create')->name('create');
-            Volt::route('/{reading}', 'readings.show')->name('show');
-            Volt::route('/{reading}/edit', 'readings.edit')->name('edit');
+            Route::livewire('/', 'pages::readings.index')->name('index');
+            Route::livewire('/create', 'pages::readings.create')->name('create');
+            Route::livewire('/{reading}', 'pages::readings.show')->name('show');
+            Route::livewire('/{reading}/edit', 'pages::readings.edit')->name('edit');
         });
 
     Route::name('templates.')
         ->prefix('templates')
         ->group(function (): void {
-            Volt::route('/', 'templates.index')->name('index');
-            Volt::route('/create', 'templates.create')->name('create');
-            Volt::route('/{template}', 'templates.show')->name('show');
-            Volt::route('/{template}/edit', 'templates.edit')->name('edit');
+            Route::livewire('/', 'pages::templates.index')->name('index');
+            Route::livewire('/create', 'pages::templates.create')->name('create');
+            Route::livewire('/{template}', 'pages::templates.show')->name('show');
+            Route::livewire('/{template}/edit', 'pages::templates.edit')->name('edit');
         });
 
     Route::name('services.')
         ->prefix('services')
         ->group(function (): void {
-            Volt::route('/', 'services.index')->name('index');
-            Volt::route('/create', 'services.create')->name('create');
-            Volt::route('/{service}', 'services.show')->name('show');
-            Volt::route('/{service}/edit', 'services.edit')->name('edit');
+            Route::livewire('/', 'pages::services.index')->name('index');
+            Route::livewire('/create', 'pages::services.create')->name('create');
+            Route::livewire('/{service}', 'pages::services.show')->name('show');
+            Route::livewire('/{service}/edit', 'pages::services.edit')->name('edit');
         });
 
     Route::name('people.')
         ->prefix('people')
         ->group(function (): void {
-            Volt::route('/', 'people.index')->name('index');
-            Volt::route('/create', 'people.create')->name('create');
-            Volt::route('/{person}', 'people.show')->name('show');
-            Volt::route('/{person}/edit', 'people.edit')->name('edit');
+            Route::livewire('/', 'pages::people.index')->name('index');
+            Route::livewire('/create', 'pages::people.create')->name('create');
+            Route::livewire('/{person}', 'pages::people.show')->name('show');
+            Route::livewire('/{person}/edit', 'pages::people.edit')->name('edit');
         });
 });
 

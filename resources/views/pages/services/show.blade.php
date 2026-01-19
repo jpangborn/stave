@@ -5,7 +5,7 @@ use App\Enums\Permission;
 use App\Models\Template;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
-use Livewire\Volt\Component;
+use Livewire\Component;
 use App\Livewire\Forms\ServiceForm;
 
 new class extends Component {

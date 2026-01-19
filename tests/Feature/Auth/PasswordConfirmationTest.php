@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use Livewire\Volt\Volt;
+use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -18,7 +18,7 @@ test('password can be confirmed', function (): void {
 
     $this->actingAs($user);
 
-    $response = Volt::test('auth.confirm-password')
+    $response = Livewire::test('pages::auth.confirm-password')
         ->set('password', 'password')
         ->call('confirmPassword');
 
@@ -32,7 +32,7 @@ test('password is not confirmed with invalid password', function (): void {
 
     $this->actingAs($user);
 
-    $response = Volt::test('auth.confirm-password')
+    $response = Livewire::test('pages::auth.confirm-password')
         ->set('password', 'wrong-password')
         ->call('confirmPassword');
 
