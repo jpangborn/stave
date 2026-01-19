@@ -1,5 +1,6 @@
 <?php
 
+use Flux\Flux;
 use App\Models\Reading;
 use App\Enums\Permission;
 use Livewire\Attributes\Url;
