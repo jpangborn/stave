@@ -63,7 +63,7 @@ new class() extends Component
                     <flux:label>From Template</flux:label>
                     <flux:select variant="listbox" searchable wire:model="form.template_id" placeholder="Choose template...">
                         @foreach($this->templates as $template)
-                            <flux:select.option value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
+                            <flux:select.option wire:key="template-{{ $template->id }}" value="{{ $template->id }}">{{ $template->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
                 </flux:field>
