@@ -6,7 +6,7 @@ use App\Enums\LiturgyElementType;
 use App\Models\LiturgyElement;
 use App\Models\Template;
 use App\Models\User;
-use Livewire\Volt\Volt as LivewireVolt;
+use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -27,7 +27,7 @@ test('authenticated users can edit template elements', function (): void {
     $this->actingAs($user);
 
     // Test editing the element
-    LivewireVolt::test('templates.elements', ['templateId' => $template->id])
+    Livewire::test('templates.elements', ['templateId' => $template->id])
         ->call('editElement', $element->id)
         ->assertSet('elementForm.name', 'Original Name')
         ->assertSet('elementForm.description', 'Original Description')
@@ -60,7 +60,7 @@ test('editing template elements validates required fields', function (): void {
     $this->actingAs($user);
 
     // Test validation by setting empty name
-    LivewireVolt::test('templates.elements', ['templateId' => $template->id])
+    Livewire::test('templates.elements', ['templateId' => $template->id])
         ->call('editElement', $element->id)
         ->set('elementForm.name', '')
         ->call('updateElement')
@@ -82,7 +82,7 @@ test('editing reading elements shows reading type field', function (): void {
     $this->actingAs($user);
 
     // Test that changing to reading type shows reading_type field
-    LivewireVolt::test('templates.elements', ['templateId' => $template->id])
+    Livewire::test('templates.elements', ['templateId' => $template->id])
         ->call('editElement', $element->id)
         ->set('elementForm.type', LiturgyElementType::READING->value)
         ->call('$refresh')

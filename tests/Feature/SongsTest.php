@@ -4,7 +4,7 @@ use App\Models\Service;
 use App\Models\Song;
 use App\Models\Template;
 use App\Models\User;
-use Livewire\Volt\Volt as LivewireVolt;
+use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -38,7 +38,7 @@ test('song name is required when creating a song', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('songs.create')
+    Livewire::test('pages::songs.create')
         ->call('save')
         ->assertHasErrors(['form.name' => 'required']);
 });
@@ -47,7 +47,7 @@ test('authenticated users can create a song', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('songs.create')
+    Livewire::test('pages::songs.create')
         ->set('form.name', 'Amazing Grace')
         ->set('form.ccli_number', '12345')
         ->set('form.copyright', 'Public Domain')
@@ -123,7 +123,7 @@ test('authenticated users can update a song', function (): void {
 
     $this->actingAs($user);
 
-    LivewireVolt::test('songs.edit', ['song' => $song->id])
+    Livewire::test('pages::songs.edit', ['song' => $song->id])
         ->set('form.name', 'New Title')
         ->set('form.lyrics', 'New lyrics')
         ->call('save')
@@ -144,7 +144,7 @@ test('authenticated users can delete a song', function (): void {
 
     $this->actingAs($user);
 
-    LivewireVolt::test('songs.edit', ['song' => $song->id])
+    Livewire::test('pages::songs.edit', ['song' => $song->id])
         ->call('delete')
         ->assertRedirect('/songs');
 
@@ -155,7 +155,7 @@ test('authenticated users can create a song with authors', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('songs.create')
+    Livewire::test('pages::songs.create')
         ->set('form.name', 'Amazing Grace')
         ->set('form.authors', 'John Newton, William Cowper')
         ->set('form.ccli_number', '12345')
@@ -183,7 +183,7 @@ test('authenticated users can update a song with authors', function (): void {
 
     $this->actingAs($user);
 
-    LivewireVolt::test('songs.edit', ['song' => $song->id])
+    Livewire::test('pages::songs.edit', ['song' => $song->id])
         ->set('form.name', 'New Title')
         ->set('form.authors', 'John Smith, Jane Doe')
         ->set('form.lyrics', 'New lyrics')
@@ -198,7 +198,7 @@ test('song authors field is optional', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    LivewireVolt::test('songs.create')
+    Livewire::test('pages::songs.create')
         ->set('form.name', 'Song Without Authors')
         ->call('save')
         ->assertHasNoErrors()
@@ -295,7 +295,7 @@ test('songs index sorting by last used date works correctly', function (): void 
     $this->actingAs($user);
 
     // Test descending sort (recently used first, never used last)
-    LivewireVolt::test('songs.index')
+    Livewire::test('pages::songs.index')
         ->set('sortBy', 'last_used_date')
         ->set('sortDirection', 'desc')
         ->assertSeeInOrder([
@@ -305,7 +305,7 @@ test('songs index sorting by last used date works correctly', function (): void 
         ]);
 
     // Test ascending sort (never used first, recently used last)
-    LivewireVolt::test('songs.index')
+    Livewire::test('pages::songs.index')
         ->set('sortBy', 'last_used_date')
         ->set('sortDirection', 'asc')
         ->assertSeeInOrder([
