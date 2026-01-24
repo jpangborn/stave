@@ -35,13 +35,18 @@ new class extends Component {
     @else
         @foreach($this->service->liturgyElements as $element)
             <section>
-                <h2>{{ $element->name }}
-                    @if($element->hasContent() && $element->name != $element->content->title)
-                        : {{$element->content->title }}
+                <div class="flex items-start justify-between gap-2">
+                    <h2>{{ $element->getDisplayTitle() }}</h2>
+                    @if($element->hasContent())
+                        <x-copy-buttons
+                            :title="$element->getDisplayTitle()"
+                            :content="$element->getContentText()"
+                            class="shrink-0 mt-1"
+                        />
                     @endif
-                </h2>
+                </div>
                 @if($element->hasContent())
-                    {!! $element->content->text !!}
+                    {!! $element->getContentText() !!}
                 @endif
             </section>
         @endforeach

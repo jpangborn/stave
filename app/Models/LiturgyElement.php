@@ -84,4 +84,56 @@ class LiturgyElement extends Model
     {
         return $this->content_type && $this->content_id;
     }
+
+    /**
+     * Get the display title for the element, including content title if different.
+     */
+    public function getDisplayTitle(): string
+    {
+        if (! $this->hasContent()) {
+            return $this->name;
+        }
+
+        $contentTitle = $this->getContentTitle();
+
+        if ($this->name === $contentTitle) {
+            return $this->name;
+        }
+
+        return $this->name.': '.$contentTitle;
+    }
+
+    /**
+     * Get the title/name of the associated content.
+     */
+    public function getContentTitle(): ?string
+    {
+        if (! $this->hasContent()) {
+            return null;
+        }
+
+        // Songs use 'name', Readings use 'title'
+        if ($this->isSong()) {
+            return $this->content->name;
+        }
+
+        return $this->content->title;
+    }
+
+    /**
+     * Get the text content (lyrics for songs, text for readings).
+     */
+    public function getContentText(): ?string
+    {
+        if (! $this->hasContent()) {
+            return null;
+        }
+
+        // Songs use 'lyrics', Readings use 'text'
+        if ($this->isSong()) {
+            return $this->content->lyrics;
+        }
+
+        return $this->content->text;
+    }
 }

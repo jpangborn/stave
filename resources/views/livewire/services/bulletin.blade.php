@@ -33,10 +33,19 @@ new class extends Component {
                     @break
                 @case(App\Enums\LiturgyElementType::SONG)
                     <section>
-                        <h2>{{ $element->name }}@if($element->hasContent() && $element->name != $element->content->name): {{$element->content->name }}@endif</h2>
+                        <div class="flex items-start justify-between gap-2">
+                            <h2>{{ $element->getDisplayTitle() }}</h2>
+                            @if($element->hasContent())
+                                <x-copy-buttons
+                                    :title="$element->getDisplayTitle()"
+                                    :content="$element->getContentText()"
+                                    class="shrink-0 mt-1"
+                                />
+                            @endif
+                        </div>
                         @if($element->hasContent())
                         <div>
-                            {!! $element->content->lyrics !!}
+                            {!! $element->getContentText() !!}
                         </div>
                         @endif
                     </section>
@@ -44,9 +53,18 @@ new class extends Component {
                 @case(App\Enums\LiturgyElementType::READING)
                 @case(App\Enums\LiturgyElementType::PRAYER)
                     <section>
-                        <h2>{{ $element->name }}@if($element->hasContent() && $element->name != $element->content->title): {{$element->content->title }}@endif</h2>
+                        <div class="flex items-start justify-between gap-2">
+                            <h2>{{ $element->getDisplayTitle() }}</h2>
+                            @if($element->hasContent())
+                                <x-copy-buttons
+                                    :title="$element->getDisplayTitle()"
+                                    :content="$element->getContentText()"
+                                    class="shrink-0 mt-1"
+                                />
+                            @endif
+                        </div>
                         @if($element->hasContent())
-                            {!! $element->content->text !!}
+                            {!! $element->getContentText() !!}
                         @endif
                     </section>
                     @break
