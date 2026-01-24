@@ -3,11 +3,13 @@
 use App\Models\Song;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
+    Storage::fake('digital-ocean');
     $this->user = User::factory()->create();
     $this->song = Song::factory()->create();
     $this->actingAs($this->user);
@@ -20,8 +22,8 @@ test('guests cannot access the upload component', function (): void {
         ->assertForbidden();
 });
 
-test('authenticated users can upload an mp3 file with audio/mpeg mime type', function (): void {
-    $file = UploadedFile::fake()->create('test.mp3', 1024, 'audio/mpeg');
+test('authenticated users can upload audio files with valid mime types', function (string $extension, string $mimeType): void {
+    $file = UploadedFile::fake()->create("test.{$extension}", 1024, $mimeType);
 
     Livewire::test('songs.upload-files', ['song' => $this->song])
         ->set('file', $file)
@@ -30,67 +32,14 @@ test('authenticated users can upload an mp3 file with audio/mpeg mime type', fun
         ->assertHasNoErrors();
 
     expect($this->song->recordings()->count())->toBe(1);
-});
-
-test('authenticated users can upload an m4a file with audio/mp4 mime type (iOS Safari)', function (): void {
-    $file = UploadedFile::fake()->create('test.m4a', 1024, 'audio/mp4');
-
-    Livewire::test('songs.upload-files', ['song' => $this->song])
-        ->set('file', $file)
-        ->set('description', 'Test recording')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    expect($this->song->recordings()->count())->toBe(1);
-});
-
-test('authenticated users can upload an m4a file with audio/x-m4a mime type (iOS Safari variant)', function (): void {
-    $file = UploadedFile::fake()->create('test.m4a', 1024, 'audio/x-m4a');
-
-    Livewire::test('songs.upload-files', ['song' => $this->song])
-        ->set('file', $file)
-        ->set('description', 'Test recording')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    expect($this->song->recordings()->count())->toBe(1);
-});
-
-test('authenticated users can upload an m4a file with audio/m4a mime type (desktop Safari)', function (): void {
-    $file = UploadedFile::fake()->create('test.m4a', 1024, 'audio/m4a');
-
-    Livewire::test('songs.upload-files', ['song' => $this->song])
-        ->set('file', $file)
-        ->set('description', 'Test recording')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    expect($this->song->recordings()->count())->toBe(1);
-});
-
-test('authenticated users can upload an aac file with audio/aac mime type', function (): void {
-    $file = UploadedFile::fake()->create('test.aac', 1024, 'audio/aac');
-
-    Livewire::test('songs.upload-files', ['song' => $this->song])
-        ->set('file', $file)
-        ->set('description', 'Test recording')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    expect($this->song->recordings()->count())->toBe(1);
-});
-
-test('authenticated users can upload an aac file with audio/x-aac mime type', function (): void {
-    $file = UploadedFile::fake()->create('test.aac', 1024, 'audio/x-aac');
-
-    Livewire::test('songs.upload-files', ['song' => $this->song])
-        ->set('file', $file)
-        ->set('description', 'Test recording')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    expect($this->song->recordings()->count())->toBe(1);
-});
+})->with([
+    'mp3 with audio/mpeg' => ['mp3', 'audio/mpeg'],
+    'm4a with audio/mp4 (iOS Safari)' => ['m4a', 'audio/mp4'],
+    'm4a with audio/x-m4a (iOS Safari variant)' => ['m4a', 'audio/x-m4a'],
+    'm4a with audio/m4a (desktop Safari)' => ['m4a', 'audio/m4a'],
+    'aac with audio/aac' => ['aac', 'audio/aac'],
+    'aac with audio/x-aac' => ['aac', 'audio/x-aac'],
+]);
 
 test('authenticated users can upload a pdf file', function (): void {
     $file = UploadedFile::fake()->create('test.pdf', 1024, 'application/pdf');

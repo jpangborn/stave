@@ -11,6 +11,11 @@ new class extends Component {
 
     public Song $song;
 
+    public function boot(): void
+    {
+        abort_unless(auth()->check(), 403);
+    }
+
     #[Validate(['file' => ['required', 'file', 'mimetypes:audio/mpeg,audio/mp4,audio/x-m4a,audio/m4a,audio/aac,audio/x-aac,application/pdf', 'max:10420']])]
     public ?TemporaryUploadedFile $file = null;
 
