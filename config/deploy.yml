@@ -14,7 +14,13 @@ builder:
 
 # Deploy to these servers.
 servers:
-  - 129.212.180.73
+  web:
+    hosts:
+      - 129.212.180.73
+  worker:
+    hosts:
+      - 129.212.180.73
+    cmd: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
 
 # Credentials for your image host.
 registry:
