@@ -11,7 +11,7 @@ new class extends Component {
 
     public Song $song;
 
-    #[Validate(['file' => ['required', 'file', 'mimes:mp3,m4a,aac,pdf', 'max:10420']])]
+    #[Validate(['file' => ['required', 'file', 'mimetypes:audio/mpeg,audio/mp4,audio/x-m4a,audio/m4a,audio/aac,audio/x-aac,application/pdf', 'max:10420']])]
     public ?TemporaryUploadedFile $file = null;
 
     #[Validate(['description' => ['required', 'string']])]
@@ -46,7 +46,7 @@ new class extends Component {
 ?>
 
 <form wire:submit="save">
-    <flux:file-upload wire:model="file" accept=".mp3,.m4a,.aac,.pdf">
+    <flux:file-upload wire:model="file" accept=".mp3,.m4a,.aac,.pdf,audio/mpeg,audio/mp4,audio/x-m4a,audio/m4a,audio/aac,audio/x-aac,application/pdf">
         @if ($file)
             <flux:file-item
                 :heading="$file->getClientOriginalName()"
