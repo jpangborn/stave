@@ -96,7 +96,7 @@ class LiturgyElement extends Model
 
         $contentTitle = $this->getContentTitle();
 
-        if ($this->name === $contentTitle) {
+        if (! $contentTitle || $this->name === $contentTitle) {
             return $this->name;
         }
 
@@ -112,12 +112,16 @@ class LiturgyElement extends Model
             return null;
         }
 
-        // Songs use 'name', Readings use 'title'
-        if ($this->isSong()) {
-            return $this->content->name;
+        $content = $this->content;
+        if (! $content) {
+            return null;
         }
 
-        return $this->content->title;
+        if ($this->isSong()) {
+            return $content->name;
+        }
+
+        return $content->title;
     }
 
     /**
@@ -129,11 +133,15 @@ class LiturgyElement extends Model
             return null;
         }
 
-        // Songs use 'lyrics', Readings use 'text'
-        if ($this->isSong()) {
-            return $this->content->lyrics;
+        $content = $this->content;
+        if (! $content) {
+            return null;
         }
 
-        return $this->content->text;
+        if ($this->isSong()) {
+            return $content->lyrics;
+        }
+
+        return $content->text;
     }
 }
