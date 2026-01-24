@@ -1,0 +1,3 @@
+{
+  "setup": "ln -sf \"$CONDUCTOR_ROOT_PATH/.env\" .env && ln -sf \"$CONDUCTOR_ROOT_PATH/auth.json\" auth.json && cp \"$CONDUCTOR_ROOT_PATH/database/database.sqlite\" database/database.sqlite && composer install --no-interaction && npm install && npm run build"
+}
