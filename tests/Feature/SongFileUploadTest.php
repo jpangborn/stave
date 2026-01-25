@@ -21,7 +21,7 @@ function createFileWithMagicBytes(string $extension, string $mimeType, int $size
     $magicBytes = match ($mimeType) {
         'audio/mpeg' => "\xFF\xFB\x90\x00",
         'audio/mp4', 'audio/x-m4a', 'audio/m4a' => "\x00\x00\x00\x1C\x66\x74\x79\x70\x4D\x34\x41\x20",
-        'audio/aac', 'audio/x-aac' => "\xFF\xF1\x50\x80",
+        'audio/aac', 'audio/x-aac', 'audio/x-hx-aac-adts' => "\xFF\xF1\x50\x80",
         'application/pdf' => "%PDF-1.4\n",
         default => '',
     };
@@ -62,6 +62,7 @@ test('authenticated users can upload audio files with valid mime types', functio
     'm4a with audio/m4a (desktop Safari)' => ['m4a', 'audio/m4a'],
     'aac with audio/aac' => ['aac', 'audio/aac'],
     'aac with audio/x-aac' => ['aac', 'audio/x-aac'],
+    'aac with audio/x-hx-aac-adts (finfo detection)' => ['aac', 'audio/x-hx-aac-adts'],
 ]);
 
 test('authenticated users can upload a pdf file', function (): void {
