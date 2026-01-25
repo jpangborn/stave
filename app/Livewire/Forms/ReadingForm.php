@@ -18,11 +18,17 @@ class ReadingForm extends Form
 
     public ?string $text = null;
 
+    public ?int $series_id = null;
+
+    public ?int $series_order = null;
+
     public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
             'type' => 'required|string',
+            'series_id' => 'nullable|exists:series,id',
+            'series_order' => 'nullable|required_with:series_id|integer|min:1',
         ];
     }
 
@@ -33,13 +39,15 @@ class ReadingForm extends Form
         $this->title = $reading->title;
         $this->type = $reading->type?->value ?? '';
         $this->text = $reading->text;
+        $this->series_id = $reading->series_id;
+        $this->series_order = $reading->series_order;
     }
 
     public function store(): void
     {
         $this->validate();
 
-        Reading::create($this->only(['title', 'type', 'text']));
+        Reading::create($this->only(['title', 'type', 'text', 'series_id', 'series_order']));
     }
 
     public function update(): void
@@ -47,7 +55,7 @@ class ReadingForm extends Form
         $this->validate();
 
         $this->reading->update(
-            $this->only(['title', 'type', 'text'])
+            $this->only(['title', 'type', 'text', 'series_id', 'series_order'])
         );
     }
 }

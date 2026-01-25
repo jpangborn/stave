@@ -37,6 +37,15 @@ Route::middleware(['auth'])->group(function (): void {
             Route::livewire('/{reading}/edit', 'pages::readings.edit')->name('edit');
         });
 
+    Route::name('series.')
+        ->prefix('series')
+        ->group(function (): void {
+            Route::livewire('/', 'pages::series.index')->name('index');
+            Route::livewire('/create', 'pages::series.create')->name('create');
+            Route::livewire('/{series}', 'pages::series.show')->name('show');
+            Route::livewire('/{series}/edit', 'pages::series.edit')->name('edit');
+        });
+
     Route::name('templates.')
         ->prefix('templates')
         ->group(function (): void {

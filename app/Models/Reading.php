@@ -6,6 +6,7 @@ use App\Enums\ReadingType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Reading extends Model
@@ -13,7 +14,7 @@ class Reading extends Model
     /** @use HasFactory<\Database\Factories\ReadingFactory> */
     use HasFactory;
 
-    protected $fillable = ['title', 'type', 'text'];
+    protected $fillable = ['title', 'type', 'text', 'series_id', 'series_order'];
 
     /**
      * Get the attributes that should be cast.
@@ -55,5 +56,13 @@ class Reading extends Model
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'content');
+    }
+
+    /**
+     * @return BelongsTo<Series,Reading>
+     */
+    public function series(): BelongsTo
+    {
+        return $this->belongsTo(Series::class);
     }
 }

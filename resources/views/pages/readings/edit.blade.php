@@ -2,8 +2,10 @@
 
 use Flux\Flux;
 use App\Models\Reading;
+use App\Models\Series;
 use App\Enums\Permission;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use App\Livewire\Forms\ReadingForm;
 
@@ -12,6 +14,12 @@ new class extends Component {
 
     #[Url]
     public $tab = "details";
+
+    #[Computed]
+    public function seriesList()
+    {
+        return Series::query()->orderBy('name')->get();
+    }
 
     public function mount(Reading $reading): void
     {
@@ -67,6 +75,20 @@ new class extends Component {
                             <flux:select.option value="{{ $readingType->value }}">{{ $readingType->label() }}</flux:select.option>
                         @endforeach
                     </flux:select>
+
+                    <flux:select variant="listbox" label="Series" wire:model.live="form.series_id" placeholder="No series" clearable>
+                        @foreach($this->seriesList as $seriesItem)
+                            <flux:select.option value="{{ $seriesItem->id }}">{{ $seriesItem->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    @if($form->series_id)
+                        <flux:field>
+                            <flux:label>Order in Series</flux:label>
+                            <flux:input type="number" wire:model="form.series_order" min="1" />
+                            <flux:description>Position of this reading in the series</flux:description>
+                        </flux:field>
+                    @endif
 
                     <div class="flex space-x-2">
                         <flux:button type="submit" variant="primary">Save</flux:button>
