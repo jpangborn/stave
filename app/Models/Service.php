@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection;
 use Spatie\Comments\Models\Concerns\HasComments;
 
 class Service extends Model
@@ -58,5 +59,21 @@ class Service extends Model
     public function commentUrl(): string
     {
         return route('services.show', $this);
+    }
+
+    /**
+     * Get all unique users assigned to liturgy elements in this service.
+     *
+     * @return Collection<int, User>
+     */
+    public function assignedUsers(): Collection
+    {
+        return $this->liturgyElements()
+            ->whereNotNull('assignee_id')
+            ->with('assignee')
+            ->get()
+            ->pluck('assignee')
+            ->unique('id')
+            ->filter();
     }
 }
