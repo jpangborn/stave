@@ -18,7 +18,7 @@
                     <flux:sidebar.item icon="notepad-text-dashed" :href="route('templates.index')" :current="request()->routeIs('templates.*')" wire:navigate>{{ __('Templates') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="musical-note" :href="route('songs.index')" :current="request()->routeIs('songs.*')" wire:navigate>{{ __('Songs') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="book-open-text" :href="route('readings.index')" :current="request()->routeIs('readings.*')" wire:navigate>{{ __('Readings') }}</flux:sidebar.item>
-                    <flux:sidebar.item icon="collection" :href="route('series.index')" :current="request()->routeIs('series.*')" wire:navigate>{{ __('Series') }}</flux:sidebar.item>
+                    <flux:sidebar.item icon="library-big" :href="route('series.index')" :current="request()->routeIs('series.*')" wire:navigate>{{ __('Series') }}</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group expandable icon="church" :heading="__('Congregation')">
