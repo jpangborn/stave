@@ -2,10 +2,18 @@
 
 use Flux\Flux;
 use Livewire\Component;
+use Livewire\Attributes\Computed;
 use App\Livewire\Forms\ReadingForm;
+use App\Models\Series;
 
 new class extends Component {
     public ReadingForm $form;
+
+    #[Computed]
+    public function seriesList()
+    {
+        return Series::query()->orderBy('name')->get();
+    }
 
     public function save()
     {
@@ -39,6 +47,20 @@ new class extends Component {
                         <flux:select.option value="{{ $readingType->value }}">{{ $readingType->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
+
+                <flux:select variant="listbox" label="Series" wire:model="form.series_id" placeholder="No series" clearable>
+                    @foreach($this->seriesList as $seriesItem)
+                        <flux:select.option value="{{ $seriesItem->id }}">{{ $seriesItem->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+
+                @if($form->series_id)
+                    <flux:field>
+                        <flux:label>Order in Series</flux:label>
+                        <flux:input type="number" wire:model="form.series_order" min="1" />
+                        <flux:description>Position of this reading in the series</flux:description>
+                    </flux:field>
+                @endif
 
                 <flux:editor label="Text" wire:model="form.text" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
 
