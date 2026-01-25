@@ -1,0 +1,3 @@
+{
+  "setup": "test -n \"$CONDUCTOR_ROOT_PATH\" || { echo 'Error: CONDUCTOR_ROOT_PATH is not set'; exit 1; } && mkdir -p database && [ -e .env ] || ln -s \"$CONDUCTOR_ROOT_PATH/.env\" .env && [ -e auth.json ] || ln -s \"$CONDUCTOR_ROOT_PATH/auth.json\" auth.json && [ -e database/database.sqlite ] || cp \"$CONDUCTOR_ROOT_PATH/database/database.sqlite\" database/database.sqlite && composer install --no-interaction && npm install && npm run build"
+}
