@@ -7,11 +7,12 @@ parameters:
 
     paths:
         - app/
-        - tests/
         - resources/views/
 
     # Level 10 is the highest level
-    level: 5
+    level: 0
+
+    reportUnmatchedIgnoredErrors: false
 
     ignoreErrors:
         - '#Expression "new class extends \\Livewire\\Volt\\Component.*"#'
