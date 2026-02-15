@@ -2,9 +2,14 @@
     "agents": [
         "claude_code"
     ],
-    "editors": [
-        "claude_code"
-    ],
-    "guidelines": [],
-    "herd_mcp": true
+    "guidelines": true,
+    "herd_mcp": true,
+    "mcp": true,
+    "sail": false,
+    "skills": [
+        "fluxui-development",
+        "livewire-development",
+        "pest-testing",
+        "tailwindcss-development"
+    ]
 }
