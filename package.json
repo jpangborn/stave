@@ -1,5 +1,6 @@
 {
     "private": true,
+    "name": "stave",
     "type": "module",
     "scripts": {
         "build": "vite build",
