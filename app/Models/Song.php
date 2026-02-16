@@ -48,25 +48,19 @@ class Song extends Model
         ]);
     }
 
-    /**
-     * @return HasMany<Recording,Song>
-     */
+    /** @return HasMany<Recording, $this> */
     public function recordings(): HasMany
     {
         return $this->hasMany(Recording::class);
     }
 
-    /**
-     * @return HasMany<Sheet,Song>
-     */
+    /** @return HasMany<Sheet, $this> */
     public function sheets(): HasMany
     {
         return $this->hasMany(Sheet::class);
     }
 
-    /**
-     * @return MorphMany<LiturgyElement,Song>
-     */
+    /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'content');

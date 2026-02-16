@@ -42,17 +42,13 @@ class LiturgyElement extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<User,LiturgyElement>
-     */
+    /** @return BelongsTo<User, $this> */
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');
     }
 
-    /**
-     * @return MorphTo<Model,LiturgyElement>
-     */
+    /** @return MorphTo<Model, $this> */
     public function content(): MorphTo
     {
         return $this->morphTo();
@@ -66,9 +62,7 @@ class LiturgyElement extends Model
         ]);
     }
 
-    /**
-     * @return MorphTo<Model,LiturgyElement>
-     */
+    /** @return MorphTo<Model, $this> */
     public function liturgy(): MorphTo
     {
         return $this->morphTo();

@@ -13,9 +13,7 @@ class Template extends Model
 
     protected $fillable = ['name', 'default'];
 
-    /**
-     * @return MorphMany<LiturgyElement,Template>
-     */
+    /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(
@@ -23,9 +21,7 @@ class Template extends Model
         );
     }
 
-    /**
-     * @return HasMany<Service,Template>
-     */
+    /** @return HasMany<Service, $this> */
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
