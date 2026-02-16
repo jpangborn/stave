@@ -67,8 +67,8 @@ class LiturgyElementForm extends Form
 
         $this->name = $element->name;
         $this->description = $element->description;
-        $this->type = $element->type->value; // @phpstan-ignore property.nonObject
-        $this->reading_type = $element->reading_type?->value; // @phpstan-ignore property.nonObject
+        $this->type = $element->type->value;
+        $this->reading_type = $element->reading_type?->value;
         $this->order = $element->order;
         $this->assignee_id = $element->assignee_id;
     }

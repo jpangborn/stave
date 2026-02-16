@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property LiturgyElementType $type
+ * @property ReadingType|null $reading_type
+ */
 class LiturgyElement extends Model
 {
     /** @use HasFactory<\Database\Factories\LiturgyElementFactory> */

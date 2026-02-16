@@ -37,7 +37,7 @@ class ReadingForm extends Form
         $this->reading = $reading;
 
         $this->title = $reading->title;
-        $this->type = $reading->type->value; // @phpstan-ignore property.nonObject
+        $this->type = $reading->type->value;
         $this->text = $reading->text;
         $this->series_id = $reading->series_id;
         $this->series_order = $reading->series_order;
