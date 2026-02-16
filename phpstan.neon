@@ -10,7 +10,7 @@ parameters:
         - resources/views/
 
     # Level 10 is the highest level
-    level: 2
+    level: 3
 
     reportUnmatchedIgnoredErrors: false
 

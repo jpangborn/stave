@@ -6,8 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 use Spatie\Comments\Models\Concerns\HasComments;
 
+/**
+ * @property Carbon $date
+ */
 class Service extends Model
 {
     /** @use HasFactory<\Database\Factories\ServiceFactory> */
@@ -27,17 +31,13 @@ class Service extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<Template,Service>
-     */
+    /** @return BelongsTo<Template, $this> */
     public function template(): BelongsTo
     {
         return $this->belongsTo(Template::class);
     }
 
-    /**
-     * @return MorphMany<LiturgyElement,Service>
-     */
+    /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(

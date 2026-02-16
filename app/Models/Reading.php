@@ -53,17 +53,13 @@ class Reading extends Model
         ]);
     }
 
-    /**
-     * @return MorphMany<LiturgyElement,Reading>
-     */
+    /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'content');
     }
 
-    /**
-     * @return BelongsTo<Series,Reading>
-     */
+    /** @return BelongsTo<Series, $this> */
     public function series(): BelongsTo
     {
         return $this->belongsTo(Series::class);
