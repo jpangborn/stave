@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReadingType;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,7 +39,8 @@ class Reading extends Model
      * @param  Builder<Reading>  $query
      * @return Builder<Reading>
      */
-    public function scopeWithLastUsedDate(Builder $query): Builder
+    #[Scope]
+    protected function withLastUsedDate(Builder $query): Builder
     {
         return $query->addSelect([
             'last_used_date' => LiturgyElement::query()

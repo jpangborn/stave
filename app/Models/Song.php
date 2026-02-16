@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,7 +34,8 @@ class Song extends Model
      * @param  Builder<Song>  $query
      * @return Builder<Song>
      */
-    public function scopeWithLastUsedDate(Builder $query): Builder
+    #[Scope]
+    protected function withLastUsedDate(Builder $query): Builder
     {
         return $query->addSelect([
             'last_used_date' => LiturgyElement::query()
