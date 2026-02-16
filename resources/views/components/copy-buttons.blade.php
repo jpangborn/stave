@@ -1,11 +1,9 @@
 @props([
-    'title' => '',
     'content' => '',
 ])
 
 <div
     x-data="{
-        title: @js($title),
         htmlContent: @js($content),
 
         htmlToPlainText(html, preserveSpacing = true) {
@@ -46,9 +44,7 @@
         },
 
         async copyToClipboard(preserveSpacing = true) {
-            const plainText = this.title
-                ? this.title + '\n\n' + this.htmlToPlainText(this.htmlContent, preserveSpacing)
-                : this.htmlToPlainText(this.htmlContent, preserveSpacing);
+            const plainText = this.htmlToPlainText(this.htmlContent, preserveSpacing);
 
             try {
                 await navigator.clipboard.writeText(plainText);
