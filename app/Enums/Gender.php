@@ -12,7 +12,6 @@ enum Gender: string
         return match ($this) {
             self::MALE => 'Male',
             self::FEMALE => 'Female',
-            default => 'Unknown',
         };
     }
 
@@ -21,7 +20,6 @@ enum Gender: string
         return match ($this) {
             self::FEMALE => 'pink',
             self::MALE => 'blue',
-            default => 'gray',
         };
     }
 }
