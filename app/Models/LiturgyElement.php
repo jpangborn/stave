@@ -118,9 +118,11 @@ class LiturgyElement extends Model
         }
 
         if ($this->isSong()) {
+            /** @var Song $content */
             return $content->name;
         }
 
+        /** @var Reading $content */
         return $content->title;
     }
 
@@ -139,9 +141,11 @@ class LiturgyElement extends Model
         }
 
         if ($this->isSong()) {
+            /** @var Song $content */
             return $content->lyrics;
         }
 
+        /** @var Reading $content */
         return $content->text;
     }
 }

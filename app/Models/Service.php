@@ -35,6 +35,9 @@ class Service extends Model
         return $this->belongsTo(Template::class);
     }
 
+    /**
+     * @return MorphMany<LiturgyElement,Service>
+     */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(
