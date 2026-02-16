@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property LiturgyElementType $type
+ * @property ReadingType|null $reading_type
+ */
 class LiturgyElement extends Model
 {
     /** @use HasFactory<\Database\Factories\LiturgyElementFactory> */
@@ -118,9 +122,11 @@ class LiturgyElement extends Model
         }
 
         if ($this->isSong()) {
+            /** @var Song $content */
             return $content->name;
         }
 
+        /** @var Reading $content */
         return $content->title;
     }
 
@@ -139,9 +145,11 @@ class LiturgyElement extends Model
         }
 
         if ($this->isSong()) {
+            /** @var Song $content */
             return $content->lyrics;
         }
 
+        /** @var Reading $content */
         return $content->text;
     }
 }

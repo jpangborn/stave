@@ -13,6 +13,9 @@ class Template extends Model
 
     protected $fillable = ['name', 'default'];
 
+    /**
+     * @return MorphMany<LiturgyElement,Template>
+     */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(

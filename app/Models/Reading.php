@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property ReadingType $type
+ */
 class Reading extends Model
 {
     /** @use HasFactory<\Database\Factories\ReadingFactory> */

@@ -35,6 +35,9 @@ class Service extends Model
         return $this->belongsTo(Template::class);
     }
 
+    /**
+     * @return MorphMany<LiturgyElement,Service>
+     */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(
@@ -42,7 +45,7 @@ class Service extends Model
         );
     }
 
-    /*
+    /**
      * This string will be used in notifications on what a new comment
      * was made.
      */
@@ -51,7 +54,7 @@ class Service extends Model
         return 'Service';
     }
 
-    /*
+    /**
      * This URL will be used in notifications to let the user know
      * where the comment itself can be read.
      */
