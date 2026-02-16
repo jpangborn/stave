@@ -43,6 +43,21 @@
             return text.trim();
         },
 
+        fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            const success = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (!success) {
+                throw new Error('execCommand copy failed');
+            }
+        },
+
         async copyToClipboard(preserveSpacing = true) {
             const plainText = this.htmlToPlainText(this.htmlContent, preserveSpacing);
 
@@ -53,10 +68,18 @@
                     variant: 'success'
                 });
             } catch (err) {
-                $flux.toast({
-                    text: 'Failed to copy',
-                    variant: 'danger'
-                });
+                try {
+                    this.fallbackCopy(plainText);
+                    $flux.toast({
+                        text: 'Copied to clipboard',
+                        variant: 'success'
+                    });
+                } catch (fallbackErr) {
+                    $flux.toast({
+                        text: 'Failed to copy',
+                        variant: 'danger'
+                    });
+                }
             }
         }
     }"

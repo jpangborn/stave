@@ -11,9 +11,8 @@ use Livewire\Livewire;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 /** @group copy-buttons */
-test('copy-buttons component renders with title and content props', function (): void {
-    $html = Blade::render('<x-copy-buttons :title="$title" :content="$content" />', [
-        'title' => 'Test Title',
+test('copy-buttons component renders with content prop', function (): void {
+    $html = Blade::render('<x-copy-buttons :content="$content" />', [
         'content' => '<p>Test content</p>',
     ]);
 
@@ -37,18 +36,8 @@ test('copy-buttons component accepts custom classes', function (): void {
     expect($html)->toContain('custom-class');
 });
 
-test('copy-buttons component passes title to Alpine.js data', function (): void {
-    $html = Blade::render('<x-copy-buttons :title="$title" :content="$content" />', [
-        'title' => 'My Song Title',
-        'content' => 'lyrics here',
-    ]);
-
-    expect($html)->toContain('My Song Title');
-});
-
-test('copy-buttons component escapes HTML in props for JavaScript', function (): void {
-    $html = Blade::render('<x-copy-buttons :title="$title" :content="$content" />', [
-        'title' => 'Title with "quotes"',
+test('copy-buttons component escapes HTML in content for JavaScript', function (): void {
+    $html = Blade::render('<x-copy-buttons :content="$content" />', [
         'content' => '<p>Content with <strong>HTML</strong></p>',
     ]);
 
