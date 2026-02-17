@@ -63,6 +63,12 @@ new class extends Component {
             ->paginate(15);
     }
 
+    #[Computed]
+    public function series(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Series::orderBy('name')->get();
+    }
+
     public function delete($id): void
     {
         Reading::findOrFail($id)->delete();
@@ -84,7 +90,7 @@ new class extends Component {
             @endforeach
         </flux:select>
         <flux:select variant="listbox" wire:model.live="seriesFilter" size="sm" placeholder="Series..." class="max-w-64" multiple clearable>
-            @foreach(Series::orderBy('name')->get() as $seriesItem)
+            @foreach($this->series as $seriesItem)
                 <flux:select.option value="{{ $seriesItem->id }}">{{ $seriesItem->name }}</flux:select.option>
             @endforeach
         </flux:select>
