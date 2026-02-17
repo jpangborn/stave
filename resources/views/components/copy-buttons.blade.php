@@ -1,83 +1,113 @@
 @props([
+    'title' => '',
     'content' => '',
 ])
 
 <div
     x-data="{
+        title: @js($title),
         htmlContent: @js($content),
 
-        htmlToPlainText(html, preserveSpacing = true) {
+        htmlToPlainText(html) {
             if (!html) return '';
 
-            // Create a temporary element to parse HTML
             const temp = document.createElement('div');
             temp.innerHTML = html;
 
-            // Replace <br> tags with newlines
             temp.querySelectorAll('br').forEach(br => {
                 br.replaceWith('\n');
             });
 
-            // Get the modified HTML
             let text = temp.innerHTML;
 
-            // Replace </p><p> with double newlines (paragraph breaks) or single newlines
-            text = text.replace(/<\/p>\s*<p[^>]*>/gi, preserveSpacing ? '\n\n' : '\n');
+            text = text.replace(/<\/p>\s*<p[^>]*>/gi, '\n\n');
 
-            // Remove opening <p> tags
             text = text.replace(/<p[^>]*>/gi, '');
-
-            // Remove closing </p> tags
             text = text.replace(/<\/p>/gi, '');
 
-            // Strip remaining HTML tags
             const temp2 = document.createElement('div');
             temp2.innerHTML = text;
             text = temp2.textContent || temp2.innerText || '';
 
-            // Clean up multiple consecutive newlines if compact mode
-            if (!preserveSpacing) {
-                text = text.replace(/\n{2,}/g, '\n');
-            }
-
             return text.trim();
         },
 
-        async copyToClipboard(preserveSpacing = true) {
-            const plainText = this.htmlToPlainText(this.htmlContent, preserveSpacing);
+        async copyRichText() {
+            try {
+                const html = this.htmlContent || '';
+                const plainText = this.htmlToPlainText(this.htmlContent);
+
+                const htmlBlob = new Blob([html], { type: 'text/html' });
+                const textBlob = new Blob([plainText], { type: 'text/plain' });
+
+                const item = new ClipboardItem({
+                    'text/html': htmlBlob,
+                    'text/plain': textBlob,
+                });
+
+                await navigator.clipboard.write([item]);
+                $flux.toast({ text: 'Copied rich text to clipboard', variant: 'success' });
+            } catch (err) {
+                try {
+                    const plainText = this.htmlToPlainText(this.htmlContent);
+                    await navigator.clipboard.writeText(plainText);
+                    $flux.toast({ text: 'Copied as plain text (rich text not supported)', variant: 'success' });
+                } catch (fallbackErr) {
+                    $flux.toast({ text: 'Failed to copy', variant: 'danger' });
+                }
+            }
+        },
+
+        async copyPlainText() {
+            const plainText = this.htmlToPlainText(this.htmlContent);
 
             try {
                 await navigator.clipboard.writeText(plainText);
-                $flux.toast({
-                    text: 'Copied to clipboard',
-                    variant: 'success'
-                });
+                $flux.toast({ text: 'Copied to clipboard', variant: 'success' });
             } catch (err) {
-                $flux.toast({
-                    text: 'Failed to copy',
-                    variant: 'danger'
-                });
+                $flux.toast({ text: 'Failed to copy', variant: 'danger' });
+            }
+        },
+
+        async copyTitle() {
+            if (!this.title) return;
+
+            try {
+                await navigator.clipboard.writeText(this.title);
+                $flux.toast({ text: 'Copied title to clipboard', variant: 'success' });
+            } catch (err) {
+                $flux.toast({ text: 'Failed to copy title', variant: 'danger' });
             }
         }
     }"
     {{ $attributes->merge(['class' => 'inline-flex gap-1']) }}
 >
-    <flux:tooltip content="Copy with paragraph spacing">
+    <flux:tooltip content="Copy Rich Text">
         <flux:button
             variant="ghost"
             size="xs"
             icon="clipboard-document"
-            @click="copyToClipboard(true)"
+            @click="copyRichText()"
             class="text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
         />
     </flux:tooltip>
 
-    <flux:tooltip content="Copy compact (single line breaks)">
+    <flux:tooltip content="Copy Plain Text">
         <flux:button
             variant="ghost"
             size="xs"
             icon="clipboard-document-list"
-            @click="copyToClipboard(false)"
+            @click="copyPlainText()"
+            class="text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+        />
+    </flux:tooltip>
+
+    <flux:tooltip content="Copy Title">
+        <flux:button
+            variant="ghost"
+            size="xs"
+            icon="tag"
+            @click="copyTitle()"
             class="text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
         />
     </flux:tooltip>

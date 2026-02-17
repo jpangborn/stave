@@ -18,8 +18,9 @@ test('copy-buttons component renders with title and content props', function ():
     ]);
 
     expect($html)
-        ->toContain('Copy with paragraph spacing')
-        ->toContain('Copy compact (single line breaks)')
+        ->toContain('Copy Rich Text')
+        ->toContain('Copy Plain Text')
+        ->toContain('Copy Title')
         ->toContain('x-data');
 });
 
@@ -27,8 +28,9 @@ test('copy-buttons component renders with empty props', function (): void {
     $html = Blade::render('<x-copy-buttons />');
 
     expect($html)
-        ->toContain('Copy with paragraph spacing')
-        ->toContain('Copy compact (single line breaks)');
+        ->toContain('Copy Rich Text')
+        ->toContain('Copy Plain Text')
+        ->toContain('Copy Title');
 });
 
 test('copy-buttons component accepts custom classes', function (): void {
@@ -74,7 +76,7 @@ test('bulletin tab shows copy buttons for songs with content', function (): void
     $this->actingAs($user);
 
     Livewire::test('services.bulletin', ['serviceId' => $service->id])
-        ->assertSee('Copy with paragraph spacing')
+        ->assertSee('Copy Rich Text')
         ->assertSee('Amazing Grace');
 });
 
@@ -96,7 +98,7 @@ test('bulletin tab shows copy buttons for readings with content', function (): v
     $this->actingAs($user);
 
     Livewire::test('services.bulletin', ['serviceId' => $service->id])
-        ->assertSee('Copy with paragraph spacing')
+        ->assertSee('Copy Rich Text')
         ->assertSee('Psalm 23');
 });
 
@@ -115,7 +117,7 @@ test('bulletin tab does not show copy buttons for songs without content', functi
 
     Livewire::test('services.bulletin', ['serviceId' => $service->id])
         ->assertSee('Opening Song')
-        ->assertDontSee('Copy with paragraph spacing');
+        ->assertDontSee('Copy Rich Text');
 });
 
 test('podium notes tab shows copy buttons for readings with content', function (): void {
@@ -136,7 +138,7 @@ test('podium notes tab shows copy buttons for readings with content', function (
     $this->actingAs($user);
 
     Livewire::test('services.podium-notes', ['serviceId' => $service->id])
-        ->assertSee('Copy with paragraph spacing')
+        ->assertSee('Copy Rich Text')
         ->assertSee('Romans 8');
 });
 
@@ -158,6 +160,28 @@ test('podium notes tab shows copy buttons for prayers with content', function ()
     $this->actingAs($user);
 
     Livewire::test('services.podium-notes', ['serviceId' => $service->id])
-        ->assertSee('Copy with paragraph spacing')
+        ->assertSee('Copy Rich Text')
         ->assertSee('Prayer of Confession');
+});
+
+test('bulletin tab copy buttons include title for copying', function (): void {
+    $user = User::factory()->create();
+    $song = Song::factory()->create([
+        'name' => 'How Great Thou Art',
+        'lyrics' => '<p>O Lord my God</p>',
+    ]);
+    $service = Service::factory()->create();
+    $service->liturgyElements()->create([
+        'type' => LiturgyElementType::SONG,
+        'content_type' => Song::class,
+        'content_id' => $song->id,
+        'order' => 1,
+        'name' => 'Opening Song',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test('services.bulletin', ['serviceId' => $service->id])
+        ->assertSee('Copy Title')
+        ->assertSee('How Great Thou Art');
 });
