@@ -39,6 +39,7 @@ new class extends Component {
                     <h2>{{ $element->getDisplayTitle() }}</h2>
                     @if($element->hasContent())
                         <x-copy-buttons
+                            :title="$element->getDisplayTitle()"
                             :content="$element->getContentText()"
                             class="shrink-0 mt-1"
                         />
