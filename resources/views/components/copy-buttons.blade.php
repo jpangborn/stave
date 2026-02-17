@@ -102,13 +102,15 @@
         />
     </flux:tooltip>
 
-    <flux:tooltip content="Copy Title">
-        <flux:button
-            variant="ghost"
-            size="xs"
-            icon="tag"
-            @click="copyTitle()"
-            class="text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-        />
-    </flux:tooltip>
+    @if($title)
+        <flux:tooltip content="Copy Title">
+            <flux:button
+                variant="ghost"
+                size="xs"
+                icon="tag"
+                @click="copyTitle()"
+                class="text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+            />
+        </flux:tooltip>
+    @endif
 </div>

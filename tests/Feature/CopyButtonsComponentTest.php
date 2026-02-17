@@ -24,13 +24,13 @@ test('copy-buttons component renders with title and content props', function ():
         ->toContain('x-data');
 });
 
-test('copy-buttons component renders with empty props', function (): void {
+test('copy-buttons component does not render Copy Title button without title', function (): void {
     $html = Blade::render('<x-copy-buttons />');
 
     expect($html)
         ->toContain('Copy Rich Text')
         ->toContain('Copy Plain Text')
-        ->toContain('Copy Title');
+        ->not->toContain('Copy Title');
 });
 
 test('copy-buttons component accepts custom classes', function (): void {
