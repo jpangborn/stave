@@ -2,6 +2,7 @@
 
 use App\Enums\ReadingType;
 use App\Models\Reading;
+use App\Models\Series;
 use App\Models\Service;
 use App\Models\User;
 use Livewire\Livewire;
@@ -267,6 +268,17 @@ test('readings used in templates do not show last used date', function (): void 
         ->assertStatus(200)
         ->assertSee('Template Reading')
         ->assertSee('Never');
+});
+
+test('readings index displays series name for readings in a series', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create(['name' => 'Advent Series']);
+    Reading::factory()->create(['title' => 'Week One', 'series_id' => $series->id]);
+
+    $this->actingAs($user)
+        ->get('/readings')
+        ->assertSee('Advent Series')
+        ->assertSee('Week One');
 });
 
 test('readings do not count future services for last used date', function (): void {

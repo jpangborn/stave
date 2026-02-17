@@ -42,6 +42,7 @@ new class extends Component {
     public function readings()
     {
         return Reading::query()
+            ->with('series')
             ->withLastUsedDate()
             ->when($this->search, function ($query): void {
                 $query->whereLike("title", "%{$this->search}%");

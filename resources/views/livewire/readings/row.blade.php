@@ -16,7 +16,14 @@ new class extends Component {
 
 <flux:table.row>
     <flux:table.cell>
-        <flux:link variant="ghost" href="{{ route('readings.show', ['reading' => $reading]) }}" >{{ $reading->title }}</flux:link>
+        <flux:link variant="ghost" href="{{ route('readings.show', ['reading' => $reading]) }}">
+            <div class="flex flex-col">
+                @if($reading->series)
+                    <span class="text-xs uppercase text-zinc-500">{{ $reading->series->name }}</span>
+                @endif
+                <span>{{ $reading->title }}</span>
+            </div>
+        </flux:link>
     </flux:table.cell>
     <flux:table.cell>
         <flux:badge size="sm" color="{{ $reading->type->color() }}" inset="top bottom">{{ $reading->type->label() }}</flux:badge>
