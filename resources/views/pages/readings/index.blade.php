@@ -2,6 +2,7 @@
 
 use Flux\Flux;
 use App\Models\Reading;
+use App\Models\Series;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
@@ -13,6 +14,7 @@ new class extends Component {
     public $sortDirection = "asc";
     public $search = "";
     public $types = [];
+    public $seriesFilter = [];
 
     public function sort($column): void
     {
@@ -44,10 +46,18 @@ new class extends Component {
         return Reading::query()
             ->withLastUsedDate()
             ->when($this->search, function ($query): void {
-                $query->whereLike("title", "%{$this->search}%");
+                $query->where(function ($q): void {
+                    $q->whereLike('title', "%{$this->search}%")
+                        ->orWhereHas('series', function ($sq): void {
+                            $sq->whereLike('name', "%{$this->search}%");
+                        });
+                });
             })
             ->when($this->types, function ($query): void {
                 $query->whereIn("type", $this->types);
+            })
+            ->when($this->seriesFilter, function ($query): void {
+                $query->whereIn('series_id', $this->seriesFilter);
             })
             ->orderByRaw($this->buildOrderByClause())
             ->paginate(15);
@@ -71,6 +81,11 @@ new class extends Component {
         <flux:select variant="listbox" wire:model.live="types" size="sm" placeholder="Type..." class="max-w-64" multiple clearable>
             @foreach(\App\Enums\ReadingType::cases() as $readingType)
                 <flux:select.option value="{{ $readingType->value }}">{{ $readingType->label() }}</flux:select.option>
+            @endforeach
+        </flux:select>
+        <flux:select variant="listbox" wire:model.live="seriesFilter" size="sm" placeholder="Series..." class="max-w-64" multiple clearable>
+            @foreach(Series::orderBy('name')->get() as $seriesItem)
+                <flux:select.option value="{{ $seriesItem->id }}">{{ $seriesItem->name }}</flux:select.option>
             @endforeach
         </flux:select>
         <flux:spacer/>
