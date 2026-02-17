@@ -274,11 +274,18 @@ test('readings index displays series name for readings in a series', function ()
     $user = User::factory()->create();
     $series = Series::factory()->create(['name' => 'Advent Series']);
     Reading::factory()->create(['title' => 'Week One', 'series_id' => $series->id]);
+    Reading::factory()->create(['title' => 'Standalone Reading', 'series_id' => null]);
 
-    $this->actingAs($user)
-        ->get('/readings')
+    $response = $this->actingAs($user)
+        ->get('/readings');
+
+    $response->assertOk()
         ->assertSee('Advent Series')
-        ->assertSee('Week One');
+        ->assertSee('Week One')
+        ->assertSee('Standalone Reading');
+
+    // Verify 'Advent Series' appears exactly once — only for the series reading, not for the standalone one
+    expect(substr_count($response->getContent(), 'Advent Series'))->toBe(1);
 });
 
 test('readings do not count future services for last used date', function (): void {
