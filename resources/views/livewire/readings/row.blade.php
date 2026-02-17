@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Reading;
-use App\Enums\Permission;
 use Livewire\Component;
 
 new class extends Component {
@@ -17,7 +16,7 @@ new class extends Component {
 <flux:table.row>
     <flux:table.cell>
         <flux:link variant="ghost" href="{{ route('readings.show', ['reading' => $reading]) }}">
-            <div class="flex flex-col">
+            <div class="flex flex-col gap-0.5">
                 @if($reading->series)
                     <span class="text-xs uppercase text-zinc-500">{{ $reading->series->name }}</span>
                 @endif
