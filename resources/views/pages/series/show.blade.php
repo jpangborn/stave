@@ -104,15 +104,15 @@ new class extends Component {
             @else
                 <div class="space-y-2">
                     @foreach($form->series->readings as $reading)
-                        <flux:card class="flex items-center gap-4">
+                        <flux:card size="sm" class="flex items-center gap-4">
                             <div class="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-700 text-sm font-semibold">
                                 {{ $reading->series_order }}
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1 space-y-1">
                                 <flux:link :href="route('readings.show', ['reading' => $reading])" class="font-medium">
                                     {{ $reading->title }}
                                 </flux:link>
-                                <div class="text-sm text-zinc-500">
+                                <div>
                                     <flux:badge size="sm" color="{{ $reading->type->color() }}">{{ $reading->type->label() }}</flux:badge>
                                 </div>
                             </div>
