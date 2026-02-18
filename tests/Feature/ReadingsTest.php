@@ -284,8 +284,8 @@ test('readings index displays series name for readings in a series', function ()
         ->assertSee('Week One')
         ->assertSee('Standalone Reading');
 
-    // Verify 'Advent Series' appears exactly once — only for the series reading, not for the standalone one
-    expect(substr_count($response->getContent(), 'Advent Series'))->toBe(1);
+    // Verify 'Advent Series' appears exactly twice — once in the series filter dropdown and once in the reading row
+    expect(substr_count($response->getContent(), 'Advent Series'))->toBe(2);
 });
 
 test('readings do not count future services for last used date', function (): void {
