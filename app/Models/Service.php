@@ -6,8 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 use Spatie\Comments\Models\Concerns\HasComments;
 
+/**
+ * @property Carbon $date
+ */
 class Service extends Model
 {
     /** @use HasFactory<\Database\Factories\ServiceFactory> */
@@ -27,14 +31,13 @@ class Service extends Model
         ];
     }
 
-    /**
-     * @return BelongsTo<Template,Service>
-     */
+    /** @return BelongsTo<Template, $this> */
     public function template(): BelongsTo
     {
         return $this->belongsTo(Template::class);
     }
 
+    /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'liturgy')->orderBy(
@@ -42,7 +45,7 @@ class Service extends Model
         );
     }
 
-    /*
+    /**
      * This string will be used in notifications on what a new comment
      * was made.
      */
@@ -51,7 +54,7 @@ class Service extends Model
         return 'Service';
     }
 
-    /*
+    /**
      * This URL will be used in notifications to let the user know
      * where the comment itself can be read.
      */

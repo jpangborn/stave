@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,7 +34,8 @@ class Song extends Model
      * @param  Builder<Song>  $query
      * @return Builder<Song>
      */
-    public function scopeWithLastUsedDate(Builder $query): Builder
+    #[Scope]
+    protected function withLastUsedDate(Builder $query): Builder
     {
         return $query->addSelect([
             'last_used_date' => LiturgyElement::query()
@@ -48,25 +50,19 @@ class Song extends Model
         ]);
     }
 
-    /**
-     * @return HasMany<Recording,Song>
-     */
+    /** @return HasMany<Recording, $this> */
     public function recordings(): HasMany
     {
         return $this->hasMany(Recording::class);
     }
 
-    /**
-     * @return HasMany<Sheet,Song>
-     */
+    /** @return HasMany<Sheet, $this> */
     public function sheets(): HasMany
     {
         return $this->hasMany(Sheet::class);
     }
 
-    /**
-     * @return MorphMany<LiturgyElement,Song>
-     */
+    /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'content');

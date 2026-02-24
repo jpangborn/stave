@@ -28,7 +28,6 @@ enum ReadingType: string
             self::PRAYER => 'Prayer',
             self::PRAISE => 'Praise',
             self::BENEDICTION => 'Benediction',
-            default => 'Other Reading',
         };
     }
 
@@ -45,7 +44,6 @@ enum ReadingType: string
             self::PRAISE => 'cyan',
             self::PRAYER => 'indigo',
             self::BENEDICTION => 'amber',
-            default => 'zinc',
         };
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Enums\ReadingType;
 use App\Models\Reading;
+use App\Models\Series;
 use App\Models\Service;
 use App\Models\User;
 use Livewire\Livewire;
@@ -269,6 +270,24 @@ test('readings used in templates do not show last used date', function (): void 
         ->assertSee('Never');
 });
 
+test('readings index displays series name for readings in a series', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create(['name' => 'Advent Series']);
+    Reading::factory()->create(['title' => 'Week One', 'series_id' => $series->id]);
+    Reading::factory()->create(['title' => 'Standalone Reading', 'series_id' => null]);
+
+    $response = $this->actingAs($user)
+        ->get('/readings');
+
+    $response->assertOk()
+        ->assertSee('Advent Series')
+        ->assertSee('Week One')
+        ->assertSee('Standalone Reading');
+
+    // Verify 'Advent Series' appears exactly once — only for the series reading, not for the standalone one
+    expect(substr_count($response->getContent(), 'Advent Series'))->toBe(1);
+});
+
 test('readings do not count future services for last used date', function (): void {
     $user = User::factory()->create();
     $reading = Reading::factory()->create(['title' => 'Future Reading']);
@@ -289,4 +308,70 @@ test('readings do not count future services for last used date', function (): vo
         ->assertStatus(200)
         ->assertSee('Future Reading')
         ->assertSee('Never');
+});
+
+test('readings can be filtered by series', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create(['name' => 'Advent Series']);
+    $inSeries = Reading::factory()->create(['title' => 'Advent Reading', 'series_id' => $series->id]);
+    $notInSeries = Reading::factory()->create(['title' => 'Standalone Reading']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::readings.index')
+        ->set('seriesFilter', [$series->id]);
+
+    $readings = $component->instance()->readings;
+    expect($readings)->toHaveCount(1);
+    expect($readings->first()->id)->toBe($inSeries->id);
+});
+
+test('readings can be filtered by multiple series', function (): void {
+    $user = User::factory()->create();
+    $seriesA = Series::factory()->create(['name' => 'Advent Series']);
+    $seriesB = Series::factory()->create(['name' => 'Lent Series']);
+    $readingA = Reading::factory()->create(['title' => 'Advent Reading', 'series_id' => $seriesA->id]);
+    $readingB = Reading::factory()->create(['title' => 'Lent Reading', 'series_id' => $seriesB->id]);
+    $readingC = Reading::factory()->create(['title' => 'Standalone Reading']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::readings.index')
+        ->set('seriesFilter', [$seriesA->id, $seriesB->id]);
+
+    $readings = $component->instance()->readings;
+    expect($readings)->toHaveCount(2);
+    expect($readings->pluck('id')->all())->toContain($readingA->id, $readingB->id);
+});
+
+test('readings search matches series name', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create(['name' => 'Advent Series']);
+    $inSeries = Reading::factory()->create(['title' => 'Week One', 'series_id' => $series->id]);
+    $notInSeries = Reading::factory()->create(['title' => 'Standalone Reading']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::readings.index')
+        ->set('search', 'Advent');
+
+    $readings = $component->instance()->readings;
+    expect($readings)->toHaveCount(1);
+    expect($readings->first()->id)->toBe($inSeries->id);
+});
+
+test('readings search matches both title and series name', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create(['name' => 'Advent Series']);
+    $inSeries = Reading::factory()->create(['title' => 'Week One', 'series_id' => $series->id]);
+    $titleMatch = Reading::factory()->create(['title' => 'Advent Call to Worship']);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::readings.index')
+        ->set('search', 'Advent');
+
+    $readings = $component->instance()->readings;
+    expect($readings)->toHaveCount(2);
+    expect($readings->pluck('id')->all())->toContain($inSeries->id, $titleMatch->id);
 });

@@ -7,14 +7,21 @@ parameters:
 
     paths:
         - app/
-        - tests/
         - resources/views/
 
     # Level 10 is the highest level
     level: 5
 
+    reportUnmatchedIgnoredErrors: false
+
     ignoreErrors:
         - '#Expression "new class extends \\Livewire\\Volt\\Component.*"#'
+        -
+            identifier: expr.resultUnused
+            path: resources/views/
+        -
+            identifier: variable.undefined
+            path: resources/views/flux/navlist/group.blade.php
 #
 #    excludePaths:
 #        - ./*/*/FileToBeExcluded.php

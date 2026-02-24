@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "jpangbron/stave",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "Stave Church Management System",
     "keywords": [
         "laravel",
         "framework"
@@ -24,9 +24,10 @@
     },
     "require-dev": {
         "calebdw/larastan-livewire": "^2.2",
+        "driftingly/rector-laravel": "^2.1",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
-        "laravel/boost": "^1.0",
+        "laravel/boost": "^2.0",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",
         "laravel/sail": "^1.41",

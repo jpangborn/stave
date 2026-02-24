@@ -16,9 +16,7 @@ class Sheet extends Model
 
     protected $fillable = ['description', 'filename'];
 
-    /**
-     * @return BelongsTo<Song,Sheet>
-     */
+    /** @return BelongsTo<Song, $this> */
     public function song(): BelongsTo
     {
         return $this->belongsTo(Song::class);

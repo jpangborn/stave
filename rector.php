@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use RectorLaravel\Set\LaravelSetProvider;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -14,13 +15,5 @@ return RectorConfig::configure()
         __DIR__.'/routes',
         __DIR__.'/tests',
     ])
-    // uncomment to reach your current PHP version
-    ->withPreparedSets(
-        deadCode: true,
-        codeQuality: true,
-        typeDeclarations: true,
-        privatization: true,
-        earlyReturn: true,
-        strictBooleans: true
-    )
-    ->withPhpSets();
+    ->withSetProviders(LaravelSetProvider::class)
+    ->withComposerBased(laravel: true);

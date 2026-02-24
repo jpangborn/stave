@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use App\Enums\ReadingType;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property ReadingType $type
+ */
 class Reading extends Model
 {
     /** @use HasFactory<\Database\Factories\ReadingFactory> */
@@ -35,7 +39,8 @@ class Reading extends Model
      * @param  Builder<Reading>  $query
      * @return Builder<Reading>
      */
-    public function scopeWithLastUsedDate(Builder $query): Builder
+    #[Scope]
+    protected function withLastUsedDate(Builder $query): Builder
     {
         return $query->addSelect([
             'last_used_date' => LiturgyElement::query()
@@ -50,17 +55,13 @@ class Reading extends Model
         ]);
     }
 
-    /**
-     * @return MorphMany<LiturgyElement,Reading>
-     */
+    /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany
     {
         return $this->morphMany(LiturgyElement::class, 'content');
     }
 
-    /**
-     * @return BelongsTo<Series,Reading>
-     */
+    /** @return BelongsTo<Series, $this> */
     public function series(): BelongsTo
     {
         return $this->belongsTo(Series::class);

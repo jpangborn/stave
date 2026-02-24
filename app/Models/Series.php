@@ -13,9 +13,7 @@ class Series extends Model
 
     protected $fillable = ['name', 'description'];
 
-    /**
-     * @return HasMany<Reading,Series>
-     */
+    /** @return HasMany<Reading, $this> */
     public function readings(): HasMany
     {
         return $this->hasMany(Reading::class)->orderBy('series_order');

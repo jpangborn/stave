@@ -55,9 +55,7 @@ class User extends Authenticatable implements CanComment
             ->implode('');
     }
 
-    /**
-     * @return BelongsTo<Person,User>
-     */
+    /** @return BelongsTo<Person, $this> */
     public function person(): BelongsTo
     {
         return $this->belongsTo(Person::class);
