@@ -39,6 +39,8 @@ FROM serversideup/php:8.4-frankenphp
 
 ENV SSL_MODE=off
 ENV PHP_OPCACHE_ENABLE=1
+ENV AUTORUN_ENABLED=true
+ENV AUTORUN_LARAVEL_MIGRATION_ISOLATION=true
 
 USER root
 RUN apt-get update && apt-get install -y git
