@@ -43,9 +43,20 @@ proxy:
 env:
   secret:
     - LARAVEL_ENV_ENCRYPTION_KEY
+    - NIGHTWATCH_TOKEN
 
 # Use accessory services (secrets come from .env).
 accessories:
+  nightwatch:
+    image: laravelphp/nightwatch-agent:v1
+    host: 129.212.180.73
+    env:
+      secret:
+        - NIGHTWATCH_TOKEN
+    options:
+      health-cmd: "php nightwatch-status"
+      health-interval: "10s"
+
   db:
     image: mysql:8.0
     host: 129.212.180.73
