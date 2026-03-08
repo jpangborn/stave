@@ -7,6 +7,8 @@ image: jpangborn/stave
 aliases:
   shell: app exec -i --reuse bash
 
+deploy_timeout: 60
+
 builder:
   arch: amd64
   secrets:
