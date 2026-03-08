@@ -87,6 +87,7 @@ class LiturgyElementObserver
             return null;
         }
 
+        /** @var Service|null */
         return $element->liturgy;
     }
 }

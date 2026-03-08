@@ -24,7 +24,7 @@ class ServiceCommentNotification extends ApprovedCommentNotification
             'comment_id' => $this->comment->id,
             'commentable_type' => $this->comment->commentable_type,
             'commentable_id' => $this->comment->commentable_id,
-            'commenter_name' => $this->comment->commentator?->name,
+            'commenter_name' => $this->comment->commentator?->name, /** @phpstan-ignore property.notFound */
             'comment_preview' => Str::limit(
                 strip_tags($this->comment->text),
                 100
