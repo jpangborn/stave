@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\LiturgyElementType;
 use App\Enums\ReadingType;
+use App\Observers\LiturgyElementObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property LiturgyElementType $type
  * @property ReadingType|null $reading_type
  */
+#[ObservedBy([LiturgyElementObserver::class])]
 class LiturgyElement extends Model
 {
     /** @use HasFactory<\Database\Factories\LiturgyElementFactory> */
