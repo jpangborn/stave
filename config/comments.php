@@ -1,5 +1,6 @@
 <?php
 
+use App\Notifications\ServiceCommentNotification;
 use Spatie\Comments\Actions\ApproveCommentAction;
 use Spatie\Comments\Actions\ProcessCommentAction;
 use Spatie\Comments\Actions\RejectCommentAction;
@@ -101,7 +102,7 @@ return [
 
         'notifications' => [
             'pending_comment' => PendingCommentNotification::class,
-            'approved_comment' => \App\Notifications\ServiceCommentNotification::class,
+            'approved_comment' => ServiceCommentNotification::class,
         ],
 
         /*

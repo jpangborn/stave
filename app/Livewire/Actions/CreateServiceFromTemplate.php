@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Actions;
 
+use App\Models\LiturgyElement;
 use App\Models\Service;
 use App\Models\Template;
 use App\Services\ServiceCommentSubscriptionService;
@@ -25,18 +26,20 @@ class CreateServiceFromTemplate
                 'template_id' => $template->id,
             ]);
 
-            foreach ($template->liturgyElements as $element) {
-                $service->liturgyElements()->create([
-                    'type' => $element->type,
-                    'reading_type' => $element->reading_type,
-                    'order' => $element->order,
-                    'name' => $element->name,
-                    'description' => $element->description,
-                    'assignee_id' => $element->assignee_id,
-                    'content_type' => $element->content_type,
-                    'content_id' => $element->content_id,
-                ]);
-            }
+            LiturgyElement::withoutEvents(function () use ($template, $service): void {
+                foreach ($template->liturgyElements as $element) {
+                    $service->liturgyElements()->create([
+                        'type' => $element->type,
+                        'reading_type' => $element->reading_type,
+                        'order' => $element->order,
+                        'name' => $element->name,
+                        'description' => $element->description,
+                        'assignee_id' => $element->assignee_id,
+                        'content_type' => $element->content_type,
+                        'content_id' => $element->content_id,
+                    ]);
+                }
+            });
 
             return $service;
         });

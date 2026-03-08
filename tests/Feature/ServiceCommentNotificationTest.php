@@ -192,7 +192,7 @@ test('notification contains expected data for database channel', function (): vo
     $service->comment('<p>This is a test comment</p>');
 
     $comment = $service->comments()->first();
-    $notification = new ServiceCommentNotification($comment);
+    $notification = new ServiceCommentNotification($comment, $commenter);
 
     $data = $notification->toArray($commenter);
 

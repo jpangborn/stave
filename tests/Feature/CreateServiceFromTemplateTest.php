@@ -17,7 +17,7 @@ it('creates a service from a template with liturgy elements', function () {
         ->create();
 
     // Act: run the action (invokable class)
-    (new CreateServiceFromTemplate())($template, Carbon::tomorrow());
+    app(CreateServiceFromTemplate::class)($template, Carbon::tomorrow());
 
     // Assert: a service was created
     $this->assertDatabaseCount('services', 1);
@@ -55,7 +55,7 @@ it('copies reading_type from template to service elements', function () {
     ]);
 
     // Act: run the action
-    (new CreateServiceFromTemplate())($template, Carbon::tomorrow());
+    app(CreateServiceFromTemplate::class)($template, Carbon::tomorrow());
 
     // Assert: service was created with reading_type copied
     $service = Service::first();

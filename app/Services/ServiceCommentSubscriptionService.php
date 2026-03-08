@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Service;
 use App\Models\User;
 use Spatie\Comments\Enums\NotificationSubscriptionType;
+use Spatie\Comments\Models\CommentNotificationSubscription;
 
 class ServiceCommentSubscriptionService
 {
@@ -29,7 +30,12 @@ class ServiceCommentSubscriptionService
             ->exists();
 
         if (! $hasOtherAssignments) {
-            $user->unsubscribeFromCommentNotifications($service);
+            CommentNotificationSubscription::query()
+                ->where('subscriber_type', $user->getMorphClass())
+                ->where('subscriber_id', $user->getKey())
+                ->where('commentable_type', $service->getMorphClass())
+                ->where('commentable_id', $service->getKey())
+                ->delete();
         }
     }
 

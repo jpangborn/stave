@@ -76,7 +76,6 @@ class Service extends Model
             ->with('assignee')
             ->get()
             ->pluck('assignee')
-            ->unique('id')
-            ->filter();
+            ->unique('id');
     }
 }
