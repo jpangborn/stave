@@ -64,6 +64,13 @@ Route::middleware(['auth'])->group(function (): void {
             Route::livewire('/{service}/edit', 'pages::services.edit')->name('edit');
         });
 
+    Route::name('groups.')
+        ->prefix('groups')
+        ->group(function (): void {
+            Route::livewire('/', 'pages::groups.index')->name('index');
+            Route::livewire('/create', 'pages::groups.create')->name('create');
+        });
+
     Route::name('people.')
         ->prefix('people')
         ->group(function (): void {
