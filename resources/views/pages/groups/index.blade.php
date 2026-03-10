@@ -3,6 +3,8 @@
 use App\Enums\GroupVisibility;
 use App\Models\Group;
 use Flux\Flux;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -34,6 +36,12 @@ new class extends Component {
     }
 
     #[Computed]
+    public function myGroups(): Collection
+    {
+        return Auth::user()->groups;
+    }
+
+    #[Computed]
     public function groups()
     {
         return Group::query()
@@ -59,10 +67,24 @@ new class extends Component {
         <flux:heading size="xl" level="1">My Groups</flux:heading>
         <flux:subheading size="lg" class="mb-6">Groups you belong to.</flux:subheading>
 
-        <flux:callout icon="user-group" class="max-w-lg">
-            <flux:callout.heading>No groups yet</flux:callout.heading>
-            <flux:callout.text>You're not a member of any groups yet.</flux:callout.text>
-        </flux:callout>
+        @if ($this->myGroups->isEmpty())
+            <flux:callout icon="user-group" class="max-w-lg">
+                <flux:callout.heading>No groups yet</flux:callout.heading>
+                <flux:callout.text>You're not a member of any groups yet.</flux:callout.text>
+            </flux:callout>
+        @else
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($this->myGroups as $group)
+                    <flux:card :href="route('groups.show', $group)" class="space-y-2">
+                        <flux:heading size="lg">{{ $group->name }}</flux:heading>
+                        <div class="flex gap-2">
+                            <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
+                            <flux:badge size="sm" :color="$group->messaging->color()">{{ $group->messaging->label() }}</flux:badge>
+                        </div>
+                    </flux:card>
+                @endforeach
+            </div>
+        @endif
     </div>
 
     <div>

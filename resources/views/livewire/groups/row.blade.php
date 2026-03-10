@@ -14,7 +14,7 @@ new class extends Component {
 ?>
 
 <flux:table.row>
-    <flux:table.cell>{{ $group->name }}</flux:table.cell>
+    <flux:table.cell><a href="{{ route('groups.show', $group) }}" wire:navigate class="hover:underline">{{ $group->name }}</a></flux:table.cell>
     <flux:table.cell>
         <flux:badge size="sm" inset="top bottom" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
     </flux:table.cell>
