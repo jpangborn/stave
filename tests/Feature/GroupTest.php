@@ -102,6 +102,46 @@ test('image upload rejects non-image files', function (): void {
         ->assertHasErrors('image');
 });
 
+test('groups index displays public groups', function (): void {
+    $user = User::factory()->create();
+    Group::factory()->create(['name' => 'Public Worship', 'visibility' => GroupVisibility::PUBLIC]);
+    Group::factory()->create(['name' => 'Secret Leaders', 'visibility' => GroupVisibility::PRIVATE]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.index')
+        ->assertSee('Public Worship')
+        ->assertDontSee('Secret Leaders');
+});
+
+test('groups index search filters by name', function (): void {
+    $user = User::factory()->create();
+    Group::factory()->create(['name' => 'Youth Group', 'visibility' => GroupVisibility::PUBLIC]);
+    Group::factory()->create(['name' => 'Choir', 'visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::groups.index')
+        ->set('search', 'Youth');
+
+    $groups = $component->get('groups');
+    expect($groups)->toHaveCount(1);
+    expect($groups->first()->name)->toBe('Youth Group');
+});
+
+test('groups index can delete a group', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['name' => 'Old Group', 'visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.index')
+        ->assertSee('Old Group')
+        ->call('delete', $group->id);
+
+    $this->assertDatabaseMissing('groups', ['id' => $group->id]);
+});
+
 test('group defaults to public visibility and messaging off', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
