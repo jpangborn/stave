@@ -3,8 +3,12 @@
 namespace App\Livewire\Forms;
 
 use App\Enums\GroupMessaging;
+use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
+use App\Enums\MembershipStatus;
 use App\Models\Group;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -44,7 +48,14 @@ class GroupForm extends Form
     {
         $this->validate();
 
-        Group::create($this->data($imagePath));
+        DB::transaction(function () use ($imagePath): void {
+            $group = Group::create($this->data($imagePath));
+
+            $group->allUsers()->attach(Auth::id(), [
+                'role' => GroupRole::LEADER,
+                'status' => MembershipStatus::ACTIVE,
+            ]);
+        });
     }
 
     public function update(?string $imagePath = null): void
