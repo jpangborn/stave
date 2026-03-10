@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\GroupMessaging;
+use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
+use App\Enums\MembershipStatus;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -155,4 +157,105 @@ test('group defaults to public visibility and messaging off', function (): void 
     $group = Group::where('name', 'Default Group')->first();
     expect($group->visibility)->toBe(GroupVisibility::PUBLIC);
     expect($group->messaging)->toBe(GroupMessaging::OFF);
+});
+
+test('group creator is automatically assigned as leader', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.create')
+        ->set('form.name', 'New Group')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $group = Group::where('name', 'New Group')->first();
+
+    $this->assertDatabaseHas('group_user', [
+        'group_id' => $group->id,
+        'user_id' => $user->id,
+        'role' => GroupRole::LEADER->value,
+        'status' => MembershipStatus::ACTIVE->value,
+    ]);
+});
+
+test('members relationship returns only active users', function (): void {
+    $group = Group::factory()->create();
+    $active = User::factory()->create();
+    $pending = User::factory()->create();
+
+    $group->allUsers()->attach($active, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+
+    expect($group->members)->toHaveCount(1);
+    expect($group->members->first()->id)->toBe($active->id);
+});
+
+test('leaders relationship returns only active leaders', function (): void {
+    $group = Group::factory()->create();
+    $leader = User::factory()->create();
+    $member = User::factory()->create();
+    $pendingLeader = User::factory()->create();
+
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pendingLeader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::PENDING]);
+
+    expect($group->leaders)->toHaveCount(1);
+    expect($group->leaders->first()->id)->toBe($leader->id);
+});
+
+test('pending requests returns only pending users', function (): void {
+    $group = Group::factory()->create();
+    $pending = User::factory()->create();
+    $active = User::factory()->create();
+
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($active, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    expect($group->pendingRequests)->toHaveCount(1);
+    expect($group->pendingRequests->first()->id)->toBe($pending->id);
+});
+
+test('all users returns every membership regardless of status', function (): void {
+    $group = Group::factory()->create();
+    $users = User::factory()->count(3)->create();
+
+    $group->allUsers()->attach($users[0], ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($users[1], ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($users[2], ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::REJECTED]);
+
+    expect($group->allUsers)->toHaveCount(3);
+});
+
+test('user groups relationship returns only active memberships', function (): void {
+    $user = User::factory()->create();
+    $activeGroup = Group::factory()->create();
+    $pendingGroup = Group::factory()->create();
+
+    $activeGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $pendingGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+
+    expect($user->groups)->toHaveCount(1);
+    expect($user->groups->first()->id)->toBe($activeGroup->id);
+});
+
+test('duplicate group membership is prevented', function (): void {
+    $group = Group::factory()->create();
+    $user = User::factory()->create();
+
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    expect(fn () => $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]))
+        ->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+});
+
+test('deleting a group removes its memberships', function (): void {
+    $group = Group::factory()->create();
+    $user = User::factory()->create();
+
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $group->delete();
+
+    $this->assertDatabaseMissing('group_user', ['group_id' => $group->id]);
 });

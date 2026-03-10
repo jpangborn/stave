@@ -3,9 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\MembershipStatus;
 use App\Models\Traits\HasGravatar;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -59,5 +61,14 @@ class User extends Authenticatable implements CanComment
     public function person(): BelongsTo
     {
         return $this->belongsTo(Person::class);
+    }
+
+    /** @return BelongsToMany<Group, $this> */
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class)
+            ->withPivot('role', 'status')
+            ->withTimestamps()
+            ->wherePivot('status', MembershipStatus::ACTIVE);
     }
 }
