@@ -17,6 +17,10 @@ class GroupSeeder extends Seeder
     {
         $users = User::all();
 
+        if ($users->isEmpty()) {
+            return;
+        }
+
         Group::factory()->count(5)->create()->each(function (Group $group) use ($users) {
             $members = $users->random(min($users->count(), random_int(3, 6)));
 
