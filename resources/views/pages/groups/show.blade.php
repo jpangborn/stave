@@ -4,6 +4,7 @@ use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
 use App\Models\Group;
+use App\Models\GroupUser;
 use App\Models\User;
 use App\Notifications\GroupJoinRequestNotification;
 use App\Notifications\GroupMemberAddedNotification;
@@ -32,11 +33,10 @@ new class extends Component {
     }
 
     #[Computed]
-    public function membership(): ?object
+    public function membership(): ?GroupUser
     {
-        $pivot = $this->group->allUsers()->where('user_id', Auth::id())->first();
-
-        return $pivot?->pivot;
+        /** @var ?GroupUser */
+        return $this->group->allUsers()->where('user_id', Auth::id())->first()?->pivot;
     }
 
     #[Computed]
@@ -103,9 +103,10 @@ new class extends Component {
 
     public function cancelRequest(): void
     {
+        /** @var ?GroupUser $membership */
         $membership = $this->group->allUsers()->where('user_id', Auth::id())->first()?->pivot;
 
-        if ($membership?->status !== MembershipStatus::PENDING->value) {
+        if ($membership?->status !== MembershipStatus::PENDING) {
             return;
         }
 
@@ -129,11 +130,12 @@ new class extends Component {
     {
         $this->authorize('manageMembers', $this->group);
 
-        $this->group->allUsers()->updateExistingPivot($userId, [
+        $user = $this->group->pendingRequests()->whereKey($userId)->firstOrFail();
+
+        $this->group->allUsers()->updateExistingPivot($user->id, [
             'status' => MembershipStatus::ACTIVE,
         ]);
 
-        $user = User::findOrFail($userId);
         $user->notify(new GroupMembershipResponseNotification($this->group, approved: true));
 
         unset($this->pendingRequests, $this->activeMembers);
@@ -144,11 +146,12 @@ new class extends Component {
     {
         $this->authorize('manageMembers', $this->group);
 
-        $this->group->allUsers()->updateExistingPivot($userId, [
+        $user = $this->group->pendingRequests()->whereKey($userId)->firstOrFail();
+
+        $this->group->allUsers()->updateExistingPivot($user->id, [
             'status' => MembershipStatus::REJECTED,
         ]);
 
-        $user = User::findOrFail($userId);
         $user->notify(new GroupMembershipResponseNotification($this->group, approved: false));
 
         unset($this->pendingRequests);
@@ -235,15 +238,15 @@ new class extends Component {
         <div>
             @if ($this->membership === null && $group->visibility === GroupVisibility::PUBLIC)
                 <flux:button wire:click="join" variant="primary" icon="user-plus">Join Group</flux:button>
-            @elseif ($this->membership?->status === MembershipStatus::PENDING->value)
+            @elseif ($this->membership?->status === MembershipStatus::PENDING)
                 <div class="flex items-center gap-2">
                     <flux:badge color="amber">Request Pending</flux:badge>
                     <flux:button wire:click="cancelRequest" variant="ghost" size="sm">Cancel</flux:button>
                 </div>
-            @elseif ($this->membership?->status === MembershipStatus::ACTIVE->value && ! $this->isLeader)
+            @elseif ($this->membership?->status === MembershipStatus::ACTIVE && ! $this->isLeader)
                 <flux:button wire:click="leave" variant="danger" icon="arrow-right-start-on-rectangle"
                     wire:confirm="Are you sure you want to leave this group?">Leave Group</flux:button>
-            @elseif ($this->membership?->status === MembershipStatus::REJECTED->value)
+            @elseif ($this->membership?->status === MembershipStatus::REJECTED)
                 <flux:button wire:click="join" variant="primary" icon="user-plus">Request to Join Again</flux:button>
             @endif
         </div>
@@ -342,8 +345,8 @@ new class extends Component {
                                 <flux:table.row :key="$user->id">
                                     <flux:table.cell>{{ $user->name }}</flux:table.cell>
                                     <flux:table.cell>
-                                        <flux:badge size="sm" inset="top bottom" :color="GroupRole::from($user->pivot->role)->color()">
-                                            {{ GroupRole::from($user->pivot->role)->label() }}
+                                        <flux:badge size="sm" inset="top bottom" :color="$user->pivot->role->color()">
+                                            {{ $user->pivot->role->label() }}
                                         </flux:badge>
                                     </flux:table.cell>
                                     <flux:table.cell class="whitespace-nowrap">{{ $user->pivot->created_at->diffForHumans() }}</flux:table.cell>

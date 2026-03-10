@@ -30,14 +30,14 @@ class Group extends Model
         ];
     }
 
-    /** @return BelongsToMany<User, $this> */
+    /** @return BelongsToMany<User, $this, GroupUser> */
     public function members(): BelongsToMany
     {
         return $this->allUsers()
             ->wherePivot('status', MembershipStatus::ACTIVE);
     }
 
-    /** @return BelongsToMany<User, $this> */
+    /** @return BelongsToMany<User, $this, GroupUser> */
     public function leaders(): BelongsToMany
     {
         return $this->allUsers()
@@ -45,17 +45,18 @@ class Group extends Model
             ->wherePivot('status', MembershipStatus::ACTIVE);
     }
 
-    /** @return BelongsToMany<User, $this> */
+    /** @return BelongsToMany<User, $this, GroupUser> */
     public function pendingRequests(): BelongsToMany
     {
         return $this->allUsers()
             ->wherePivot('status', MembershipStatus::PENDING);
     }
 
-    /** @return BelongsToMany<User, $this> */
+    /** @return BelongsToMany<User, $this, GroupUser> */
     public function allUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
+            ->using(GroupUser::class)
             ->withPivot('role', 'status')
             ->withTimestamps();
     }
