@@ -1,6 +1,6 @@
 ---
 name: fluxui-development
-description: "Develops UIs with Flux UI Pro components. Activates when creating buttons, forms, modals, inputs, tables, charts, date pickers, or UI components; replacing HTML elements with Flux; working with flux: components; or when the user mentions Flux, component library, UI components, form fields, or asks about available Flux components."
+description: "Use this skill for Flux UI development in Livewire applications only. Trigger when working with <flux:*> components, building or customizing Livewire component UIs, creating forms, modals, tables, or other interactive elements. Covers: flux: components (buttons, inputs, modals, forms, tables, date-pickers, kanban, badges, tooltips, etc.), component composition, Tailwind CSS styling, Heroicons/Lucide icon integration, validation patterns, responsive design, and theming. Do not use for non-Livewire frameworks or non-component styling."
 license: MIT
 metadata:
   author: laravel
@@ -71,11 +71,12 @@ php artisan flux:icon crown grip-vertical github
 <!-- Table -->
 ```blade
 <flux:table>
-    <flux:table.head>
-        <flux:table.row>
-            <flux:table.cell>Name</flux:table.cell>
-        </flux:table.row>
-    </flux:table.head>
+    <flux:table.columns>
+        <flux:table.cell>Column Name</flux:table.cell>
+    </flux:table.columns>
+    <flux:table.row>
+        <flux:table.cell>Value</flux:table.cell>
+    </flux:table.row>
 </flux:table>
 ```
 
