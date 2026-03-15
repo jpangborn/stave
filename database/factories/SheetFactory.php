@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Sheet;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Sheet>
+ * @extends Factory<Sheet>
  */
 class SheetFactory extends Factory
 {

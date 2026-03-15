@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\RecordingObserver;
+use Database\Factories\RecordingFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[ObservedBy([RecordingObserver::class])]
 class Recording extends Model
 {
-    /** @use HasFactory<\Database\Factories\RecordingFactory> */
+    /** @use HasFactory<RecordingFactory> */
     use HasFactory;
 
     protected $fillable = ['description', 'filename'];

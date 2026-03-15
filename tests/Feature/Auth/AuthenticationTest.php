@@ -1,9 +1,11 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('login screen can be rendered', function (): void {
     $response = $this->get('/login');
@@ -43,7 +45,7 @@ test('users can logout', function (): void {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)
-        ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+        ->withoutMiddleware(ValidateCsrfToken::class)
         ->post('/logout');
 
     $response->assertRedirect('/');

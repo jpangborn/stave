@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\LiturgyElementType;
+use App\Models\LiturgyElement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\LiturgyElement>
+ * @extends Factory<LiturgyElement>
  */
 class LiturgyElementFactory extends Factory
 {

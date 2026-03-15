@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Gender;
 use App\Models\Traits\HasGravatar;
+use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Person extends Model
 {
-    /** @use HasFactory<\Database\Factories\PersonFactory> */
+    /** @use HasFactory<PersonFactory> */
     use HasFactory, HasGravatar;
 
     protected $fillable = [

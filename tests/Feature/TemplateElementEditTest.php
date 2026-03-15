@@ -6,9 +6,10 @@ use App\Enums\LiturgyElementType;
 use App\Models\LiturgyElement;
 use App\Models\Template;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('authenticated users can edit template elements', function (): void {
     $user = User::factory()->create();

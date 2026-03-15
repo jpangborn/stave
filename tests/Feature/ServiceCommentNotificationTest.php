@@ -8,11 +8,12 @@ use App\Models\Service;
 use App\Models\Template;
 use App\Models\User;
 use App\Notifications\ServiceCommentNotification;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Comments\Models\CommentNotificationSubscription;
 
-uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('assignedUsers returns unique users with assignments', function (): void {
     $service = Service::factory()->create();

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 use App\Models\Service;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('authenticated user can view discussion component', function (): void {
     $user = User::factory()->create();

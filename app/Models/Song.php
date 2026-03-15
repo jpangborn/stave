@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\SongFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Song extends Model
 {
-    /** @use HasFactory<\Database\Factories\SongFactory> */
+    /** @use HasFactory<SongFactory> */
     use HasFactory;
 
     protected $fillable = ['name', 'authors', 'ccli_number', 'copyright', 'lyrics'];

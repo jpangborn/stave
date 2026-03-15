@@ -1,12 +1,14 @@
 <?php
 
+use App\Enums\LiturgyElementType;
 use App\Models\Service;
 use App\Models\Song;
 use App\Models\Template;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group songs */
 test('guests are redirected from the songs index', function (): void {
@@ -233,7 +235,7 @@ test('songs index displays last used date when song is used in a service', funct
 
     // Create a liturgy element linking the song to the service
     $element = $service->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::SONG,
+        'type' => LiturgyElementType::SONG,
         'content_type' => Song::class,
         'content_id' => $song->id,
         'order' => 1,
@@ -277,7 +279,7 @@ test('songs index sorting by last used date works correctly', function (): void 
 
     // Link songs to services
     $recentService->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::SONG,
+        'type' => LiturgyElementType::SONG,
         'content_type' => Song::class,
         'content_id' => $songUsedRecently->id,
         'order' => 1,
@@ -285,7 +287,7 @@ test('songs index sorting by last used date works correctly', function (): void 
     ]);
 
     $oldService->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::SONG,
+        'type' => LiturgyElementType::SONG,
         'content_type' => Song::class,
         'content_id' => $songUsedLongAgo->id,
         'order' => 1,
@@ -322,7 +324,7 @@ test('songs used in templates do not show last used date', function (): void {
 
     // Create a liturgy element linking the song to the template (not service)
     $template->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::SONG,
+        'type' => LiturgyElementType::SONG,
         'content_type' => Song::class,
         'content_id' => $song->id,
         'order' => 1,
@@ -343,7 +345,7 @@ test('songs do not count future services for last used date', function (): void 
 
     // Create a liturgy element linking the song to a future service
     $futureService->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::SONG,
+        'type' => LiturgyElementType::SONG,
         'content_type' => Song::class,
         'content_id' => $song->id,
         'order' => 1,

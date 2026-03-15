@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use App\Notifications\ServiceCommentNotification;
 use Spatie\Comments\Actions\ApproveCommentAction;
 use Spatie\Comments\Actions\ProcessCommentAction;
@@ -62,7 +63,7 @@ return [
          * The class that will comment on other things. Typically, this
          * would be a user model.
          */
-        'commentator' => App\Models\User::class,
+        'commentator' => User::class,
 
         /*
          * The field to use to display the name of the commentator model.

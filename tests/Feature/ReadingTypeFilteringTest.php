@@ -5,9 +5,10 @@ use App\Enums\ReadingType;
 use App\Models\LiturgyElement;
 use App\Models\Reading;
 use App\Models\Service;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 it('filters readings by reading_type when element has reading_type specified', function () {
     // Create readings of different types

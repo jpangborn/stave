@@ -7,9 +7,10 @@ use App\Models\LiturgyElement;
 use App\Models\Reading;
 use App\Models\Service;
 use App\Models\Template;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 it('creates a service from a template with liturgy elements', function () {
     $template = Template::factory()

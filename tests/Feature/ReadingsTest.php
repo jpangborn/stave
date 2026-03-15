@@ -1,13 +1,16 @@
 <?php
 
+use App\Enums\LiturgyElementType;
 use App\Enums\ReadingType;
 use App\Models\Reading;
 use App\Models\Series;
 use App\Models\Service;
+use App\Models\Template;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group readings */
 test('guests are redirected from the readings index', function (): void {
@@ -163,7 +166,7 @@ test('readings index displays last used date when reading is used in a service',
 
     // Create a liturgy element linking the reading to the service
     $service->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::READING,
+        'type' => LiturgyElementType::READING,
         'reading_type' => ReadingType::WORSHIP_CALL,
         'content_type' => Reading::class,
         'content_id' => $reading->id,
@@ -208,7 +211,7 @@ test('readings index sorting by last used date works correctly', function (): vo
 
     // Link readings to services
     $recentService->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::READING,
+        'type' => LiturgyElementType::READING,
         'reading_type' => ReadingType::CONFESSION,
         'content_type' => Reading::class,
         'content_id' => $readingUsedRecently->id,
@@ -217,7 +220,7 @@ test('readings index sorting by last used date works correctly', function (): vo
     ]);
 
     $oldService->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::READING,
+        'type' => LiturgyElementType::READING,
         'reading_type' => ReadingType::CONFESSION,
         'content_type' => Reading::class,
         'content_id' => $readingUsedLongAgo->id,
@@ -251,11 +254,11 @@ test('readings index sorting by last used date works correctly', function (): vo
 test('readings used in templates do not show last used date', function (): void {
     $user = User::factory()->create();
     $reading = Reading::factory()->create(['title' => 'Template Reading']);
-    $template = \App\Models\Template::factory()->create();
+    $template = Template::factory()->create();
 
     // Create a liturgy element linking the reading to the template (not service)
     $template->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::READING,
+        'type' => LiturgyElementType::READING,
         'reading_type' => ReadingType::PRAISE,
         'content_type' => Reading::class,
         'content_id' => $reading->id,
@@ -295,7 +298,7 @@ test('readings do not count future services for last used date', function (): vo
 
     // Create a liturgy element linking the reading to a future service
     $futureService->liturgyElements()->create([
-        'type' => \App\Enums\LiturgyElementType::READING,
+        'type' => LiturgyElementType::READING,
         'reading_type' => ReadingType::BENEDICTION,
         'content_type' => Reading::class,
         'content_id' => $reading->id,

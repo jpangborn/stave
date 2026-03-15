@@ -5,8 +5,9 @@ use App\Models\Reading;
 use App\Models\Service;
 use App\Models\Song;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group copy-buttons */
 /** @group browser */

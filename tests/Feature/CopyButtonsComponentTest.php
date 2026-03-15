@@ -5,10 +5,11 @@ use App\Models\Reading;
 use App\Models\Service;
 use App\Models\Song;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group copy-buttons */
 test('copy-buttons component renders with title and content props', function (): void {

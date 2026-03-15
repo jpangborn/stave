@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Enums\ReadingType;
+use App\Models\Reading;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Reading>
+ * @extends Factory<Reading>
  */
 class ReadingFactory extends Factory
 {

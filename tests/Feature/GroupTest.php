@@ -6,11 +6,13 @@ use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
 use App\Models\Group;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group groups */
 test('guests are redirected from the groups index', function (): void {
@@ -246,7 +248,7 @@ test('duplicate group membership is prevented', function (): void {
     $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
 
     expect(fn () => $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]))
-        ->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+        ->toThrow(UniqueConstraintViolationException::class);
 });
 
 test('deleting a group removes its memberships', function (): void {

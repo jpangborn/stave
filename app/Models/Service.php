@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +16,7 @@ use Spatie\Comments\Models\Concerns\HasComments;
  */
 class Service extends Model
 {
-    /** @use HasFactory<\Database\Factories\ServiceFactory> */
+    /** @use HasFactory<ServiceFactory> */
     use HasComments, HasFactory;
 
     protected $fillable = ['title', 'date', 'template_id', 'notes'];

@@ -1,11 +1,13 @@
 <?php
 
+use App\Enums\ReadingType;
 use App\Models\Reading;
 use App\Models\Series;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group series */
 test('guests are redirected from the series index', function (): void {
@@ -237,7 +239,7 @@ test('can create reading with series assignment', function (): void {
 
     Livewire::test('pages::readings.create')
         ->set('form.title', 'Reading in Series')
-        ->set('form.type', \App\Enums\ReadingType::CREED->value)
+        ->set('form.type', ReadingType::CREED->value)
         ->set('form.series_id', $series->id)
         ->set('form.series_order', 1)
         ->call('save')

@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\MembershipStatus;
 use App\Models\Traits\HasGravatar;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,7 +17,7 @@ use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
 class User extends Authenticatable implements CanComment
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, HasGravatar, InteractsWithComments, Notifiable;
 
     /**

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\LiturgyElementType;
 use App\Enums\ReadingType;
 use App\Observers\LiturgyElementObserver;
+use Database\Factories\LiturgyElementFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 #[ObservedBy([LiturgyElementObserver::class])]
 class LiturgyElement extends Model
 {
-    /** @use HasFactory<\Database\Factories\LiturgyElementFactory> */
+    /** @use HasFactory<LiturgyElementFactory> */
     use HasFactory;
 
     protected $fillable = [

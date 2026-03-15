@@ -2,9 +2,10 @@
 
 use App\Models\Template;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group templates */
 test('guests are redirected from the templates index', function (): void {
