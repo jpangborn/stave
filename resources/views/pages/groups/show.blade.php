@@ -13,6 +13,7 @@ use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -120,7 +121,25 @@ new class extends Component {
     {
         $this->authorize('leave', $this->group);
 
-        $this->group->allUsers()->detach(Auth::id());
+        DB::transaction(function (): void {
+            $member = $this->group->members()
+                ->where('user_id', Auth::id())
+                ->lockForUpdate()
+                ->first();
+
+            if (! $member) {
+                return;
+            }
+
+            if ($member->pivot->role === GroupRole::LEADER
+                && $this->group->leaders()->lockForUpdate()->count() === 1) {
+                Flux::toast(variant: 'danger', text: 'Cannot leave as the only leader.');
+
+                return;
+            }
+
+            $this->group->allUsers()->detach(Auth::id());
+        });
 
         unset($this->membership, $this->isLeader, $this->activeMembers);
         Flux::toast(text: 'You left the group.');
@@ -130,11 +149,26 @@ new class extends Component {
     {
         $this->authorize('manageMembers', $this->group);
 
-        $user = $this->group->pendingRequests()->whereKey($userId)->firstOrFail();
+        $user = DB::transaction(function () use ($userId): ?User {
+            $user = $this->group->pendingRequests()
+                ->whereKey($userId)
+                ->lockForUpdate()
+                ->first();
 
-        $this->group->allUsers()->updateExistingPivot($user->id, [
-            'status' => MembershipStatus::ACTIVE,
-        ]);
+            if (! $user) {
+                return null;
+            }
+
+            $this->group->allUsers()->updateExistingPivot($user->id, [
+                'status' => MembershipStatus::ACTIVE,
+            ]);
+
+            return $user;
+        });
+
+        if (! $user) {
+            return;
+        }
 
         $user->notify(new GroupMembershipResponseNotification($this->group, approved: true));
 
@@ -146,11 +180,26 @@ new class extends Component {
     {
         $this->authorize('manageMembers', $this->group);
 
-        $user = $this->group->pendingRequests()->whereKey($userId)->firstOrFail();
+        $user = DB::transaction(function () use ($userId): ?User {
+            $user = $this->group->pendingRequests()
+                ->whereKey($userId)
+                ->lockForUpdate()
+                ->first();
 
-        $this->group->allUsers()->updateExistingPivot($user->id, [
-            'status' => MembershipStatus::REJECTED,
-        ]);
+            if (! $user) {
+                return null;
+            }
+
+            $this->group->allUsers()->updateExistingPivot($user->id, [
+                'status' => MembershipStatus::REJECTED,
+            ]);
+
+            return $user;
+        });
+
+        if (! $user) {
+            return;
+        }
 
         $user->notify(new GroupMembershipResponseNotification($this->group, approved: false));
 
@@ -200,19 +249,24 @@ new class extends Component {
     {
         $this->authorize('manageMembers', $this->group);
 
-        $user = User::findOrFail($userId);
+        DB::transaction(function () use ($userId): void {
+            $user = $this->group->members()
+                ->whereKey($userId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($this->group->leaders()->where('user_id', $userId)->exists()
-            && $this->group->leaders()->count() === 1) {
-            Flux::toast(variant: 'danger', text: 'Cannot remove the only leader.');
+            if ($user->pivot->role === GroupRole::LEADER
+                && $this->group->leaders()->lockForUpdate()->count() === 1) {
+                Flux::toast(variant: 'danger', text: 'Cannot remove the only leader.');
 
-            return;
-        }
+                return;
+            }
 
-        $this->group->allUsers()->detach($userId);
+            $this->group->allUsers()->detach($user->id);
 
-        unset($this->activeMembers);
-        Flux::toast(text: "{$user->name} removed from group.");
+            unset($this->activeMembers);
+            Flux::toast(text: "{$user->name} removed from group.");
+        });
     }
 
     private function notifyLeaders(): void
