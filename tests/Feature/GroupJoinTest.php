@@ -8,10 +8,11 @@ use App\Models\User;
 use App\Notifications\GroupJoinRequestNotification;
 use App\Notifications\GroupMemberAddedNotification;
 use App\Notifications\GroupMembershipResponseNotification;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 /** @group groups */
 
