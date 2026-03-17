@@ -55,7 +55,9 @@ new class extends Component {
 
     public function delete(int $id): void
     {
-        Group::findOrFail($id)->delete();
+        $group = Group::findOrFail($id);
+        $this->authorize('delete', $group);
+        $group->delete();
         Flux::modal('delete-group')->close();
         Flux::toast(variant: 'danger', text: 'Group deleted.');
     }
