@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function (): void {
         ->group(function (): void {
             Route::livewire('/', 'pages::groups.index')->name('index');
             Route::livewire('/create', 'pages::groups.create')->name('create');
+            Route::livewire('/{group}', 'pages::groups.show')->name('show');
         });
 
     Route::name('people.')
