@@ -261,3 +261,115 @@ test('deleting a group removes its memberships', function (): void {
 
     $this->assertDatabaseMissing('group_user', ['group_id' => $group->id]);
 });
+
+/** @group groups-edit */
+test('guests are redirected from the groups edit page', function (): void {
+    $group = Group::factory()->create();
+
+    $this->get(route('groups.edit', $group))
+        ->assertRedirect('/login');
+});
+
+test('leaders can view the groups edit page', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create();
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($user)
+        ->get(route('groups.edit', $group))
+        ->assertStatus(200)
+        ->assertSee('Edit Group');
+});
+
+test('non-leaders cannot view the groups edit page', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create();
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($user)
+        ->get(route('groups.edit', $group))
+        ->assertStatus(403);
+});
+
+test('leaders can update a group', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['name' => 'Old Name', 'visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.edit', ['group' => $group])
+        ->set('form.name', 'New Name')
+        ->set('form.description', '<p>Updated description</p>')
+        ->set('form.visibility', GroupVisibility::PRIVATE->value)
+        ->set('form.messaging', GroupMessaging::ALL_MEMBERS->value)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('groups.show', $group));
+
+    $this->assertDatabaseHas('groups', [
+        'id' => $group->id,
+        'name' => 'New Name',
+        'visibility' => 'private',
+        'messaging' => 'all-members',
+    ]);
+});
+
+test('leaders can update a group with a new image', function (): void {
+    Storage::fake('digital-ocean');
+
+    $user = User::factory()->create();
+    $group = Group::factory()->create();
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($user);
+
+    $image = UploadedFile::fake()->image('new-photo.jpg');
+
+    Livewire::test('pages::groups.edit', ['group' => $group])
+        ->set('image', $image)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('groups.show', $group));
+
+    $group->refresh();
+    expect($group->image)->not->toBeNull();
+
+    Storage::disk('digital-ocean')->assertExists($group->image);
+});
+
+test('leaders can remove an existing group image', function (): void {
+    Storage::fake('digital-ocean');
+    Storage::disk('digital-ocean')->put('groups/old-image.jpg', 'fake-image-data');
+
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['image' => 'groups/old-image.jpg']);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.edit', ['group' => $group])
+        ->call('removeImage')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('groups.show', $group));
+
+    $group->refresh();
+    expect($group->image)->toBeNull();
+
+    Storage::disk('digital-ocean')->assertMissing('groups/old-image.jpg');
+});
+
+test('leaders can delete a group from the edit page', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create();
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.edit', ['group' => $group])
+        ->call('delete')
+        ->assertRedirect(route('groups.index'));
+
+    $this->assertDatabaseMissing('groups', ['id' => $group->id]);
+});

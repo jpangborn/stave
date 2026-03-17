@@ -27,6 +27,7 @@ new class extends Component {
             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom"/>
 
             <flux:menu class="min-w-32">
+                <flux:menu.item :href="route('groups.edit', $group)" icon="pencil-square">Edit</flux:menu.item>
                 <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
             </flux:menu>
         </flux:dropdown>

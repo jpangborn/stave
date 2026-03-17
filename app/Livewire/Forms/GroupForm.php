@@ -9,6 +9,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Group;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -58,20 +59,28 @@ class GroupForm extends Form
         });
     }
 
-    public function update(?string $imagePath = null): void
+    public function update(?string $imagePath = null, bool $removeImage = false): void
     {
         $this->validate();
 
-        $this->group->update($this->data($imagePath));
+        $oldImage = ($imagePath || $removeImage) ? $this->group->image : null;
+
+        $this->group->update($this->data($imagePath, $removeImage));
+
+        if ($oldImage) {
+            Storage::disk('digital-ocean')->delete($oldImage);
+        }
     }
 
     /** @return array<string, mixed> */
-    private function data(?string $imagePath = null): array
+    private function data(?string $imagePath = null, bool $removeImage = false): array
     {
         $data = $this->only(['name', 'description', 'visibility', 'messaging']);
 
         if ($imagePath) {
             $data['image'] = $imagePath;
+        } elseif ($removeImage) {
+            $data['image'] = null;
         }
 
         return $data;

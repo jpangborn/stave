@@ -10,6 +10,7 @@ use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property GroupVisibility $visibility
@@ -21,6 +22,15 @@ class Group extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'description', 'image', 'visibility', 'messaging'];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Group $group): void {
+            if ($group->image) {
+                Storage::disk('digital-ocean')->delete($group->image);
+            }
+        });
+    }
 
     /** @return array<string, class-string> */
     protected function casts(): array

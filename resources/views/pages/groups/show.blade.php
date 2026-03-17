@@ -289,7 +289,11 @@ new class extends Component {
             </flux:subheading>
         </div>
 
-        <div>
+        <div class="flex items-center gap-2">
+            @can('update', $group)
+                <flux:button :href="route('groups.edit', $group)" variant="primary" icon="pencil-square">Edit</flux:button>
+            @endcan
+
             @if ($this->membership === null && $group->visibility === GroupVisibility::PUBLIC)
                 <flux:button wire:click="join" variant="primary" icon="user-plus">Join Group</flux:button>
             @elseif ($this->membership?->status === MembershipStatus::PENDING)
