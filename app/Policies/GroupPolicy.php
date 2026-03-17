@@ -47,6 +47,24 @@ class GroupPolicy
     }
 
     /**
+     * Determine whether the user can update the group.
+     * Leaders only.
+     */
+    public function update(User $user, Group $group): bool
+    {
+        return $this->isLeader($user, $group);
+    }
+
+    /**
+     * Determine whether the user can delete the group.
+     * Leaders only.
+     */
+    public function delete(User $user, Group $group): bool
+    {
+        return $this->isLeader($user, $group);
+    }
+
+    /**
      * Determine whether the user can leave the group.
      * Active members can leave, but the sole leader cannot.
      */
