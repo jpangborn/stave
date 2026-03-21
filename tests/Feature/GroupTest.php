@@ -133,9 +133,10 @@ test('groups index search filters by name', function (): void {
     expect($groups->first()->name)->toBe('Youth Group');
 });
 
-test('groups index can delete a group', function (): void {
+test('leaders can delete a group from the index page', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['name' => 'Old Group', 'visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -144,6 +145,19 @@ test('groups index can delete a group', function (): void {
         ->call('delete', $group->id);
 
     $this->assertDatabaseMissing('groups', ['id' => $group->id]);
+});
+
+test('non-leaders cannot delete a group from the index page', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.index')
+        ->call('delete', $group->id)
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('groups', ['id' => $group->id]);
 });
 
 test('group defaults to public visibility and messaging off', function (): void {

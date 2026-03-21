@@ -146,14 +146,41 @@ new class extends Component {
         </div>
     </form>
 
-    <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 mt-12 border-t border-red-200 dark:border-red-900 pt-12">
-        <div class="w-80">
-            <flux:heading size="lg">Danger Zone</flux:heading>
-            <flux:subheading>Permanently delete this group.</flux:subheading>
+    @can('delete', $form->group)
+        <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 mt-12 border-t border-red-200 dark:border-red-900 pt-12">
+            <div class="w-80">
+                <flux:heading size="lg">Danger Zone</flux:heading>
+                <flux:subheading>Permanently delete this group.</flux:subheading>
+            </div>
+
+            <div class="flex-1 max-w-md">
+                <flux:modal.trigger name="delete-group">
+                    <flux:button variant="danger">Delete Group</flux:button>
+                </flux:modal.trigger>
+            </div>
         </div>
 
-        <div class="flex-1 max-w-md">
-            <flux:button variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this group? This action cannot be undone.">Delete Group</flux:button>
-        </div>
-    </div>
+        <flux:modal name="delete-group" class="min-w-[22rem]">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Delete group?</flux:heading>
+
+                    <flux:subheading>
+                        <p>This will permanently delete the group.</p>
+                        <p>It cannot be undone.</p>
+                    </flux:subheading>
+                </div>
+
+                <div class="flex gap-2">
+                    <flux:spacer/>
+
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancel</flux:button>
+                    </flux:modal.close>
+
+                    <flux:button type="button" wire:click="delete" variant="danger">Delete group</flux:button>
+                </div>
+            </div>
+        </flux:modal>
+    @endcan
 </section>
