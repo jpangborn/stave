@@ -316,7 +316,6 @@ test('leader can remove a member', function (): void {
 
 test('cannot remove the sole leader', function (): void {
     $leader = User::factory()->create();
-    $otherLeader = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
     $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
 
@@ -325,7 +324,6 @@ test('cannot remove the sole leader', function (): void {
     Livewire::test('pages::groups.show', ['group' => $group])
         ->call('removeMember', $leader->id);
 
-    // Leader should still be in the group
     $this->assertDatabaseHas('group_user', [
         'group_id' => $group->id,
         'user_id' => $leader->id,
@@ -336,24 +334,104 @@ test('cannot remove the sole leader', function (): void {
 
 test('members tab is visible to leaders', function (): void {
     $leader = User::factory()->create();
+    $member = User::factory()->create();
+    $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($leader);
+
+    Livewire::test('pages::groups.show', ['group' => $group])
+        ->set('tab', 'members')
+        ->assertSee('Add Member')
+        ->assertSee($member->name);
+});
+
+test('members tab is visible to regular members', function (): void {
+    $leader = User::factory()->create();
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.show', ['group' => $group])
+        ->set('tab', 'members')
+        ->assertSee($leader->name)
+        ->assertDontSee('Add Member')
+        ->assertDontSee('Pending Requests');
+});
+
+test('members tab is not visible to non-members', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.show', ['group' => $group])
+        ->assertDontSee('Add Member');
+});
+
+// --- Show Page Content ---
+
+test('non-member of public group sees request to join button', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.show', ['group' => $group])
+        ->assertSee('Request to Join');
+});
+
+test('conversations tab placeholder is visible', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.show', ['group' => $group])
+        ->assertSee('Conversations coming soon');
+});
+
+test('group description is displayed in header', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create([
+        'visibility' => GroupVisibility::PUBLIC,
+        'description' => '<p>A wonderful group</p>',
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.show', ['group' => $group])
+        ->assertSee('A wonderful group');
+});
+
+test('leader sees edit button on show page', function (): void {
+    $leader = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
     $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
 
     $this->actingAs($leader);
 
     Livewire::test('pages::groups.show', ['group' => $group])
-        ->assertSee('Members');
+        ->assertSee('Edit');
 });
 
-test('members tab is not visible to regular members', function (): void {
-    $user = User::factory()->create();
+test('leader sees pending requests on members tab', function (): void {
+    $leader = User::factory()->create();
+    $pending = User::factory()->create(['name' => 'Pending Person']);
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
 
-    $this->actingAs($user);
+    $this->actingAs($leader);
 
     Livewire::test('pages::groups.show', ['group' => $group])
-        ->assertDontSee('Add Member');
+        ->set('tab', 'members')
+        ->assertSee('Pending Requests')
+        ->assertSee('Pending Person');
 });
 
 // --- My Groups on Index ---
