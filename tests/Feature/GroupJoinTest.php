@@ -350,9 +350,11 @@ test('members tab is visible to leaders', function (): void {
 test('members tab is visible to regular members', function (): void {
     $leader = User::factory()->create();
     $user = User::factory()->create();
+    $pending = User::factory()->create(['name' => 'Pending Person']);
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
     $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
     $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
 
     $this->actingAs($user);
 
@@ -360,16 +362,21 @@ test('members tab is visible to regular members', function (): void {
         ->set('tab', 'members')
         ->assertSee($leader->name)
         ->assertDontSee('Add Member')
+        ->assertDontSee($pending->name)
         ->assertDontSee('Pending Requests');
 });
 
 test('members tab is not visible to non-members', function (): void {
+    $leader = User::factory()->create(['name' => 'Group Leader']);
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
     Livewire::test('pages::groups.show', ['group' => $group])
+        ->set('tab', 'members')
+        ->assertDontSee($leader->name)
         ->assertDontSee('Add Member');
 });
 
