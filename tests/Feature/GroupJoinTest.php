@@ -415,6 +415,17 @@ test('group description is displayed in header', function (): void {
         ->assertSee('A wonderful group');
 });
 
+test('group description is sanitized of malicious HTML', function (): void {
+    $group = Group::factory()->create([
+        'visibility' => GroupVisibility::PUBLIC,
+        'description' => '<p onmouseover="alert(1)">Hello</p><script>alert("xss")</script>',
+    ]);
+
+    $group->refresh();
+
+    expect($group->description)->toBe('<p>Hello</p>');
+});
+
 test('leader sees edit button on show page', function (): void {
     $leader = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);

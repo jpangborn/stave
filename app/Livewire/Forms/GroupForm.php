@@ -77,10 +77,6 @@ class GroupForm extends Form
     {
         $data = $this->only(['name', 'description', 'visibility', 'messaging']);
 
-        if ($data['description'] !== null) {
-            $data['description'] = strip_tags($data['description'], ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'strong', 'b', 'em', 'i', 'u', 'br']);
-        }
-
         if ($imagePath) {
             $data['image'] = $imagePath;
         } elseif ($removeImage) {

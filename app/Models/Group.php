@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
+use Mews\Purifier\Casts\CleanHtmlInput;
 
 /**
  * @property GroupVisibility $visibility
@@ -38,6 +39,7 @@ class Group extends Model
         return [
             'visibility' => GroupVisibility::class,
             'messaging' => GroupMessaging::class,
+            'description' => CleanHtmlInput::class.':rich_text',
         ];
     }
 
