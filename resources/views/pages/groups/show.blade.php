@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -22,7 +23,7 @@ new class extends Component {
     public Group $group;
 
     #[Url]
-    public string $tab = 'details';
+    public string $tab = 'conversations';
 
     public string $memberSearch = '';
     public ?int $selectedUserId = null;
@@ -38,6 +39,12 @@ new class extends Component {
     {
         /** @var ?GroupUser */
         return $this->group->allUsers()->where('user_id', Auth::id())->first()?->pivot;
+    }
+
+    #[Computed]
+    public function isMember(): bool
+    {
+        return $this->membership?->status === MembershipStatus::ACTIVE;
     }
 
     #[Computed]
@@ -280,13 +287,19 @@ new class extends Component {
 
 <section class="w-full">
     <div class="flex items-start justify-between">
-        <div>
-            <flux:heading size="xl" level="1">{{ $group->name }}</flux:heading>
-            <flux:subheading size="lg" class="mb-6">
-                <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
-                <flux:badge size="sm" :color="$group->messaging->color()">{{ $group->messaging->label() }}</flux:badge>
-                <span class="ml-2">{{ $this->activeMembers->count() }} {{ str('member')->plural($this->activeMembers->count()) }}</span>
-            </flux:subheading>
+        <div class="flex items-start gap-4">
+            @if ($group->image)
+                <img src="{{ Storage::disk('digital-ocean')->url($group->image) }}" alt="{{ $group->name }}" class="size-24 rounded-lg object-cover" />
+            @endif
+
+            <div>
+                <flux:heading size="xl" level="1">{{ $group->name }}</flux:heading>
+                <flux:subheading size="lg">
+                    <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
+                    <flux:badge size="sm" :color="$group->messaging->color()">{{ $group->messaging->label() }}</flux:badge>
+                    <span class="ml-2">{{ $this->activeMembers->count() }} {{ str('member')->plural($this->activeMembers->count()) }}</span>
+                </flux:subheading>
+            </div>
         </div>
 
         <div class="flex items-center gap-2">
@@ -295,7 +308,7 @@ new class extends Component {
             @endcan
 
             @if ($this->membership === null && $group->visibility === GroupVisibility::PUBLIC)
-                <flux:button wire:click="join" variant="primary" icon="user-plus">Join Group</flux:button>
+                <flux:button wire:click="join" variant="primary" icon="user-plus">Request to Join</flux:button>
             @elseif ($this->membership?->status === MembershipStatus::PENDING)
                 <div class="flex items-center gap-2">
                     <flux:badge color="amber">Request Pending</flux:badge>
@@ -305,59 +318,42 @@ new class extends Component {
                 <flux:button wire:click="leave" variant="danger" icon="arrow-right-start-on-rectangle"
                     wire:confirm="Are you sure you want to leave this group?">Leave Group</flux:button>
             @elseif ($this->membership?->status === MembershipStatus::REJECTED)
-                <flux:button wire:click="join" variant="primary" icon="user-plus">Request to Join Again</flux:button>
+                <flux:button wire:click="join" variant="primary" icon="user-plus">Request to Join</flux:button>
             @endif
         </div>
     </div>
 
+    @if ($group->description)
+        <div class="prose prose-sm dark:prose-invert mt-4 max-w-none">
+            {!! $group->description !!}
+        </div>
+    @endif
+
     <flux:tab.group class="mt-8">
         <flux:tabs wire:model="tab">
-            <flux:tab name="details" icon="information-circle">Details</flux:tab>
-            @if ($this->isLeader)
+            <flux:tab name="conversations" icon="chat-bubble-left-right">Conversations</flux:tab>
+            @if ($this->isMember)
                 <flux:tab name="members" icon="user-group">
                     Members
-                    @if ($this->pendingRequests->isNotEmpty())
+                    @if ($this->isLeader && $this->pendingRequests->isNotEmpty())
                         <flux:badge size="sm" color="amber" class="ml-1">{{ $this->pendingRequests->count() }}</flux:badge>
                     @endif
                 </flux:tab>
             @endif
         </flux:tabs>
 
-        <flux:tab.panel name="details">
-            <div class="flex flex-col lg:flex-row gap-4 lg:gap-6">
-                <div class="w-80">
-                    <flux:heading size="lg">Group Details</flux:heading>
-                    <flux:subheading>Information about this group.</flux:subheading>
-                </div>
-
-                <div class="flex-1 max-w-md space-y-6">
-                    <flux:field>
-                        <flux:label>Name</flux:label>
-                        <flux:input type="text" :value="$group->name" variant="filled" readonly />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Description</flux:label>
-                        <flux:textarea :value="$group->description" variant="filled" readonly rows="3" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Visibility</flux:label>
-                        <flux:input type="text" :value="$group->visibility->label()" variant="filled" readonly />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Messaging</flux:label>
-                        <flux:input type="text" :value="$group->messaging->label()" variant="filled" readonly />
-                    </flux:field>
-                </div>
+        <flux:tab.panel name="conversations">
+            <div class="text-center py-12">
+                <flux:icon.chat-bubble-left-right class="mx-auto size-12 text-zinc-400" />
+                <flux:heading size="lg" class="mt-4">Conversations coming soon</flux:heading>
+                <flux:subheading>Group conversations will be available in a future update.</flux:subheading>
             </div>
         </flux:tab.panel>
 
-        @if ($this->isLeader)
+        @if ($this->isMember)
             <flux:tab.panel name="members">
-                {{-- Pending Requests --}}
-                @if ($this->pendingRequests->isNotEmpty())
+                {{-- Pending Requests (leaders only) --}}
+                @if ($this->isLeader && $this->pendingRequests->isNotEmpty())
                     <div class="mb-8">
                         <flux:heading size="lg" class="mb-3">Pending Requests</flux:heading>
 
@@ -395,7 +391,9 @@ new class extends Component {
                             <flux:table.column>Name</flux:table.column>
                             <flux:table.column>Role</flux:table.column>
                             <flux:table.column>Joined</flux:table.column>
-                            <flux:table.column></flux:table.column>
+                            @if ($this->isLeader)
+                                <flux:table.column></flux:table.column>
+                            @endif
                         </flux:table.columns>
 
                         <flux:table.rows>
@@ -408,38 +406,42 @@ new class extends Component {
                                         </flux:badge>
                                     </flux:table.cell>
                                     <flux:table.cell class="whitespace-nowrap">{{ $user->pivot->created_at->diffForHumans() }}</flux:table.cell>
-                                    <flux:table.cell align="end">
-                                        @if ($user->id !== Auth::id())
-                                            <flux:button wire:click="removeMember({{ $user->id }})" variant="ghost" size="sm" icon="trash"
-                                                wire:confirm="Remove {{ $user->name }} from this group?" />
-                                        @endif
-                                    </flux:table.cell>
+                                    @if ($this->isLeader)
+                                        <flux:table.cell align="end">
+                                            @if ($user->id !== Auth::id())
+                                                <flux:button wire:click="removeMember({{ $user->id }})" variant="ghost" size="sm" icon="trash"
+                                                    wire:confirm="Remove {{ $user->name }} from this group?" />
+                                            @endif
+                                        </flux:table.cell>
+                                    @endif
                                 </flux:table.row>
                             @endforeach
                         </flux:table.rows>
                     </flux:table>
                 </div>
 
-                {{-- Add Member --}}
-                <div>
-                    <flux:heading size="lg" class="mb-3">Add Member</flux:heading>
+                {{-- Add Member (leaders only) --}}
+                @if ($this->isLeader)
+                    <div>
+                        <flux:heading size="lg" class="mb-3">Add Member</flux:heading>
 
-                    <form wire:submit="addMember" class="flex items-end gap-3 max-w-md">
-                        <div class="flex-1">
-                            <flux:select wire:model="selectedUserId" variant="combobox" :filter="false" placeholder="Search users..." clearable>
-                                <x-slot name="input">
-                                    <flux:select.input wire:model.live.debounce.300ms="memberSearch" placeholder="Search by name..." />
-                                </x-slot>
+                        <form wire:submit="addMember" class="flex items-end gap-3 max-w-md">
+                            <div class="flex-1">
+                                <flux:select wire:model="selectedUserId" variant="combobox" :filter="false" placeholder="Search users..." clearable>
+                                    <x-slot name="input">
+                                        <flux:select.input wire:model.live.debounce.300ms="memberSearch" placeholder="Search by name..." />
+                                    </x-slot>
 
-                                @foreach ($this->availableUsers as $user)
-                                    <flux:select.option :value="$user->id" wire:key="add-{{ $user->id }}">{{ $user->name }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </div>
+                                    @foreach ($this->availableUsers as $user)
+                                        <flux:select.option :value="$user->id" wire:key="add-{{ $user->id }}">{{ $user->name }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            </div>
 
-                        <flux:button type="submit" variant="primary" icon="user-plus">Add</flux:button>
-                    </form>
-                </div>
+                            <flux:button type="submit" variant="primary" icon="user-plus">Add</flux:button>
+                        </form>
+                    </div>
+                @endif
             </flux:tab.panel>
         @endif
     </flux:tab.group>
