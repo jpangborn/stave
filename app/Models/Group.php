@@ -33,7 +33,7 @@ class Group extends Model
         });
     }
 
-    /** @return array<string, class-string> */
+    /** @return array<string, class-string|string> */
     protected function casts(): array
     {
         return [
