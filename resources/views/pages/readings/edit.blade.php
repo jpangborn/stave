@@ -82,13 +82,12 @@ new class extends Component {
                         @endforeach
                     </flux:select>
 
-                    @if($form->series_id)
-                        <flux:field>
-                            <flux:label>Order in Series</flux:label>
-                            <flux:input type="number" wire:model="form.series_order" min="1" />
-                            <flux:description>Position of this reading in the series</flux:description>
-                        </flux:field>
-                    @endif
+                    <flux:field>
+                        <flux:label :badge="$form->series_id ? 'Required' : null">Order in Series</flux:label>
+                        <flux:input type="number" wire:model="form.series_order" min="1" :disabled="! $form->series_id" />
+                        <flux:description>Position of this reading in the series</flux:description>
+                        <flux:error name="form.series_order" />
+                    </flux:field>
 
                     <div class="flex space-x-2">
                         <flux:button type="submit" variant="primary">Save</flux:button>
