@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+#[Fillable(['name', 'default'])]
 class Template extends Model
 {
     use HasFactory;
-
-    protected $fillable = ['name', 'default'];
 
     /** @return MorphMany<LiturgyElement, $this> */
     public function liturgyElements(): MorphMany

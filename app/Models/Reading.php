@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ReadingType;
 use Database\Factories\ReadingFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,12 +15,11 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 /**
  * @property ReadingType $type
  */
+#[Fillable(['title', 'type', 'text', 'series_id', 'series_order'])]
 class Reading extends Model
 {
     /** @use HasFactory<ReadingFactory> */
     use HasFactory;
-
-    protected $fillable = ['title', 'type', 'text', 'series_id', 'series_order'];
 
     /**
      * Get the attributes that should be cast.

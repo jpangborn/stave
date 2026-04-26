@@ -7,6 +7,7 @@ use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
 use Database\Factories\GroupFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -17,12 +18,11 @@ use Mews\Purifier\Casts\CleanHtmlInput;
  * @property GroupVisibility $visibility
  * @property GroupMessaging $messaging
  */
+#[Fillable(['name', 'description', 'image', 'visibility', 'messaging'])]
 class Group extends Model
 {
     /** @use HasFactory<GroupFactory> */
     use HasFactory;
-
-    protected $fillable = ['name', 'description', 'image', 'visibility', 'messaging'];
 
     protected static function booted(): void
     {

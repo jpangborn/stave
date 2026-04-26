@@ -6,6 +6,7 @@ use App\Enums\LiturgyElementType;
 use App\Enums\ReadingType;
 use App\Observers\LiturgyElementObserver;
 use Database\Factories\LiturgyElementFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,21 +18,20 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property ReadingType|null $reading_type
  */
 #[ObservedBy([LiturgyElementObserver::class])]
+#[Fillable([
+    'type',
+    'reading_type',
+    'order',
+    'name',
+    'assignee_id',
+    'description',
+    'content_type',
+    'content_id',
+])]
 class LiturgyElement extends Model
 {
     /** @use HasFactory<LiturgyElementFactory> */
     use HasFactory;
-
-    protected $fillable = [
-        'type',
-        'reading_type',
-        'order',
-        'name',
-        'assignee_id',
-        'description',
-        'content_type',
-        'content_id',
-    ];
 
     /**
      * Get the attributes that should be cast.

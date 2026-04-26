@@ -6,6 +6,8 @@ namespace App\Models;
 use App\Enums\MembershipStatus;
 use App\Models\Traits\HasGravatar;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,24 +17,12 @@ use Illuminate\Support\Str;
 use Spatie\Comments\Models\Concerns\InteractsWithComments;
 use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
+#[Fillable(['name', 'email', 'password', 'person_id'])]
+#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements CanComment
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasGravatar, InteractsWithComments, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = ['name', 'email', 'password', 'person_id'];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = ['password', 'remember_token'];
 
     /**
      * Get the attributes that should be cast.
