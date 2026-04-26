@@ -5,23 +5,23 @@ namespace App\Models;
 use App\Enums\Gender;
 use App\Models\Traits\HasGravatar;
 use Database\Factories\PersonFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+#[Fillable([
+    'first_name',
+    'last_name',
+    'email',
+    'birth_date',
+    'gender',
+])]
 class Person extends Model
 {
     /** @use HasFactory<PersonFactory> */
     use HasFactory, HasGravatar;
-
-    protected $fillable = [
-        'first_name',
-        'last_name',
-        'email',
-        'birth_date',
-        'gender',
-    ];
 
     /**
      * Get the attributes that should be cast.

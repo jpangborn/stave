@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -45,7 +45,7 @@ test('users can logout', function (): void {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)
-        ->withoutMiddleware(ValidateCsrfToken::class)
+        ->withoutMiddleware(PreventRequestForgery::class)
         ->post('/logout');
 
     $response->assertRedirect('/');
