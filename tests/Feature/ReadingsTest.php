@@ -73,6 +73,61 @@ test('authenticated users can create a reading', function (): void {
     $this->assertDatabaseHas('readings', ['title' => 'Test Reading']);
 });
 
+test('authenticated users can create a reading within a series', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create(['name' => 'Advent Series']);
+    $this->actingAs($user);
+
+    Livewire::test('pages::readings.create')
+        ->set('form.title', 'Week One')
+        ->set('form.type', ReadingType::CREED->value)
+        ->set('form.series_id', $series->id)
+        ->set('form.series_order', 1)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect('/readings');
+
+    $this->assertDatabaseHas('readings', [
+        'title' => 'Week One',
+        'series_id' => $series->id,
+        'series_order' => 1,
+    ]);
+});
+
+test('series_order is required when a series is selected', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::test('pages::readings.create')
+        ->set('form.title', 'Week One')
+        ->set('form.type', ReadingType::CREED->value)
+        ->set('form.series_id', $series->id)
+        ->call('save')
+        ->assertHasErrors(['form.series_order' => 'required_with']);
+});
+
+test('series_order is cleared when series_id is cleared on save', function (): void {
+    $user = User::factory()->create();
+    $series = Series::factory()->create();
+    $reading = Reading::factory()->create([
+        'title' => 'Existing Reading',
+        'series_id' => $series->id,
+        'series_order' => 3,
+    ]);
+    $this->actingAs($user);
+
+    Livewire::test('pages::readings.edit', ['reading' => $reading->id])
+        ->set('form.series_id', null)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect('/readings');
+
+    $reading->refresh();
+    expect($reading->series_id)->toBeNull();
+    expect($reading->series_order)->toBeNull();
+});
+
 test('guests are redirected from the reading show page', function (): void {
     $reading = Reading::create([
         'title' => 'Test Reading',

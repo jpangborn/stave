@@ -45,6 +45,7 @@ class ReadingForm extends Form
 
     public function store(): void
     {
+        $this->normalizeSeries();
         $this->validate();
 
         Reading::create($this->only(['title', 'type', 'text', 'series_id', 'series_order']));
@@ -52,10 +53,18 @@ class ReadingForm extends Form
 
     public function update(): void
     {
+        $this->normalizeSeries();
         $this->validate();
 
         $this->reading->update(
             $this->only(['title', 'type', 'text', 'series_id', 'series_order'])
         );
+    }
+
+    private function normalizeSeries(): void
+    {
+        if ($this->series_id === null) {
+            $this->series_order = null;
+        }
     }
 }

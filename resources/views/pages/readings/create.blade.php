@@ -48,19 +48,18 @@ new class extends Component {
                     @endforeach
                 </flux:select>
 
-                <flux:select variant="listbox" label="Series" wire:model="form.series_id" placeholder="No series" clearable>
+                <flux:select variant="listbox" label="Series" wire:model.live="form.series_id" placeholder="No series" clearable>
                     @foreach($this->seriesList as $seriesItem)
                         <flux:select.option value="{{ $seriesItem->id }}">{{ $seriesItem->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
-                @if($form->series_id)
-                    <flux:field>
-                        <flux:label>Order in Series</flux:label>
-                        <flux:input type="number" wire:model="form.series_order" min="1" />
-                        <flux:description>Position of this reading in the series</flux:description>
-                    </flux:field>
-                @endif
+                <flux:field>
+                    <flux:label :badge="$form->series_id ? 'Required' : null">Order in Series</flux:label>
+                    <flux:input type="number" wire:model="form.series_order" min="1" :disabled="! $form->series_id" />
+                    <flux:description>Position of this reading in the series</flux:description>
+                    <flux:error name="form.series_order" />
+                </flux:field>
 
                 <flux:editor label="Text" wire:model="form.text" toolbar="heading | bold italic underline ~ undo redo" class="**:data-[slot=content]:min-h-[400px]" />
 
