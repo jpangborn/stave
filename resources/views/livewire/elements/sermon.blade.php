@@ -73,7 +73,7 @@ new class extends Component {
                 </flux:select>
             </div>
             <div class="md:w-[226px]">
-                <flux:input size="sm" placeholder="Enter title or reference" wire:model.blur="description" />
+                <flux:input size="sm" placeholder="Enter title or reference" wire:model.live.blur="description" />
             </div>
             <div class="hidden md:block md:pr-2">
                 <flux:dropdown align="end" offset="-15">
