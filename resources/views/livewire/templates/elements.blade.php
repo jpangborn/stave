@@ -33,7 +33,7 @@ new class extends Component {
     #[Computed]
     public function users()
     {
-        return User::all();
+        return User::orderBy("name")->get();
     }
 
     #[On("service-element-changed")]
@@ -111,7 +111,7 @@ new class extends Component {
                 </flux:table.row>
             @else
                 @foreach($this->template->liturgyElements as $element)
-                    @livewire($element->type->component(), ['element' => $element], key($element->id))
+                    @livewire($element->type->component(), ['element' => $element, 'users' => $this->users], key($element->id))
                 @endforeach
             @endif
         </flux:table.rows>
