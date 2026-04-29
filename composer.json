@@ -77,7 +77,30 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php artisan test --parallel --no-coverage"
+        ],
+        "test:linear": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --no-coverage"
+        ],
+        "test:coverage": "herd coverage vendor/bin/pest --coverage --min=0",
+        "test:coverage-html": "herd coverage vendor/bin/pest --coverage --coverage-html=coverage-report",
+        "analyze:php": "vendor/bin/phpstan analyse --memory-limit=2G",
+        "lint:php": "vendor/bin/pint --test --parallel",
+        "fix:php": "vendor/bin/pint --parallel",
+        "refactor:php": "vendor/bin/rector",
+        "refactor:php:dry": "vendor/bin/rector --dry-run",
+        "ci": [
+            "@lint:php",
+            "@analyze:php",
+            "@refactor:php:dry",
+            "@test"
+        ],
+        "ci:fix": [
+            "@fix:php",
+            "@analyze:php",
+            "@refactor:php",
+            "@test"
         ]
     },
     "extra": {
