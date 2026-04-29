@@ -58,17 +58,19 @@ new class extends Component {
     #[Computed]
     public function readings(): Collection
     {
-        $query = Reading::query()->orderBy('title');
-
-        if ($this->element->reading_type) {
-            $query->where('type', $this->element->reading_type);
-        }
+        $readings = collect();
 
         if ($this->search !== '') {
-            $query->where('title', 'like', '%' . $this->search . '%');
-        }
+            $query = Reading::query()
+                ->where('title', 'like', '%' . $this->search . '%')
+                ->orderBy('title');
 
-        $readings = $query->limit(50)->get();
+            if ($this->element->reading_type) {
+                $query->where('type', $this->element->reading_type);
+            }
+
+            $readings = $query->limit(50)->get();
+        }
 
         if ($this->selectedContent && ! $readings->contains('id', $this->selectedContent)) {
             $selected = Reading::find($this->selectedContent);
@@ -107,7 +109,7 @@ new class extends Component {
                     @endforeach
                 </flux:select>
             </div>
-            <div>
+            <div class="md:w-[226px]">
                 <flux:select
                     variant="listbox"
                     searchable

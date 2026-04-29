@@ -32,7 +32,27 @@ it('filters songs by search term', function (): void {
 });
 
 it('limits song results to 50', function (): void {
-    Song::factory()->count(60)->create();
+    Song::factory()
+        ->count(60)
+        ->sequence(fn ($sequence) => ['name' => "Hymn {$sequence->index}"])
+        ->create();
+
+    $service = Service::factory()->create();
+    $element = LiturgyElement::factory()->create([
+        'liturgy_type' => Service::class,
+        'liturgy_id' => $service->id,
+        'type' => LiturgyElementType::SONG,
+    ]);
+
+    $songs = Livewire::test('elements.song', ['element' => $element])
+        ->set('search', 'Hymn')
+        ->get('songs');
+
+    expect($songs)->toHaveCount(50);
+});
+
+it('does not preload songs when no search term is entered', function (): void {
+    Song::factory()->count(10)->create();
 
     $service = Service::factory()->create();
     $element = LiturgyElement::factory()->create([
@@ -43,7 +63,26 @@ it('limits song results to 50', function (): void {
 
     $songs = Livewire::test('elements.song', ['element' => $element])->get('songs');
 
-    expect($songs)->toHaveCount(50);
+    expect($songs)->toBeEmpty();
+});
+
+it('returns only the selected song when no search term is entered', function (): void {
+    $selected = Song::factory()->create(['name' => 'Selected Song']);
+    Song::factory()->count(10)->create();
+
+    $service = Service::factory()->create();
+    $element = LiturgyElement::factory()->create([
+        'liturgy_type' => Service::class,
+        'liturgy_id' => $service->id,
+        'type' => LiturgyElementType::SONG,
+        'content_type' => Song::class,
+        'content_id' => $selected->id,
+    ]);
+
+    $songs = Livewire::test('elements.song', ['element' => $element])->get('songs');
+
+    expect($songs)->toHaveCount(1);
+    expect($songs->first()->id)->toBe($selected->id);
 });
 
 it('keeps the selected song in the list when the search would exclude it', function (): void {
@@ -114,6 +153,43 @@ it('combines reading_type filter with search term', function (): void {
 
     expect($readings)->toHaveCount(1);
     expect($readings->first()->id)->toBe($match->id);
+});
+
+it('does not preload readings when no search term is entered', function (): void {
+    Reading::factory()->count(10)->create();
+
+    $service = Service::factory()->create();
+    $element = LiturgyElement::factory()->create([
+        'liturgy_type' => Service::class,
+        'liturgy_id' => $service->id,
+        'type' => LiturgyElementType::READING,
+    ]);
+
+    $readings = Livewire::test('elements.reading', ['element' => $element])->get('readings');
+
+    expect($readings)->toBeEmpty();
+});
+
+it('returns only the selected reading when no search term is entered', function (): void {
+    $selected = Reading::factory()->create([
+        'title' => 'Selected Reading',
+        'type' => ReadingType::PRAYER,
+    ]);
+    Reading::factory()->count(10)->create();
+
+    $service = Service::factory()->create();
+    $element = LiturgyElement::factory()->create([
+        'liturgy_type' => Service::class,
+        'liturgy_id' => $service->id,
+        'type' => LiturgyElementType::READING,
+        'content_type' => Reading::class,
+        'content_id' => $selected->id,
+    ]);
+
+    $readings = Livewire::test('elements.reading', ['element' => $element])->get('readings');
+
+    expect($readings)->toHaveCount(1);
+    expect($readings->first()->id)->toBe($selected->id);
 });
 
 it('keeps the selected reading in the list when the search would exclude it', function (): void {
