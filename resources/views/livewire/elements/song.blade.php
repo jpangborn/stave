@@ -15,6 +15,7 @@ new class extends Component {
 
     public $selectedContent;
     public $assigneeId;
+    public string $search = '';
 
     public function mount(?Collection $users = null): void
     {
@@ -52,9 +53,25 @@ new class extends Component {
     }
 
     #[Computed]
-    public function songs()
+    public function songs(): Collection
     {
-        return Song::all();
+        $query = Song::query()->orderBy('name');
+
+        if ($this->search !== '') {
+            $query->where('name', 'like', '%' . $this->search . '%');
+        }
+
+        $songs = $query->limit(50)->get();
+
+        if ($this->selectedContent && ! $songs->contains('id', $this->selectedContent)) {
+            $selected = Song::find($this->selectedContent);
+
+            if ($selected) {
+                $songs = $songs->prepend($selected);
+            }
+        }
+
+        return $songs;
     }
 };
 ?>
@@ -84,9 +101,20 @@ new class extends Component {
                 </flux:select>
             </div>
             <div>
-                <flux:select variant="combobox" size="sm" wire:model.live="selectedContent" placeholder="Select a song...">
+                <flux:select
+                    variant="listbox"
+                    searchable
+                    :filter="false"
+                    size="sm"
+                    wire:model.live="selectedContent"
+                    placeholder="Select a song..."
+                >
+                    <x-slot:search>
+                        <flux:select.search wire:model.live.debounce.300ms="search" placeholder="Search songs..." />
+                    </x-slot:search>
+
                     @foreach($this->songs as $song)
-                        <flux:select.option value="{{ $song->id }}">{{ $song->name }}</flux:select.option>
+                        <flux:select.option :value="$song->id" wire:key="song-option-{{ $song->id }}">{{ $song->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
             </div>

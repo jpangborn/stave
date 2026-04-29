@@ -15,6 +15,7 @@ new class extends Component {
 
     public $selectedContent;
     public $assigneeId;
+    public string $search = '';
 
     public function mount(?Collection $users = null): void
     {
@@ -55,11 +56,29 @@ new class extends Component {
     }
 
     #[Computed]
-    public function readings()
+    public function readings(): Collection
     {
-        return $this->element->reading_type
-            ? Reading::where('type', $this->element->reading_type)->orderBy('title')->get()
-            : Reading::orderBy('title')->get();
+        $query = Reading::query()->orderBy('title');
+
+        if ($this->element->reading_type) {
+            $query->where('type', $this->element->reading_type);
+        }
+
+        if ($this->search !== '') {
+            $query->where('title', 'like', '%' . $this->search . '%');
+        }
+
+        $readings = $query->limit(50)->get();
+
+        if ($this->selectedContent && ! $readings->contains('id', $this->selectedContent)) {
+            $selected = Reading::find($this->selectedContent);
+
+            if ($selected) {
+                $readings = $readings->prepend($selected);
+            }
+        }
+
+        return $readings;
     }
 };
 ?>
@@ -89,9 +108,20 @@ new class extends Component {
                 </flux:select>
             </div>
             <div>
-                <flux:select variant="combobox" size="sm" wire:model.live="selectedContent" placeholder="Select a reading...">
+                <flux:select
+                    variant="listbox"
+                    searchable
+                    :filter="false"
+                    size="sm"
+                    wire:model.live="selectedContent"
+                    placeholder="Select a reading..."
+                >
+                    <x-slot:search>
+                        <flux:select.search wire:model.live.debounce.300ms="search" placeholder="Search readings..." />
+                    </x-slot:search>
+
                     @foreach($this->readings as $reading)
-                        <flux:select.option value="{{ $reading->id }}">{{ $reading->title }}</flux:select.option>
+                        <flux:select.option :value="$reading->id" wire:key="reading-option-{{ $reading->id }}">{{ $reading->title }}</flux:select.option>
                     @endforeach
                 </flux:select>
             </div>
