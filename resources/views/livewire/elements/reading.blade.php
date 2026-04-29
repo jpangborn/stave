@@ -2,18 +2,23 @@
 
 use App\Models\LiturgyElement;
 use App\Models\Reading;
-use App\Models\User;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 new class extends Component {
     public LiturgyElement $element;
 
+    #[Locked]
+    public Collection $users;
+
     public $selectedContent;
     public $assigneeId;
 
-    public function mount(): void
+    public function mount(?Collection $users = null): void
     {
+        $this->users = $users ?? collect();
         $this->selectedContent = $this->element->content_id;
         $this->assigneeId = $this->element->assignee_id;
     }
@@ -56,12 +61,6 @@ new class extends Component {
             ? Reading::where('type', $this->element->reading_type)->orderBy('title')->get()
             : Reading::orderBy('title')->get();
     }
-
-    #[Computed]
-    public function users()
-    {
-        return User::all();
-    }
 };
 ?>
 
@@ -84,7 +83,7 @@ new class extends Component {
             </div>
             <div>
                 <flux:select variant="combobox" size="sm" wire:model.live="assigneeId" placeholder="Assign element...">
-                    @foreach($this->users as $user)
+                    @foreach($users as $user)
                         <flux:select.option value="{{ $user->id }}">{{ $user->name }}</flux:select.option>
                     @endforeach
                 </flux:select>

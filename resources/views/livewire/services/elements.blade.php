@@ -2,7 +2,9 @@
 
 use App\Models\LiturgyElement;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
@@ -23,6 +25,12 @@ new class extends Component {
         $this->service = Service::with("liturgyElements")->find(
             $this->serviceId,
         );
+    }
+
+    #[Computed]
+    public function users()
+    {
+        return User::orderBy("name")->get();
     }
 
     #[On("service-element-changed")]
@@ -82,7 +90,7 @@ new class extends Component {
             </flux:table.row>
         @else
             @foreach($this->service->liturgyElements as $element)
-                @livewire($element->type->component(), ['element' => $element], key($element->id))
+                @livewire($element->type->component(), ['element' => $element, 'users' => $this->users], key($element->id))
             @endforeach
         @endif
     </flux:table.rows>
