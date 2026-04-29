@@ -55,13 +55,15 @@ new class extends Component {
     #[Computed]
     public function songs(): Collection
     {
-        $query = Song::query()->orderBy('name');
+        $songs = collect();
 
         if ($this->search !== '') {
-            $query->where('name', 'like', '%' . $this->search . '%');
+            $songs = Song::query()
+                ->where('name', 'like', '%' . $this->search . '%')
+                ->orderBy('name')
+                ->limit(50)
+                ->get();
         }
-
-        $songs = $query->limit(50)->get();
 
         if ($this->selectedContent && ! $songs->contains('id', $this->selectedContent)) {
             $selected = Song::find($this->selectedContent);
@@ -100,7 +102,7 @@ new class extends Component {
                     @endforeach
                 </flux:select>
             </div>
-            <div>
+            <div class="md:w-[226px]">
                 <flux:select
                     variant="listbox"
                     searchable
