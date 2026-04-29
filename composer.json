@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "jpangbron/stave",
+    "name": "jpangborn/stave",
     "type": "project",
     "description": "Stave Church Management System",
     "keywords": [
