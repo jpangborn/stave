@@ -63,6 +63,7 @@ new class extends Component {
 
         abort_unless(in_array($reaction, Config::allowedReactions(), true), 422);
 
+        /** @var Comment $comment */
         $comment = $this->conversation->comments()->findOrFail($commentId);
         $comment->react($reaction);
 
