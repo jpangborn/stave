@@ -312,6 +312,78 @@ test('a non-leader cannot reply when messaging is leaders only', function (): vo
         ->assertForbidden();
 });
 
+// --- Reactions ---
+
+test('a member can react to a conversation comment', function (): void {
+    $member = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $member);
+
+    $conversation = Conversation::factory()->create([
+        'group_id' => $group->id,
+        'user_id' => $member->id,
+    ]);
+    $conversation->postComment('Opening message', $member);
+    $comment = $conversation->comments()->first();
+
+    $this->actingAs($member);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('react', $comment->id, '👍');
+
+    expect($comment->fresh()->reactions()->count())->toBe(1);
+});
+
+test('a non-leader cannot react when messaging is leaders only', function (): void {
+    $leader = User::factory()->create();
+    $member = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ONLY_LEADERS,
+    ]);
+    attachMember($group, $leader, GroupRole::LEADER);
+    attachMember($group, $member);
+
+    $conversation = Conversation::factory()->create([
+        'group_id' => $group->id,
+        'user_id' => $leader->id,
+    ]);
+    $conversation->postComment('Leader message', $leader);
+    $comment = $conversation->comments()->first();
+
+    $this->actingAs($member);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('react', $comment->id, '👍')
+        ->assertForbidden();
+
+    expect($comment->fresh()->reactions()->count())->toBe(0);
+});
+
+test('reacting with a disallowed value is rejected', function (): void {
+    $member = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $member);
+
+    $conversation = Conversation::factory()->create([
+        'group_id' => $group->id,
+        'user_id' => $member->id,
+    ]);
+    $conversation->postComment('Opening message', $member);
+    $comment = $conversation->comments()->first();
+
+    $this->actingAs($member);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('react', $comment->id, '<script>alert(1)</script>')
+        ->assertStatus(422);
+
+    expect($comment->fresh()->reactions()->count())->toBe(0);
+});
+
 // --- Delete (policy::delete) ---
 
 test('the author can delete their own conversation', function (): void {
