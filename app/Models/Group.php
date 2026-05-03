@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Mews\Purifier\Casts\CleanHtmlInput;
 
@@ -72,5 +73,21 @@ class Group extends Model
             ->using(GroupUser::class)
             ->withPivot('role', 'status')
             ->withTimestamps();
+    }
+
+    /** @return HasMany<Conversation, $this> */
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
+    public function hasActiveMember(User $user): bool
+    {
+        return $this->members()->whereKey($user->id)->exists();
+    }
+
+    public function hasLeader(User $user): bool
+    {
+        return $this->leaders()->whereKey($user->id)->exists();
     }
 }

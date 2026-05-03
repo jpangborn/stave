@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
@@ -392,14 +393,18 @@ test('non-member of public group sees request to join button', function (): void
         ->assertSee('Request to Join');
 });
 
-test('conversations tab placeholder is visible', function (): void {
+test('conversations tab is visible to members when messaging is enabled', function (): void {
     $user = User::factory()->create();
-    $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+    $group = Group::factory()->create([
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
     Livewire::test('pages::groups.show', ['group' => $group])
-        ->assertSee('Conversations coming soon');
+        ->assertSee('Conversations');
 });
 
 test('group description is displayed in header', function (): void {
