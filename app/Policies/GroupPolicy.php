@@ -19,7 +19,7 @@ class GroupPolicy
             return true;
         }
 
-        return $this->isActiveMember($user, $group);
+        return $group->hasActiveMember($user);
     }
 
     /**
@@ -34,7 +34,7 @@ class GroupPolicy
 
         return ! $group->allUsers()
             ->where('user_id', $user->id)
-            ->whereNotIn('status', [MembershipStatus::REJECTED])
+            ->where('status', '!=', MembershipStatus::REJECTED)
             ->exists();
     }
 
@@ -43,7 +43,7 @@ class GroupPolicy
      */
     public function manageMembers(User $user, Group $group): bool
     {
-        return $this->isLeader($user, $group);
+        return $group->hasLeader($user);
     }
 
     /**
@@ -52,7 +52,7 @@ class GroupPolicy
      */
     public function update(User $user, Group $group): bool
     {
-        return $this->isLeader($user, $group);
+        return $group->hasLeader($user);
     }
 
     /**
@@ -61,7 +61,7 @@ class GroupPolicy
      */
     public function delete(User $user, Group $group): bool
     {
-        return $this->isLeader($user, $group);
+        return $group->hasLeader($user);
     }
 
     /**
@@ -70,24 +70,10 @@ class GroupPolicy
      */
     public function leave(User $user, Group $group): bool
     {
-        if (! $this->isActiveMember($user, $group)) {
+        if (! $group->hasActiveMember($user)) {
             return false;
         }
 
-        if ($this->isLeader($user, $group) && $group->leaders()->count() === 1) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function isActiveMember(User $user, Group $group): bool
-    {
-        return $group->members()->where('user_id', $user->id)->exists();
-    }
-
-    private function isLeader(User $user, Group $group): bool
-    {
-        return $group->leaders()->where('user_id', $user->id)->exists();
+        return ! $group->hasLeader($user) || $group->leaders()->count() > 1;
     }
 }

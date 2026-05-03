@@ -71,6 +71,13 @@ Route::middleware(['auth'])->group(function (): void {
             Route::livewire('/create', 'pages::groups.create')->name('create');
             Route::livewire('/{group}', 'pages::groups.show')->name('show');
             Route::livewire('/{group}/edit', 'pages::groups.edit')->name('edit');
+
+            Route::name('conversations.')
+                ->prefix('/{group}/conversations')
+                ->group(function (): void {
+                    Route::livewire('/create', 'pages::groups.conversations.create')->name('create');
+                    Route::livewire('/{conversation}', 'pages::groups.conversations.show')->name('show');
+                });
         });
 
     Route::name('people.')

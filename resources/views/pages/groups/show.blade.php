@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
+use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\GroupUser;
 use App\Models\User;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -32,6 +35,10 @@ new class extends Component {
     {
         $this->authorize('view', $group);
         $this->group = $group;
+
+        if (! $this->conversationsVisible) {
+            $this->tab = 'members';
+        }
     }
 
     #[Computed]
@@ -65,6 +72,23 @@ new class extends Component {
     public function activeMembers(): Collection
     {
         return $this->group->members()->get();
+    }
+
+    #[Computed]
+    public function conversationsVisible(): bool
+    {
+        return $this->isMember && $this->group->messaging !== GroupMessaging::OFF;
+    }
+
+    /** @return Collection<int, Conversation> */
+    #[Computed]
+    public function conversations(): Collection
+    {
+        return $this->group->conversations()
+            ->with('creator')
+            ->withCount('comments')
+            ->orderByRaw('COALESCE(last_comment_at, created_at) desc')
+            ->get();
     }
 
     /** @return Collection<int, User>|BaseCollection<int, User> */
@@ -278,9 +302,10 @@ new class extends Component {
 
     private function notifyLeaders(): void
     {
-        $notification = new GroupJoinRequestNotification($this->group, Auth::user());
-
-        $this->group->leaders->each(fn (User $leader) => $leader->notify($notification));
+        Notification::send(
+            $this->group->leaders,
+            new GroupJoinRequestNotification($this->group, Auth::user()),
+        );
     }
 };
 ?>
@@ -331,7 +356,9 @@ new class extends Component {
 
     <flux:tab.group class="mt-8">
         <flux:tabs wire:model="tab">
-            <flux:tab name="conversations" icon="chat-bubble-left-right">Conversations</flux:tab>
+            @if ($this->conversationsVisible)
+                <flux:tab name="conversations" icon="chat-bubble-left-right">Conversations</flux:tab>
+            @endif
             @if ($this->isMember)
                 <flux:tab name="members" icon="user-group">
                     Members
@@ -342,13 +369,54 @@ new class extends Component {
             @endif
         </flux:tabs>
 
-        <flux:tab.panel name="conversations">
-            <div class="text-center py-12">
-                <flux:icon.chat-bubble-left-right class="mx-auto size-12 text-zinc-400" />
-                <flux:heading size="lg" class="mt-4">Conversations coming soon</flux:heading>
-                <flux:subheading>Group conversations will be available in a future update.</flux:subheading>
-            </div>
-        </flux:tab.panel>
+        @if ($this->conversationsVisible)
+            <flux:tab.panel name="conversations">
+                <div class="flex items-center justify-between mb-4">
+                    <flux:heading size="lg">Conversations</flux:heading>
+                    @can('create', [Conversation::class, $group])
+                        <flux:button :href="route('groups.conversations.create', $group)" variant="primary" size="sm" icon="plus" wire:navigate>
+                            New Conversation
+                        </flux:button>
+                    @endcan
+                </div>
+
+                @if ($this->conversations->isEmpty())
+                    <div class="text-center py-12">
+                        <flux:icon.chat-bubble-left-right class="mx-auto size-12 text-zinc-400" />
+                        <flux:heading size="lg" class="mt-4">No conversations yet</flux:heading>
+                        @can('create', [Conversation::class, $group])
+                            <flux:subheading>Start the first conversation in this group.</flux:subheading>
+                        @endcan
+                    </div>
+                @else
+                    <flux:table>
+                        <flux:table.columns>
+                            <flux:table.column>Title</flux:table.column>
+                            <flux:table.column>Started by</flux:table.column>
+                            <flux:table.column>Messages</flux:table.column>
+                            <flux:table.column>Last activity</flux:table.column>
+                        </flux:table.columns>
+
+                        <flux:table.rows>
+                            @foreach ($this->conversations as $conversation)
+                                <flux:table.row :key="$conversation->id">
+                                    <flux:table.cell>
+                                        <flux:link :href="route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation])" wire:navigate>
+                                            {{ $conversation->title }}
+                                        </flux:link>
+                                    </flux:table.cell>
+                                    <flux:table.cell>{{ $conversation->creator?->name ?? 'Unknown' }}</flux:table.cell>
+                                    <flux:table.cell>{{ $conversation->comments_count }}</flux:table.cell>
+                                    <flux:table.cell class="whitespace-nowrap">
+                                        {{ ($conversation->last_comment_at ?? $conversation->created_at)->diffForHumans() }}
+                                    </flux:table.cell>
+                                </flux:table.row>
+                            @endforeach
+                        </flux:table.rows>
+                    </flux:table>
+                @endif
+            </flux:tab.panel>
+        @endif
 
         @if ($this->isMember)
             <flux:tab.panel name="members">
