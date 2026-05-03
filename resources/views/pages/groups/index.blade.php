@@ -77,13 +77,15 @@ new class extends Component {
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($this->myGroups as $group)
-                    <flux:card :href="route('groups.show', $group)" class="space-y-2">
-                        <flux:heading size="lg">{{ $group->name }}</flux:heading>
-                        <div class="flex gap-2">
-                            <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
-                            <flux:badge size="sm" :color="$group->messaging->color()">{{ $group->messaging->label() }}</flux:badge>
-                        </div>
-                    </flux:card>
+                    <a href="{{ route('groups.show', $group) }}" wire:navigate class="group block">
+                        <flux:card class="space-y-2 h-full transition group-hover:border-zinc-300 dark:group-hover:border-white/20">
+                            <flux:heading size="lg">{{ $group->name }}</flux:heading>
+                            <div class="flex gap-2">
+                                <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
+                                <flux:badge size="sm" :color="$group->messaging->color()">{{ $group->messaging->label() }}</flux:badge>
+                            </div>
+                        </flux:card>
+                    </a>
                 @endforeach
             </div>
         @endif
