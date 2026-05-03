@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Spatie\Comments\Models\Comment;
+use Spatie\Comments\Support\Config;
 
 new class extends Component {
     public Group $group;
@@ -31,7 +32,7 @@ new class extends Component {
     {
         /** @var Collection<int, Comment> */
         return $this->conversation->comments()
-            ->with('commentator')
+            ->with(['commentator', 'reactions'])
             ->orderBy('created_at')
             ->get();
     }
@@ -53,6 +54,18 @@ new class extends Component {
         $this->conversation->postComment($validated['reply'], Auth::user());
 
         $this->reset('reply');
+        unset($this->comments);
+    }
+
+    public function react(int $commentId, string $reaction): void
+    {
+        $this->authorize('comment', $this->conversation);
+
+        abort_unless(in_array($reaction, Config::allowedReactions(), true), 422);
+
+        $comment = $this->conversation->comments()->findOrFail($commentId);
+        $comment->react($reaction);
+
         unset($this->comments);
     }
 
@@ -118,6 +131,23 @@ new class extends Component {
                         'bg-accent text-white' => $comment->commentator?->is(Auth::user()),
                     ])>
                         {!! $comment->text !!}
+                    </div>
+                    <div class="flex flex-row-reverse items-center space-x-3 -mt-1.5">
+                        @can('comment', $conversation)
+                            <flux:dropdown hover position="{{ $comment->commentator?->is(Auth::user()) ? 'left' : 'right' }}" align="center">
+                                <flux:button size="sm" variant="ghost" icon="face-smile" />
+                                <flux:popover>
+                                    <div class="flex">
+                                        @foreach (Config::allowedReactions() as $allowedReaction)
+                                            <flux:button size="sm" variant="ghost" square wire:click="react({{ $comment->id }}, '{{ $allowedReaction }}')">{{ $allowedReaction }}</flux:button>
+                                        @endforeach
+                                    </div>
+                                </flux:popover>
+                            </flux:dropdown>
+                        @endcan
+                        @foreach ($comment->reactions->summary() as $reaction)
+                            <span wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}" class="bg-zinc-100 dark:bg-zinc-800 rounded-full py-1 px-2">{{ $reaction['reaction'] }} {{ $reaction['count'] }}</span>
+                        @endforeach
                     </div>
                 </div>
                 @php($prevUser = $comment->commentator)
