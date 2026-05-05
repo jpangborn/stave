@@ -54,7 +54,7 @@
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-flexoki-purple-600);
+        --color-accent: var(--color-flexoki-purple-400);
         --color-accent-content: var(--color-flexoki-purple-400);
         --color-accent-foreground: var(--color-flexoki-paper);
     }
