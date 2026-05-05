@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../../vendor/livewire/flux/dist/flux.css";
+@import "./flexoki.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -14,33 +15,149 @@
         "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-/* Re-assign Flux's gray of choice... */
+/* Re-assign Flux's gray of choice (zinc) and Tailwind's gray to Flexoki base. */
 @theme {
-    --color-zinc-50: var(--color-slate-50);
-    --color-zinc-100: var(--color-slate-100);
-    --color-zinc-200: var(--color-slate-200);
-    --color-zinc-300: var(--color-slate-300);
-    --color-zinc-400: var(--color-slate-400);
-    --color-zinc-500: var(--color-slate-500);
-    --color-zinc-600: var(--color-slate-600);
-    --color-zinc-700: var(--color-slate-700);
-    --color-zinc-800: var(--color-slate-800);
-    --color-zinc-900: var(--color-slate-900);
-    --color-zinc-950: var(--color-slate-950);
+    --color-zinc-50: var(--color-flexoki-base-50);
+    --color-zinc-100: var(--color-flexoki-base-100);
+    --color-zinc-200: var(--color-flexoki-base-200);
+    --color-zinc-300: var(--color-flexoki-base-300);
+    --color-zinc-400: var(--color-flexoki-base-400);
+    --color-zinc-500: var(--color-flexoki-base-500);
+    --color-zinc-600: var(--color-flexoki-base-600);
+    --color-zinc-700: var(--color-flexoki-base-700);
+    --color-zinc-800: var(--color-flexoki-base-800);
+    --color-zinc-900: var(--color-flexoki-base-900);
+    --color-zinc-950: var(--color-flexoki-base-950);
+
+    --color-gray-50: var(--color-flexoki-base-50);
+    --color-gray-100: var(--color-flexoki-base-100);
+    --color-gray-200: var(--color-flexoki-base-200);
+    --color-gray-300: var(--color-flexoki-base-300);
+    --color-gray-400: var(--color-flexoki-base-400);
+    --color-gray-500: var(--color-flexoki-base-500);
+    --color-gray-600: var(--color-flexoki-base-600);
+    --color-gray-700: var(--color-flexoki-base-700);
+    --color-gray-800: var(--color-flexoki-base-800);
+    --color-gray-900: var(--color-flexoki-base-900);
+    --color-gray-950: var(--color-flexoki-base-950);
+
+    --color-white: var(--color-flexoki-paper);
+    --color-black: var(--color-flexoki-black);
 }
 
+/* Accent = Flexoki purple. Per Flexoki, fg uses the 600 stop on light and the 400 stop on dark. */
 @theme {
-    --color-accent: var(--color-indigo-500);
-    --color-accent-content: var(--color-indigo-600);
-    --color-accent-foreground: var(--color-white);
+    --color-accent: var(--color-flexoki-purple-600);
+    --color-accent-content: var(--color-flexoki-purple-600);
+    --color-accent-foreground: var(--color-flexoki-paper);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-indigo-500);
-        --color-accent-content: var(--color-indigo-300);
-        --color-accent-foreground: var(--color-white);
+        --color-accent: var(--color-flexoki-purple-400);
+        --color-accent-content: var(--color-flexoki-purple-400);
+        --color-accent-foreground: var(--color-flexoki-paper);
     }
+}
+
+/* Replace Tailwind's saturated default hues with Flexoki equivalents.
+   Tailwind's `pink` maps to Flexoki's `magenta`. */
+@theme {
+    --color-red-50: var(--color-flexoki-red-50);
+    --color-red-100: var(--color-flexoki-red-100);
+    --color-red-200: var(--color-flexoki-red-200);
+    --color-red-300: var(--color-flexoki-red-300);
+    --color-red-400: var(--color-flexoki-red-400);
+    --color-red-500: var(--color-flexoki-red-500);
+    --color-red-600: var(--color-flexoki-red-600);
+    --color-red-700: var(--color-flexoki-red-700);
+    --color-red-800: var(--color-flexoki-red-800);
+    --color-red-900: var(--color-flexoki-red-900);
+    --color-red-950: var(--color-flexoki-red-950);
+
+    --color-orange-50: var(--color-flexoki-orange-50);
+    --color-orange-100: var(--color-flexoki-orange-100);
+    --color-orange-200: var(--color-flexoki-orange-200);
+    --color-orange-300: var(--color-flexoki-orange-300);
+    --color-orange-400: var(--color-flexoki-orange-400);
+    --color-orange-500: var(--color-flexoki-orange-500);
+    --color-orange-600: var(--color-flexoki-orange-600);
+    --color-orange-700: var(--color-flexoki-orange-700);
+    --color-orange-800: var(--color-flexoki-orange-800);
+    --color-orange-900: var(--color-flexoki-orange-900);
+    --color-orange-950: var(--color-flexoki-orange-950);
+
+    --color-yellow-50: var(--color-flexoki-yellow-50);
+    --color-yellow-100: var(--color-flexoki-yellow-100);
+    --color-yellow-200: var(--color-flexoki-yellow-200);
+    --color-yellow-300: var(--color-flexoki-yellow-300);
+    --color-yellow-400: var(--color-flexoki-yellow-400);
+    --color-yellow-500: var(--color-flexoki-yellow-500);
+    --color-yellow-600: var(--color-flexoki-yellow-600);
+    --color-yellow-700: var(--color-flexoki-yellow-700);
+    --color-yellow-800: var(--color-flexoki-yellow-800);
+    --color-yellow-900: var(--color-flexoki-yellow-900);
+    --color-yellow-950: var(--color-flexoki-yellow-950);
+
+    --color-green-50: var(--color-flexoki-green-50);
+    --color-green-100: var(--color-flexoki-green-100);
+    --color-green-200: var(--color-flexoki-green-200);
+    --color-green-300: var(--color-flexoki-green-300);
+    --color-green-400: var(--color-flexoki-green-400);
+    --color-green-500: var(--color-flexoki-green-500);
+    --color-green-600: var(--color-flexoki-green-600);
+    --color-green-700: var(--color-flexoki-green-700);
+    --color-green-800: var(--color-flexoki-green-800);
+    --color-green-900: var(--color-flexoki-green-900);
+    --color-green-950: var(--color-flexoki-green-950);
+
+    --color-cyan-50: var(--color-flexoki-cyan-50);
+    --color-cyan-100: var(--color-flexoki-cyan-100);
+    --color-cyan-200: var(--color-flexoki-cyan-200);
+    --color-cyan-300: var(--color-flexoki-cyan-300);
+    --color-cyan-400: var(--color-flexoki-cyan-400);
+    --color-cyan-500: var(--color-flexoki-cyan-500);
+    --color-cyan-600: var(--color-flexoki-cyan-600);
+    --color-cyan-700: var(--color-flexoki-cyan-700);
+    --color-cyan-800: var(--color-flexoki-cyan-800);
+    --color-cyan-900: var(--color-flexoki-cyan-900);
+    --color-cyan-950: var(--color-flexoki-cyan-950);
+
+    --color-blue-50: var(--color-flexoki-blue-50);
+    --color-blue-100: var(--color-flexoki-blue-100);
+    --color-blue-200: var(--color-flexoki-blue-200);
+    --color-blue-300: var(--color-flexoki-blue-300);
+    --color-blue-400: var(--color-flexoki-blue-400);
+    --color-blue-500: var(--color-flexoki-blue-500);
+    --color-blue-600: var(--color-flexoki-blue-600);
+    --color-blue-700: var(--color-flexoki-blue-700);
+    --color-blue-800: var(--color-flexoki-blue-800);
+    --color-blue-900: var(--color-flexoki-blue-900);
+    --color-blue-950: var(--color-flexoki-blue-950);
+
+    --color-purple-50: var(--color-flexoki-purple-50);
+    --color-purple-100: var(--color-flexoki-purple-100);
+    --color-purple-200: var(--color-flexoki-purple-200);
+    --color-purple-300: var(--color-flexoki-purple-300);
+    --color-purple-400: var(--color-flexoki-purple-400);
+    --color-purple-500: var(--color-flexoki-purple-500);
+    --color-purple-600: var(--color-flexoki-purple-600);
+    --color-purple-700: var(--color-flexoki-purple-700);
+    --color-purple-800: var(--color-flexoki-purple-800);
+    --color-purple-900: var(--color-flexoki-purple-900);
+    --color-purple-950: var(--color-flexoki-purple-950);
+
+    --color-pink-50: var(--color-flexoki-magenta-50);
+    --color-pink-100: var(--color-flexoki-magenta-100);
+    --color-pink-200: var(--color-flexoki-magenta-200);
+    --color-pink-300: var(--color-flexoki-magenta-300);
+    --color-pink-400: var(--color-flexoki-magenta-400);
+    --color-pink-500: var(--color-flexoki-magenta-500);
+    --color-pink-600: var(--color-flexoki-magenta-600);
+    --color-pink-700: var(--color-flexoki-magenta-700);
+    --color-pink-800: var(--color-flexoki-magenta-800);
+    --color-pink-900: var(--color-flexoki-magenta-900);
+    --color-pink-950: var(--color-flexoki-magenta-950);
 }
 
 @layer base {
