@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../../vendor/livewire/flux/dist/flux.css";
+@import "./flexoki.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -14,33 +15,131 @@
         "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-/* Re-assign Flux's gray of choice... */
+/* ----------------------------------------------------------
+   Redefine Flux's `zinc` scale → semantic surface tokens.
+   Flux uses `zinc` for nearly every gray (sidebar, borders,
+   text, inputs). Pointing each stop at our paper/ink/ui
+   tokens re-skins the entire surface system in one shot.
+   ---------------------------------------------------------- */
 @theme {
-    --color-zinc-50: var(--color-slate-50);
-    --color-zinc-100: var(--color-slate-100);
-    --color-zinc-200: var(--color-slate-200);
-    --color-zinc-300: var(--color-slate-300);
-    --color-zinc-400: var(--color-slate-400);
-    --color-zinc-500: var(--color-slate-500);
-    --color-zinc-600: var(--color-slate-600);
-    --color-zinc-700: var(--color-slate-700);
-    --color-zinc-800: var(--color-slate-800);
-    --color-zinc-900: var(--color-slate-900);
-    --color-zinc-950: var(--color-slate-950);
+    --color-zinc-50: var(--color-paper-2);
+    --color-zinc-100: var(--color-ui-3);
+    --color-zinc-200: var(--color-ui-2);
+    --color-zinc-300: var(--color-ui-1);
+    --color-zinc-400: var(--color-ink-4);
+    --color-zinc-500: var(--color-ink-3);
+    --color-zinc-600: var(--color-ink-3);
+    --color-zinc-700: var(--color-ink-2);
+    --color-zinc-800: var(--color-ink-2);
+    --color-zinc-900: var(--color-ink);
+    --color-zinc-950: var(--color-ink);
 }
 
-@theme {
-    --color-accent: var(--color-indigo-500);
-    --color-accent-content: var(--color-indigo-600);
-    --color-accent-foreground: var(--color-white);
+/* ----------------------------------------------------------
+   Accent = Flexoki purple.
+   Light foreground = 600 stop (rich, saturated).
+   Dark  foreground = 100 stop (so it reads against #100F0F).
+   ---------------------------------------------------------- */
+:root {
+    --color-accent: var(--color-flexoki-purple-600);
+    --color-accent-content: var(--color-flexoki-purple-600);
+    --color-accent-foreground: var(--color-paper);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-indigo-500);
-        --color-accent-content: var(--color-indigo-300);
-        --color-accent-foreground: var(--color-white);
+        --color-accent: var(--color-flexoki-purple-100);
+        --color-accent-content: var(--color-flexoki-purple-100);
+        --color-accent-foreground: var(--color-ink);
     }
+}
+
+/* ----------------------------------------------------------
+   Replace Tailwind's saturated default hues with Flexoki tones
+   so any incidental `text-red-500`, `bg-blue-100`, etc. picks
+   up the muted family. Flexoki has no 500/700/900 stop —
+   500 aliases 400, 700 aliases 600, 900 aliases 800.
+   ---------------------------------------------------------- */
+@theme {
+    /* Red */
+    --color-red-50: var(--color-flexoki-red-50);
+    --color-red-100: var(--color-flexoki-red-100);
+    --color-red-400: var(--color-flexoki-red-400);
+    --color-red-500: var(--color-flexoki-red-400);
+    --color-red-600: var(--color-flexoki-red-600);
+    --color-red-700: var(--color-flexoki-red-600);
+    --color-red-800: var(--color-flexoki-red-800);
+    --color-red-900: var(--color-flexoki-red-800);
+
+    /* Orange */
+    --color-orange-50: var(--color-flexoki-orange-50);
+    --color-orange-100: var(--color-flexoki-orange-100);
+    --color-orange-400: var(--color-flexoki-orange-400);
+    --color-orange-500: var(--color-flexoki-orange-400);
+    --color-orange-600: var(--color-flexoki-orange-600);
+    --color-orange-700: var(--color-flexoki-orange-600);
+    --color-orange-800: var(--color-flexoki-orange-800);
+    --color-orange-900: var(--color-flexoki-orange-800);
+
+    /* Yellow */
+    --color-yellow-50: var(--color-flexoki-yellow-50);
+    --color-yellow-100: var(--color-flexoki-yellow-100);
+    --color-yellow-400: var(--color-flexoki-yellow-400);
+    --color-yellow-500: var(--color-flexoki-yellow-400);
+    --color-yellow-600: var(--color-flexoki-yellow-600);
+    --color-yellow-700: var(--color-flexoki-yellow-600);
+    --color-yellow-800: var(--color-flexoki-yellow-800);
+    --color-yellow-900: var(--color-flexoki-yellow-800);
+
+    /* Green */
+    --color-green-50: var(--color-flexoki-green-50);
+    --color-green-100: var(--color-flexoki-green-100);
+    --color-green-400: var(--color-flexoki-green-400);
+    --color-green-500: var(--color-flexoki-green-400);
+    --color-green-600: var(--color-flexoki-green-600);
+    --color-green-700: var(--color-flexoki-green-600);
+    --color-green-800: var(--color-flexoki-green-800);
+    --color-green-900: var(--color-flexoki-green-800);
+
+    /* Cyan */
+    --color-cyan-50: var(--color-flexoki-cyan-50);
+    --color-cyan-100: var(--color-flexoki-cyan-100);
+    --color-cyan-400: var(--color-flexoki-cyan-400);
+    --color-cyan-500: var(--color-flexoki-cyan-400);
+    --color-cyan-600: var(--color-flexoki-cyan-600);
+    --color-cyan-700: var(--color-flexoki-cyan-600);
+    --color-cyan-800: var(--color-flexoki-cyan-800);
+    --color-cyan-900: var(--color-flexoki-cyan-800);
+
+    /* Blue */
+    --color-blue-50: var(--color-flexoki-blue-50);
+    --color-blue-100: var(--color-flexoki-blue-100);
+    --color-blue-400: var(--color-flexoki-blue-400);
+    --color-blue-500: var(--color-flexoki-blue-400);
+    --color-blue-600: var(--color-flexoki-blue-600);
+    --color-blue-700: var(--color-flexoki-blue-600);
+    --color-blue-800: var(--color-flexoki-blue-800);
+    --color-blue-900: var(--color-flexoki-blue-800);
+
+    /* Purple */
+    --color-purple-50: var(--color-flexoki-purple-50);
+    --color-purple-100: var(--color-flexoki-purple-100);
+    --color-purple-400: var(--color-flexoki-purple-400);
+    --color-purple-500: var(--color-flexoki-purple-400);
+    --color-purple-600: var(--color-flexoki-purple-600);
+    --color-purple-700: var(--color-flexoki-purple-600);
+    --color-purple-800: var(--color-flexoki-purple-800);
+    --color-purple-900: var(--color-flexoki-purple-800);
+
+    /* Pink → Flexoki magenta */
+    --color-pink-50: var(--color-flexoki-magenta-50);
+    --color-pink-100: var(--color-flexoki-magenta-100);
+    --color-pink-400: var(--color-flexoki-magenta-400);
+    --color-pink-500: var(--color-flexoki-magenta-400);
+    --color-pink-600: var(--color-flexoki-magenta-600);
+    --color-pink-700: var(--color-flexoki-magenta-600);
+    --color-pink-800: var(--color-flexoki-magenta-800);
+    --color-pink-900: var(--color-flexoki-magenta-800);
 }
 
 @layer base {
@@ -49,7 +148,7 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-ui-2, currentColor);
     }
 }
 
@@ -66,7 +165,3 @@ textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
-
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
