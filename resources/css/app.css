@@ -64,6 +64,8 @@
     /* Red */
     --color-red-50: var(--color-flexoki-red-50);
     --color-red-100: var(--color-flexoki-red-100);
+    --color-red-200: var(--color-flexoki-red-200);
+    --color-red-300: var(--color-flexoki-red-300);
     --color-red-400: var(--color-flexoki-red-400);
     --color-red-500: var(--color-flexoki-red-400);
     --color-red-600: var(--color-flexoki-red-600);
@@ -74,6 +76,8 @@
     /* Orange */
     --color-orange-50: var(--color-flexoki-orange-50);
     --color-orange-100: var(--color-flexoki-orange-100);
+    --color-orange-200: var(--color-flexoki-orange-200);
+    --color-orange-300: var(--color-flexoki-orange-300);
     --color-orange-400: var(--color-flexoki-orange-400);
     --color-orange-500: var(--color-flexoki-orange-400);
     --color-orange-600: var(--color-flexoki-orange-600);
@@ -84,6 +88,8 @@
     /* Yellow */
     --color-yellow-50: var(--color-flexoki-yellow-50);
     --color-yellow-100: var(--color-flexoki-yellow-100);
+    --color-yellow-200: var(--color-flexoki-yellow-200);
+    --color-yellow-300: var(--color-flexoki-yellow-300);
     --color-yellow-400: var(--color-flexoki-yellow-400);
     --color-yellow-500: var(--color-flexoki-yellow-400);
     --color-yellow-600: var(--color-flexoki-yellow-600);
@@ -94,6 +100,8 @@
     /* Green */
     --color-green-50: var(--color-flexoki-green-50);
     --color-green-100: var(--color-flexoki-green-100);
+    --color-green-200: var(--color-flexoki-green-200);
+    --color-green-300: var(--color-flexoki-green-300);
     --color-green-400: var(--color-flexoki-green-400);
     --color-green-500: var(--color-flexoki-green-400);
     --color-green-600: var(--color-flexoki-green-600);
@@ -104,6 +112,8 @@
     /* Cyan */
     --color-cyan-50: var(--color-flexoki-cyan-50);
     --color-cyan-100: var(--color-flexoki-cyan-100);
+    --color-cyan-200: var(--color-flexoki-cyan-200);
+    --color-cyan-300: var(--color-flexoki-cyan-300);
     --color-cyan-400: var(--color-flexoki-cyan-400);
     --color-cyan-500: var(--color-flexoki-cyan-400);
     --color-cyan-600: var(--color-flexoki-cyan-600);
@@ -114,6 +124,8 @@
     /* Blue */
     --color-blue-50: var(--color-flexoki-blue-50);
     --color-blue-100: var(--color-flexoki-blue-100);
+    --color-blue-200: var(--color-flexoki-blue-200);
+    --color-blue-300: var(--color-flexoki-blue-300);
     --color-blue-400: var(--color-flexoki-blue-400);
     --color-blue-500: var(--color-flexoki-blue-400);
     --color-blue-600: var(--color-flexoki-blue-600);
@@ -124,6 +136,8 @@
     /* Purple */
     --color-purple-50: var(--color-flexoki-purple-50);
     --color-purple-100: var(--color-flexoki-purple-100);
+    --color-purple-200: var(--color-flexoki-purple-200);
+    --color-purple-300: var(--color-flexoki-purple-300);
     --color-purple-400: var(--color-flexoki-purple-400);
     --color-purple-500: var(--color-flexoki-purple-400);
     --color-purple-600: var(--color-flexoki-purple-600);
@@ -134,6 +148,8 @@
     /* Pink → Flexoki magenta */
     --color-pink-50: var(--color-flexoki-magenta-50);
     --color-pink-100: var(--color-flexoki-magenta-100);
+    --color-pink-200: var(--color-flexoki-magenta-200);
+    --color-pink-300: var(--color-flexoki-magenta-300);
     --color-pink-400: var(--color-flexoki-magenta-400);
     --color-pink-500: var(--color-flexoki-magenta-400);
     --color-pink-600: var(--color-flexoki-magenta-600);

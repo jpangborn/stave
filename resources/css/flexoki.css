@@ -21,6 +21,8 @@
     /* Red */
     --color-flexoki-red-50: #fbe8e8;
     --color-flexoki-red-100: #f0b8b3;
+    --color-flexoki-red-200: #f89a8a;
+    --color-flexoki-red-300: #e8705f;
     --color-flexoki-red-400: #d14d41;
     --color-flexoki-red-600: #af3029;
     --color-flexoki-red-800: #5c1a16;
@@ -28,6 +30,8 @@
     /* Orange */
     --color-flexoki-orange-50: #fce6d2;
     --color-flexoki-orange-100: #f2bd93;
+    --color-flexoki-orange-200: #f9ae77;
+    --color-flexoki-orange-300: #ec8b49;
     --color-flexoki-orange-400: #da702c;
     --color-flexoki-orange-600: #a8520f;
     --color-flexoki-orange-800: #5a2c08;
@@ -35,6 +39,8 @@
     /* Yellow */
     --color-flexoki-yellow-50: #faeec8;
     --color-flexoki-yellow-100: #efd688;
+    --color-flexoki-yellow-200: #eccb60;
+    --color-flexoki-yellow-300: #dfb431;
     --color-flexoki-yellow-400: #d0a215;
     --color-flexoki-yellow-600: #ad8301;
     --color-flexoki-yellow-800: #5a4500;
@@ -42,6 +48,8 @@
     /* Green */
     --color-flexoki-green-50: #edeecf;
     --color-flexoki-green-100: #bfc97b;
+    --color-flexoki-green-200: #bec97e;
+    --color-flexoki-green-300: #a0af54;
     --color-flexoki-green-400: #879a39;
     --color-flexoki-green-600: #617a19;
     --color-flexoki-green-800: #33420c;
@@ -49,6 +57,8 @@
     /* Cyan */
     --color-flexoki-cyan-50: #eaf3f3;
     --color-flexoki-cyan-100: #a8d8d8;
+    --color-flexoki-cyan-200: #87d3c3;
+    --color-flexoki-cyan-300: #5abdac;
     --color-flexoki-cyan-400: #24837b;
     --color-flexoki-cyan-600: #1a5e58;
     --color-flexoki-cyan-800: #0f3d39;
@@ -56,6 +66,8 @@
     /* Blue */
     --color-flexoki-blue-50: #e0eaf7;
     --color-flexoki-blue-100: #9dbce6;
+    --color-flexoki-blue-200: #92bfdb;
+    --color-flexoki-blue-300: #66a0c8;
     --color-flexoki-blue-400: #205ea6;
     --color-flexoki-blue-600: #103e83;
     --color-flexoki-blue-800: #0a2553;
@@ -63,6 +75,8 @@
     /* Purple — Stave's primary accent */
     --color-flexoki-purple-50: #f0eafa;
     --color-flexoki-purple-100: #d3bfef;
+    --color-flexoki-purple-200: #c4b9e0;
+    --color-flexoki-purple-300: #a699d0;
     --color-flexoki-purple-400: #8b7ec8;
     --color-flexoki-purple-600: #5e409d;
     --color-flexoki-purple-800: #3c2a6e;
@@ -70,6 +84,8 @@
     /* Magenta */
     --color-flexoki-magenta-50: #f7dcec;
     --color-flexoki-magenta-100: #e5a3c8;
+    --color-flexoki-magenta-200: #f4a4c2;
+    --color-flexoki-magenta-300: #e47da8;
     --color-flexoki-magenta-400: #a02f6f;
     --color-flexoki-magenta-600: #751f50;
     --color-flexoki-magenta-800: #3f1029;
