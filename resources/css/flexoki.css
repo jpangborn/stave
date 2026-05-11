@@ -17,6 +17,24 @@
     --color-ui-2: #dad8ce;
     --color-ui-3: #e6e5e1;
 
+    /* ── Custom base gray scale (static, not mode-flipping) ──
+       Used to rewire Tailwind's `--color-zinc-*` so the scale
+       keeps its 50→950 light→dark gradient in both modes.
+       Mirrors the custom warm-cream surface tokens above where
+       they exist; falls back to Flexoki spec for stops the custom
+       palette doesn't define (300, 600, 800, 950). */
+    --color-flexoki-base-50: #f1f0ed;  /* custom paper-2 */
+    --color-flexoki-base-100: #e6e5e1; /* custom ui-3 */
+    --color-flexoki-base-200: #dad8ce; /* custom ui-2 */
+    --color-flexoki-base-300: #cecdc3; /* custom ui-1 */
+    --color-flexoki-base-400: #878580; /* custom ink-4 (= Flexoki 400) */
+    --color-flexoki-base-500: #6f6e69; /* custom ink-3 (= Flexoki 500) */
+    --color-flexoki-base-600: #575653; /* Flexoki 600 (custom palette has no stop here) */
+    --color-flexoki-base-700: #343331; /* custom ink-2 */
+    --color-flexoki-base-800: #282726; /* Flexoki 800 (custom palette has no stop here) */
+    --color-flexoki-base-900: #16161a; /* custom ink */
+    --color-flexoki-base-950: #100f0f; /* Flexoki black */
+
     /* ── Accent ramps ── */
     /* Red */
     --color-flexoki-red-50: #fbe8e8;
