@@ -16,23 +16,25 @@
 }
 
 /* ----------------------------------------------------------
-   Redefine Flux's `zinc` scale → semantic surface tokens.
+   Redefine Flux's `zinc` scale → Flexoki base gray scale.
    Flux uses `zinc` for nearly every gray (sidebar, borders,
-   text, inputs). Pointing each stop at our paper/ink/ui
-   tokens re-skins the entire surface system in one shot.
+   text, inputs). The base scale is static (does NOT flip
+   between modes), so the canonical `bg-zinc-50 dark:bg-zinc-900`
+   pattern keeps working: light bg in light mode, dark bg in
+   dark mode. Visual identity stays Flexoki (warm gray family).
    ---------------------------------------------------------- */
 @theme {
-    --color-zinc-50: var(--color-paper-2);
-    --color-zinc-100: var(--color-ui-3);
-    --color-zinc-200: var(--color-ui-2);
-    --color-zinc-300: var(--color-ui-1);
-    --color-zinc-400: var(--color-ink-4);
-    --color-zinc-500: var(--color-ink-3);
-    --color-zinc-600: var(--color-ink-3);
-    --color-zinc-700: var(--color-ink-2);
-    --color-zinc-800: var(--color-ink-2);
-    --color-zinc-900: var(--color-ink);
-    --color-zinc-950: var(--color-ink);
+    --color-zinc-50: var(--color-flexoki-base-50);
+    --color-zinc-100: var(--color-flexoki-base-100);
+    --color-zinc-200: var(--color-flexoki-base-200);
+    --color-zinc-300: var(--color-flexoki-base-300);
+    --color-zinc-400: var(--color-flexoki-base-400);
+    --color-zinc-500: var(--color-flexoki-base-500);
+    --color-zinc-600: var(--color-flexoki-base-600);
+    --color-zinc-700: var(--color-flexoki-base-700);
+    --color-zinc-800: var(--color-flexoki-base-800);
+    --color-zinc-900: var(--color-flexoki-base-900);
+    --color-zinc-950: var(--color-flexoki-base-950);
 }
 
 /* ----------------------------------------------------------
@@ -50,7 +52,9 @@
     .dark {
         --color-accent: var(--color-flexoki-purple-100);
         --color-accent-content: var(--color-flexoki-purple-100);
-        --color-accent-foreground: var(--color-ink);
+        /* --color-accent-foreground is left to Flux's default
+           (var(--color-zinc-800)), which resolves to a dark gray with
+           our static zinc scale — readable on the light lavender accent. */
     }
 }
 
