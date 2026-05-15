@@ -1,0 +1,125 @@
+/* resources/css/flexoki.css
+   Flexoki-derived palette + semantic surface tokens.
+   Source palette: https://stephango.com/flexoki
+*/
+
+@theme {
+    /* ── Surface tokens (light mode defaults) ── */
+    --color-paper: #faf9f6;
+    --color-paper-2: #f1f0ed;
+
+    --color-ink: #16161a;
+    --color-ink-2: #343331;
+    --color-ink-3: #6f6e69;
+    --color-ink-4: #878580;
+
+    --color-ui-1: #cecdc3;
+    --color-ui-2: #dad8ce;
+    --color-ui-3: #e6e5e1;
+
+    /* ── Custom base gray scale (static, not mode-flipping) ──
+       Used to rewire Tailwind's `--color-zinc-*` so the scale
+       keeps its 50→950 light→dark gradient in both modes.
+       Mirrors the custom warm-cream surface tokens above where
+       they exist; falls back to Flexoki spec for stops the custom
+       palette doesn't define (300, 600, 800, 950). */
+    --color-flexoki-base-50: #f1f0ed;  /* custom paper-2 */
+    --color-flexoki-base-100: #e6e5e1; /* custom ui-3 */
+    --color-flexoki-base-200: #dad8ce; /* custom ui-2 */
+    --color-flexoki-base-300: #cecdc3; /* custom ui-1 */
+    --color-flexoki-base-400: #878580; /* custom ink-4 (= Flexoki 400) */
+    --color-flexoki-base-500: #6f6e69; /* custom ink-3 (= Flexoki 500) */
+    --color-flexoki-base-600: #575653; /* Flexoki 600 (custom palette has no stop here) */
+    --color-flexoki-base-700: #343331; /* custom ink-2 */
+    --color-flexoki-base-800: #282726; /* Flexoki 800 (custom palette has no stop here) */
+    --color-flexoki-base-900: #16161a; /* custom ink */
+    --color-flexoki-base-950: #100f0f; /* Flexoki black */
+
+    /* ── Accent ramps ── */
+    /* Red */
+    --color-flexoki-red-50: #fbe8e8;
+    --color-flexoki-red-100: #f0b8b3;
+    --color-flexoki-red-200: #f89a8a;
+    --color-flexoki-red-300: #e8705f;
+    --color-flexoki-red-400: #d14d41;
+    --color-flexoki-red-600: #af3029;
+    --color-flexoki-red-800: #5c1a16;
+
+    /* Orange */
+    --color-flexoki-orange-50: #fce6d2;
+    --color-flexoki-orange-100: #f2bd93;
+    --color-flexoki-orange-200: #f9ae77;
+    --color-flexoki-orange-300: #ec8b49;
+    --color-flexoki-orange-400: #da702c;
+    --color-flexoki-orange-600: #a8520f;
+    --color-flexoki-orange-800: #5a2c08;
+
+    /* Yellow */
+    --color-flexoki-yellow-50: #faeec8;
+    --color-flexoki-yellow-100: #efd688;
+    --color-flexoki-yellow-200: #eccb60;
+    --color-flexoki-yellow-300: #dfb431;
+    --color-flexoki-yellow-400: #d0a215;
+    --color-flexoki-yellow-600: #ad8301;
+    --color-flexoki-yellow-800: #5a4500;
+
+    /* Green */
+    --color-flexoki-green-50: #edeecf;
+    --color-flexoki-green-100: #bfc97b;
+    --color-flexoki-green-200: #bec97e;
+    --color-flexoki-green-300: #a0af54;
+    --color-flexoki-green-400: #879a39;
+    --color-flexoki-green-600: #617a19;
+    --color-flexoki-green-800: #33420c;
+
+    /* Cyan */
+    --color-flexoki-cyan-50: #eaf3f3;
+    --color-flexoki-cyan-100: #a8d8d8;
+    --color-flexoki-cyan-200: #87d3c3;
+    --color-flexoki-cyan-300: #5abdac;
+    --color-flexoki-cyan-400: #24837b;
+    --color-flexoki-cyan-600: #1a5e58;
+    --color-flexoki-cyan-800: #0f3d39;
+
+    /* Blue */
+    --color-flexoki-blue-50: #e0eaf7;
+    --color-flexoki-blue-100: #9dbce6;
+    --color-flexoki-blue-200: #92bfdb;
+    --color-flexoki-blue-300: #66a0c8;
+    --color-flexoki-blue-400: #205ea6;
+    --color-flexoki-blue-600: #103e83;
+    --color-flexoki-blue-800: #0a2553;
+
+    /* Purple — Stave's primary accent */
+    --color-flexoki-purple-50: #f0eafa;
+    --color-flexoki-purple-100: #d3bfef;
+    --color-flexoki-purple-200: #c4b9e0;
+    --color-flexoki-purple-300: #a699d0;
+    --color-flexoki-purple-400: #8b7ec8;
+    --color-flexoki-purple-600: #5e409d;
+    --color-flexoki-purple-800: #3c2a6e;
+
+    /* Magenta */
+    --color-flexoki-magenta-50: #f7dcec;
+    --color-flexoki-magenta-100: #e5a3c8;
+    --color-flexoki-magenta-200: #f4a4c2;
+    --color-flexoki-magenta-300: #e47da8;
+    --color-flexoki-magenta-400: #a02f6f;
+    --color-flexoki-magenta-600: #751f50;
+    --color-flexoki-magenta-800: #3f1029;
+}
+
+/* ── Dark mode surface tokens ── */
+.dark {
+    --color-paper: #100f0f;
+    --color-paper-2: #1c1b1a;
+
+    --color-ink: #fffcf0;
+    --color-ink-2: #e6e3d3;
+    --color-ink-3: #878580;
+    --color-ink-4: #6f6e69;
+
+    --color-ui-1: #343331;
+    --color-ui-2: #282726;
+    --color-ui-3: #1c1b1a;
+}
