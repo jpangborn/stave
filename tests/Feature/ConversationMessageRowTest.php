@@ -183,7 +183,7 @@ test('clicking a reaction the viewer already gave removes it', function (): void
     expect($comment->fresh()->reactions()->count())->toBe(0);
 });
 
-test('reaction picker only renders the first six allowed reactions', function (): void {
+test('reaction picker renders all allowed reactions', function (): void {
     [$group, $conversation, $viewer] = buildRowScenario();
     $conversation->postComment('hi', $viewer);
 
@@ -192,7 +192,7 @@ test('reaction picker only renders the first six allowed reactions', function ()
         ->html();
 
     $allowed = config('comments.allowed_reactions');
-    foreach (array_slice($allowed, 0, 6) as $expected) {
+    foreach ($allowed as $expected) {
         expect($html)->toContain($expected);
     }
 });
