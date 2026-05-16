@@ -41,7 +41,7 @@ new class extends Component {
     {
         /** @var Collection<int, Comment> */
         return $this->conversation->comments()
-            ->with(['commentator', 'reactions'])
+            ->with(['commentator', 'reactions.commentator'])
             ->orderBy('created_at')
             ->get();
     }
@@ -395,31 +395,44 @@ new class extends Component {
                                     <div class="mt-2 flex flex-wrap items-center gap-1.5">
                                         @foreach ($summary as $reaction)
                                             @php($mine = (bool) ($reaction['commentator_reacted'] ?? false))
-                                            @if ($canComment)
-                                                <button
-                                                    wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}"
-                                                    wire:click="react({{ $comment->id }}, '{{ $reaction['reaction'] }}')"
-                                                    type="button"
-                                                    @class([
-                                                        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors',
-                                                        'border-accent bg-accent/10 text-accent' => $mine,
-                                                        'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $mine,
-                                                    ])
-                                                    data-test="reaction-chip"
-                                                    @if ($mine) data-test-mine="true" @endif
-                                                >
-                                                    <span>{{ $reaction['reaction'] }}</span>
-                                                    <span>{{ $reaction['count'] }}</span>
-                                                </button>
-                                            @else
-                                                <span
-                                                    wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}"
-                                                    class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                                                >
-                                                    <span>{{ $reaction['reaction'] }}</span>
-                                                    <span>{{ $reaction['count'] }}</span>
-                                                </span>
-                                            @endif
+                                            @php($reactorNames = $comment->reactions
+                                                ->where('reaction', $reaction['reaction'])
+                                                ->map(fn ($r) => $currentUser
+                                                    && $r->commentator_id === $currentUser->getKey()
+                                                    && $r->commentator_type === $currentUser->getMorphClass()
+                                                        ? 'You'
+                                                        : $r->commentator?->name)
+                                                ->filter()
+                                                ->sortBy(fn ($name) => $name === 'You' ? 0 : 1)
+                                                ->values()
+                                                ->implode(', '))
+                                            <flux:tooltip content="{{ $reactorNames }}">
+                                                @if ($canComment)
+                                                    <button
+                                                        wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}"
+                                                        wire:click="react({{ $comment->id }}, '{{ $reaction['reaction'] }}')"
+                                                        type="button"
+                                                        @class([
+                                                            'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors',
+                                                            'border-accent bg-accent/10 text-accent' => $mine,
+                                                            'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $mine,
+                                                        ])
+                                                        data-test="reaction-chip"
+                                                        @if ($mine) data-test-mine="true" @endif
+                                                    >
+                                                        <span>{{ $reaction['reaction'] }}</span>
+                                                        <span>{{ $reaction['count'] }}</span>
+                                                    </button>
+                                                @else
+                                                    <span
+                                                        wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}"
+                                                        class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                                                    >
+                                                        <span>{{ $reaction['reaction'] }}</span>
+                                                        <span>{{ $reaction['count'] }}</span>
+                                                    </span>
+                                                @endif
+                                            </flux:tooltip>
                                         @endforeach
 
                                         @if ($canComment)

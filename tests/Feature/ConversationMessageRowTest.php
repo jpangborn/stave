@@ -183,6 +183,22 @@ test('clicking a reaction the viewer already gave removes it', function (): void
     expect($comment->fresh()->reactions()->count())->toBe(0);
 });
 
+test('hovering a reaction chip shows the reactors names in a tooltip', function (): void {
+    [$group, $conversation, $viewer] = buildRowScenario();
+    $other = User::factory()->create(['name' => 'Sarah Reactor']);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $comment = $conversation->postComment('react to me', $other);
+    $comment->fresh()->react('👍', $other);
+    $comment->fresh()->react('👍', $viewer);
+
+    $html = Livewire::actingAs($viewer)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->html();
+
+    expect($html)->toContain('You, Sarah Reactor');
+});
+
 test('reaction picker renders all allowed reactions', function (): void {
     [$group, $conversation, $viewer] = buildRowScenario();
     $conversation->postComment('hi', $viewer);
