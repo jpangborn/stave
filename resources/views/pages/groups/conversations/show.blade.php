@@ -222,7 +222,7 @@ new class extends Component {
 };
 ?>
 
-<section class="-m-6 lg:-m-8 flex h-[calc(100vh-3rem)] lg:h-[calc(100vh-4rem)] min-h-0">
+<section class="-m-6 lg:-m-8 flex h-[calc(100vh-3rem)] lg:h-screen min-h-0">
     {{-- Conversation column --}}
     <div class="flex min-w-0 flex-1 flex-col bg-white dark:bg-zinc-800">
         {{-- Header --}}
