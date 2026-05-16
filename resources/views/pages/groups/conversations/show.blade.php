@@ -250,7 +250,7 @@ new class extends Component {
                     <div class="flex -space-x-2">
                         @foreach ($this->displayedMembers as $member)
                             <div class="ring-2 ring-white dark:ring-zinc-800 rounded-lg" wire:key="header-avatar-{{ $member->id }}">
-                                <flux:avatar size="xs" name="{{ $member->name }}" color="auto" />
+                                <flux:avatar size="xs" name="{{ $member->name }}" src="{{ $member->gravatar }}" color="auto" />
                             </div>
                         @endforeach
                         @if ($this->memberCount() > 4)
@@ -367,7 +367,7 @@ new class extends Component {
                             data-test="message-row"
                             @if ($isMine) data-test-mine="true" @endif
                         >
-                            <flux:avatar size="md" name="{{ $comment->commentator?->name }}" color="auto" />
+                            <flux:avatar size="md" name="{{ $comment->commentator?->name }}" src="{{ $comment->commentator?->gravatar }}" color="auto" />
 
                             <div class="min-w-0 flex-1">
                                 {{-- Header line --}}
@@ -627,7 +627,7 @@ new class extends Component {
                 <div class="space-y-0.5">
                     @foreach ($this->contributors as $member)
                         <div class="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800" wire:key="rail-contrib-{{ $member->id }}">
-                            <flux:avatar size="xs" name="{{ $member->name }}" color="auto" />
+                            <flux:avatar size="xs" name="{{ $member->name }}" src="{{ $member->gravatar }}" color="auto" />
                             <div class="min-w-0 flex-1">
                                 <div class="truncate text-sm font-semibold">{{ $member->name }}</div>
                                 <div class="text-xs text-zinc-500">{{ $member->pivot->role->label() }}</div>
@@ -647,7 +647,7 @@ new class extends Component {
                 <div class="space-y-0.5">
                     @foreach ($this->nonContributors as $member)
                         <div class="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800" wire:key="rail-noncontrib-{{ $member->id }}">
-                            <flux:avatar size="xs" name="{{ $member->name }}" color="auto" />
+                            <flux:avatar size="xs" name="{{ $member->name }}" src="{{ $member->gravatar }}" color="auto" />
                             <div class="min-w-0 flex-1">
                                 <div class="truncate text-sm font-semibold">{{ $member->name }}</div>
                                 <div class="text-xs text-zinc-500">{{ $member->pivot->role->label() }}</div>
