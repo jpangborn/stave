@@ -325,7 +325,7 @@ new class extends Component {
 
         {{-- Messages --}}
         <div class="flex-1 overflow-auto px-6 py-4">
-            <div class="mx-auto max-w-3xl">
+            <div>
                 @php($currentUser = Auth::user())
                 @php($canComment = $currentUser?->can('comment', $conversation) ?? false)
                 @php($quickReactions = array_slice(Config::allowedReactions(), 0, 6))
@@ -536,7 +536,6 @@ new class extends Component {
             <div class="border-t border-zinc-200 px-6 py-4 dark:border-zinc-700">
                 <form
                     wire:submit="postReply"
-                    class="mx-auto max-w-3xl"
                     x-data
                     x-on:keydown.enter="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $el.requestSubmit() }"
                 >
