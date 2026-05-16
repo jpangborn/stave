@@ -303,7 +303,7 @@ new class extends Component {
                         Pinned by {{ $firstPinned->pinnedBy?->name ?? 'Unknown' }}
                     </div>
                     <div class="mt-0.5 truncate text-sm text-zinc-700 dark:text-zinc-200">
-                        {{ Str::limit(strip_tags($firstPinned->text), 140) }}
+                        {{ Str::limit(html_entity_decode(strip_tags($firstPinned->text), ENT_QUOTES | ENT_HTML5), 140) }}
                     </div>
                 </div>
                 <flux:button wire:click="dismissPinnedStrip" variant="ghost" size="sm" icon="x-mark" square aria-label="Dismiss pinned message" />
