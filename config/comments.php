@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Comment;
 use App\Models\User;
 use App\Notifications\ServiceCommentNotification;
 use Spatie\Comments\Actions\ApproveCommentAction;
@@ -8,7 +9,6 @@ use Spatie\Comments\Actions\RejectCommentAction;
 use Spatie\Comments\Actions\ResolveMentionsAutocompleteAction;
 use Spatie\Comments\Actions\SendNotificationsForApprovedCommentAction;
 use Spatie\Comments\Actions\SendNotificationsForPendingCommentAction;
-use Spatie\Comments\Models\Comment;
 use Spatie\Comments\Models\CommentNotificationSubscription;
 use Spatie\Comments\Models\Reaction;
 use Spatie\Comments\Notifications\PendingCommentNotification;

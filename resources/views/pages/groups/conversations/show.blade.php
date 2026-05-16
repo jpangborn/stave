@@ -1,13 +1,18 @@
 <?php
 
+use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\Group;
+use App\Models\User;
+use App\Services\ScriptureLinker;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
-use Spatie\Comments\Models\Comment;
 use Spatie\Comments\Support\Config;
 
 new class extends Component {
@@ -15,6 +20,10 @@ new class extends Component {
     public Conversation $conversation;
 
     public string $reply = '';
+
+    public bool $replyIsPrayer = false;
+
+    public bool $pinnedStripOpen = true;
 
     public function mount(Group $group, Conversation $conversation): void
     {
@@ -37,6 +46,88 @@ new class extends Component {
             ->get();
     }
 
+    /** @return Collection<int, Comment> */
+    #[Computed]
+    public function pinnedComments(): Collection
+    {
+        /** @var Collection<int, Comment> */
+        return $this->conversation->pinnedComments()
+            ->with('pinnedBy')
+            ->get();
+    }
+
+    /** @return Collection<int, User> */
+    #[Computed]
+    public function members(): Collection
+    {
+        /** @var Collection<int, User> */
+        return $this->group->members()->orderBy('name')->get();
+    }
+
+    public function memberCount(): int
+    {
+        return $this->members->count();
+    }
+
+    /** @return BaseCollection<int, User> */
+    #[Computed]
+    public function displayedMembers(): BaseCollection
+    {
+        return $this->members->take(4);
+    }
+
+    /** @return BaseCollection<int, User> */
+    #[Computed]
+    public function contributors(): BaseCollection
+    {
+        $contributorIds = $this->conversation->comments()
+            ->where('commentator_type', (new User)->getMorphClass())
+            ->distinct()
+            ->pluck('commentator_id');
+
+        return $this->members->filter(fn (User $user): bool => $contributorIds->contains($user->id))->values();
+    }
+
+    /** @return BaseCollection<int, User> */
+    #[Computed]
+    public function nonContributors(): BaseCollection
+    {
+        $contributorIds = $this->contributors->pluck('id');
+
+        return $this->members->reject(fn (User $user): bool => $contributorIds->contains($user->id))->values();
+    }
+
+    /** @return BaseCollection<int|string, Collection<int, Comment>> */
+    #[Computed]
+    public function groupedComments(): BaseCollection
+    {
+        return $this->comments->groupBy(fn (Comment $comment): string => $comment->created_at->toDateString())->collect();
+    }
+
+    /** @return array<int, string> */
+    #[Computed]
+    public function memberRoles(): array
+    {
+        return $this->members->mapWithKeys(function (User $user): array {
+            /** @var \App\Models\GroupUser $pivot */
+            $pivot = $user->getRelation('pivot');
+
+            return [$user->id => $pivot->role->label()];
+        })->all();
+    }
+
+    public function dayLabel(string $dateString): string
+    {
+        $date = Carbon::parse($dateString);
+
+        return match (true) {
+            $date->isToday() => 'Today',
+            $date->isYesterday() => 'Yesterday',
+            $date->isCurrentYear() => $date->format('M j'),
+            default => $date->format('M j, Y'),
+        };
+    }
+
     public function postReply(): void
     {
         $this->authorize('comment', $this->conversation);
@@ -51,10 +142,10 @@ new class extends Component {
             return;
         }
 
-        $this->conversation->postComment($validated['reply'], Auth::user());
+        $this->conversation->postComment($validated['reply'], Auth::user(), $this->replyIsPrayer);
 
-        $this->reset('reply');
-        unset($this->comments);
+        $this->reset('reply', 'replyIsPrayer');
+        unset($this->comments, $this->contributors, $this->nonContributors);
     }
 
     public function react(int $commentId, string $reaction): void
@@ -65,9 +156,57 @@ new class extends Component {
 
         /** @var Comment $comment */
         $comment = $this->conversation->comments()->findOrFail($commentId);
-        $comment->react($reaction);
+        $user = Auth::user();
+
+        if ($comment->findReaction($reaction, $user)) {
+            $comment->deleteReaction($reaction, $user);
+        } else {
+            $comment->react($reaction, $user);
+        }
 
         unset($this->comments);
+    }
+
+    public function pinComment(int $commentId): void
+    {
+        /** @var Comment $comment */
+        $comment = $this->conversation->comments()->findOrFail($commentId);
+
+        $this->authorize('pin', $comment);
+
+        $comment->pin(Auth::user());
+
+        $this->pinnedStripOpen = true;
+        unset($this->comments, $this->pinnedComments);
+    }
+
+    public function unpinComment(int $commentId): void
+    {
+        /** @var Comment $comment */
+        $comment = $this->conversation->comments()->findOrFail($commentId);
+
+        $this->authorize('unpin', $comment);
+
+        $comment->unpin();
+
+        unset($this->comments, $this->pinnedComments);
+    }
+
+    public function togglePrayer(int $commentId): void
+    {
+        /** @var Comment $comment */
+        $comment = $this->conversation->comments()->findOrFail($commentId);
+
+        $this->authorize('markPrayer', $comment);
+
+        $comment->togglePrayer();
+
+        unset($this->comments);
+    }
+
+    public function dismissPinnedStrip(): void
+    {
+        $this->pinnedStripOpen = false;
     }
 
     public function deleteConversation(): void
@@ -83,94 +222,425 @@ new class extends Component {
 };
 ?>
 
-<section class="w-full">
-    <div class="flex items-start justify-between gap-4">
-        <div>
+<section class="-m-6 lg:-m-8 flex h-[calc(100vh-3rem)] lg:h-[calc(100vh-4rem)] min-h-0">
+    {{-- Conversation column --}}
+    <div class="flex min-w-0 flex-1 flex-col bg-white dark:bg-zinc-800">
+        {{-- Header --}}
+        <header class="border-b border-zinc-200 px-6 pt-4 dark:border-zinc-700">
             <flux:button :href="route('groups.show', $group)" variant="ghost" size="sm" icon="arrow-left" wire:navigate>
                 Back to {{ $group->name }}
             </flux:button>
-            <flux:heading size="xl" level="1" class="mt-2">{{ $conversation->title }}</flux:heading>
-            <flux:subheading>
-                Started by {{ $conversation->creator?->name ?? 'Unknown' }} {{ $conversation->created_at->diffForHumans() }}
-            </flux:subheading>
-        </div>
 
-        @can('delete', $conversation)
-            <flux:button wire:click="deleteConversation" variant="danger" size="sm" icon="trash"
-                wire:confirm="Delete this conversation and all its messages?">
-                Delete
-            </flux:button>
-        @endcan
-    </div>
-
-    <div class="mt-8 max-w-3xl">
-        <div class="flex flex-col w-full space-y-2
-            **:[h1]:text-xl **:[h1]:font-semibold **:[h2]:text-lg **:[h2]:font-semibold **:[h3]:font-semibold
-            **:[strong]:font-semibold **:[em]:italic **:[u]:underline **:[s]:line-through
-            **:[ol]:list-decimal **:[ol]:ml-5 **:[ul]:list-disc **:[ul]:ml-5
-            **:[a]:underline
-            **:[blockquote]:border-l-4 **:[blockquote]:pl-2">
-            @php($prevUser = null)
-
-            @foreach ($this->comments as $comment)
-                <div wire:key="comment-{{ $comment->id }}" @class([
-                    'text-left max-w-3/4 space-y-2',
-                    'self-start' => ! $comment->commentator?->is(Auth::user()),
-                    'self-end' => $comment->commentator?->is(Auth::user()),
-                ])>
-                    @if ($comment->commentator?->isNot($prevUser))
-                        <div class="flex items-center space-x-2">
-                            <flux:avatar size="xs" name="{{ $comment->commentator?->name }}" color="auto" />
-                            <flux:heading>{{ $comment->commentator?->name ?? 'Unknown' }}</flux:heading>
-                            <flux:subheading class="text-xs">{{ $comment->created_at->diffForHumans() }}</flux:subheading>
-                        </div>
-                    @endif
-
-                    <div @class([
-                        'rounded-md p-2 space-y-2',
-                        'bg-zinc-100 dark:bg-zinc-800' => ! $comment->commentator?->is(Auth::user()),
-                        'bg-accent text-white' => $comment->commentator?->is(Auth::user()),
-                    ])>
-                        {!! $comment->text !!}
+            <div class="mt-3 flex items-start justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2.5">
+                        <flux:heading size="xl" level="1">{{ $conversation->title }}</flux:heading>
+                        <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->name }}</flux:badge>
                     </div>
-                    <div class="flex flex-row-reverse items-center space-x-3 -mt-1.5">
-                        @can('comment', $conversation)
-                            <flux:dropdown hover position="{{ $comment->commentator?->is(Auth::user()) ? 'left' : 'right' }}" align="center">
-                                <flux:button size="sm" variant="ghost" icon="face-smile" />
-                                <flux:popover>
-                                    <div class="flex">
-                                        @foreach (Config::allowedReactions() as $allowedReaction)
-                                            <flux:button size="sm" variant="ghost" square wire:click="react({{ $comment->id }}, '{{ $allowedReaction }}')">{{ $allowedReaction }}</flux:button>
-                                        @endforeach
-                                    </div>
-                                </flux:popover>
-                            </flux:dropdown>
-                        @endcan
-                        @foreach ($comment->reactions->summary() as $reaction)
-                            <span wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}" class="bg-zinc-100 dark:bg-zinc-800 rounded-full py-1 px-2">{{ $reaction['reaction'] }} {{ $reaction['count'] }}</span>
+                    <flux:subheading class="mt-1">
+                        Started by {{ $conversation->creator?->name ?? 'Unknown' }}
+                        · {{ $conversation->created_at->diffForHumans() }}
+                        @php($memberCount = $this->memberCount())
+                        · {{ $memberCount }} {{ str('member')->plural($memberCount) }}
+                    </flux:subheading>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    {{-- Stacked avatar group --}}
+                    <div class="flex -space-x-2">
+                        @foreach ($this->displayedMembers as $member)
+                            <div class="ring-2 ring-white dark:ring-zinc-800 rounded-lg" wire:key="header-avatar-{{ $member->id }}">
+                                <flux:avatar size="xs" name="{{ $member->name }}" color="auto" />
+                            </div>
                         @endforeach
+                        @if ($this->memberCount() > 4)
+                            <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-200 text-xs font-semibold text-zinc-600 ring-2 ring-white dark:bg-zinc-700 dark:text-zinc-300 dark:ring-zinc-800">
+                                +{{ $this->memberCount() - 4 }}
+                            </div>
+                        @endif
+                    </div>
+
+                    <flux:tooltip content="Search (coming soon)">
+                        <flux:button variant="ghost" size="sm" icon="magnifying-glass" square disabled />
+                    </flux:tooltip>
+
+                    @can('delete', $conversation)
+                        <flux:dropdown align="end">
+                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" square />
+                            <flux:menu>
+                                <flux:menu.item
+                                    wire:click="deleteConversation"
+                                    icon="trash"
+                                    variant="danger"
+                                    wire:confirm="Delete this conversation and all its messages?"
+                                >Delete conversation</flux:menu.item>
+                            </flux:menu>
+                        </flux:dropdown>
+                    @endcan
+                </div>
+            </div>
+
+            {{-- Tab bar --}}
+            <nav class="mt-3 -mb-px flex gap-1" aria-label="Conversation views">
+                <span
+                    class="flex items-center gap-1.5 border-b-2 border-accent px-3 py-2 text-sm font-bold text-zinc-900 dark:text-white"
+                    aria-current="page"
+                >
+                    Conversation
+                    <flux:badge size="sm" inset="top bottom" data-test="comment-count-badge">{{ $this->comments->count() }}</flux:badge>
+                </span>
+                <flux:tooltip content="Coming soon">
+                    <button
+                        type="button"
+                        disabled
+                        class="cursor-not-allowed border-b-2 border-transparent px-3 py-2 text-sm font-medium text-zinc-400 dark:text-zinc-500"
+                    >Files</button>
+                </flux:tooltip>
+                <a
+                    href="{{ route('groups.show', ['group' => $group, 'tab' => 'members']) }}"
+                    wire:navigate
+                    class="border-b-2 border-transparent px-3 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                >Members</a>
+            </nav>
+        </header>
+
+        {{-- Pinned strip --}}
+        @if ($pinnedStripOpen && $this->pinnedComments->isNotEmpty())
+            @php($firstPinned = $this->pinnedComments->first())
+            <div class="mx-6 mt-4 flex items-start gap-2.5 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2.5" data-test="pinned-strip">
+                <div class="flex size-6 shrink-0 items-center justify-center rounded-md border border-accent/30 bg-white text-accent dark:bg-zinc-900">
+                    <flux:icon.bookmark variant="micro" />
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-accent">
+                        Pinned by {{ $firstPinned->pinnedBy?->name ?? 'Unknown' }}
+                    </div>
+                    <div class="mt-0.5 truncate text-sm text-zinc-700 dark:text-zinc-200">
+                        {{ Str::limit(strip_tags($firstPinned->text), 140) }}
                     </div>
                 </div>
-                @php($prevUser = $comment->commentator)
-            @endforeach
+                <flux:button wire:click="dismissPinnedStrip" variant="ghost" size="sm" icon="x-mark" square aria-label="Dismiss pinned message" />
+            </div>
+        @endif
+
+        {{-- Messages --}}
+        <div class="flex-1 overflow-auto px-6 py-4">
+            <div class="mx-auto max-w-3xl">
+                @php($currentUser = Auth::user())
+                @php($canComment = $currentUser?->can('comment', $conversation) ?? false)
+                @php($quickReactions = array_slice(Config::allowedReactions(), 0, 6))
+
+                @if ($this->comments->isEmpty())
+                    <div class="flex flex-col items-center justify-center px-6 py-16 text-center" data-test="empty-state">
+                        <flux:icon.chat-bubble-left-right class="size-10 text-zinc-300 dark:text-zinc-600" />
+                        <flux:heading size="lg" class="mt-4">No messages yet</flux:heading>
+                        <flux:subheading class="mt-1">
+                            @if ($canComment)
+                                Kick things off — your reply will start the thread.
+                            @else
+                                Be the first to post here once messaging opens up.
+                            @endif
+                        </flux:subheading>
+                    </div>
+                @endif
+
+                @foreach ($this->groupedComments as $dateString => $dayComments)
+                    <div class="my-2 flex items-center gap-3.5 px-2 py-3" data-test="day-divider">
+                        <div class="h-px flex-1 bg-zinc-200 dark:bg-zinc-700"></div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                            {{ $this->dayLabel($dateString) }}
+                        </span>
+                        <div class="h-px flex-1 bg-zinc-200 dark:bg-zinc-700"></div>
+                    </div>
+
+                    @foreach ($dayComments as $comment)
+                        @php($isMine = $comment->commentator?->is($currentUser))
+                        @php($role = $this->memberRoles[$comment->commentator_id] ?? null)
+
+                        <div
+                            wire:key="comment-{{ $comment->id }}"
+                            @class([
+                                'group/row relative flex gap-3 rounded-md border-l-2 px-3 py-3 transition-colors',
+                                'border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-900/60' => ! $isMine,
+                                'border-accent bg-accent/5 hover:bg-accent/10' => $isMine,
+                            ])
+                            data-test="message-row"
+                            @if ($isMine) data-test-mine="true" @endif
+                        >
+                            <flux:avatar size="md" name="{{ $comment->commentator?->name }}" color="auto" />
+
+                            <div class="min-w-0 flex-1">
+                                {{-- Header line --}}
+                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                    <span @class([
+                                        'text-sm font-bold',
+                                        'text-accent' => $isMine,
+                                        'text-zinc-900 dark:text-white' => ! $isMine,
+                                    ])>
+                                        {{ $comment->commentator?->name ?? 'Unknown' }}@if ($isMine) <span class="font-normal text-zinc-500">(you)</span>@endif
+                                    </span>
+                                    @if ($role)
+                                        <span class="text-xs text-zinc-500">{{ $role }}</span>
+                                    @endif
+                                    <span class="text-xs text-zinc-400">· {{ $comment->created_at->diffForHumans() }}</span>
+
+                                    @if ($comment->isPinned())
+                                        <flux:badge size="sm" color="green" inset="top bottom" data-test="pinned-badge">Pinned</flux:badge>
+                                    @endif
+                                    @if ($comment->is_prayer)
+                                        <flux:badge size="sm" color="amber" inset="top bottom" data-test="prayer-badge">Prayer</flux:badge>
+                                    @endif
+                                </div>
+
+                                {{-- Body --}}
+                                <div class="mt-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-200
+                                    **:[h1]:text-xl **:[h1]:font-semibold **:[h2]:text-lg **:[h2]:font-semibold **:[h3]:font-semibold
+                                    **:[strong]:font-semibold **:[em]:italic **:[u]:underline **:[s]:line-through
+                                    **:[ol]:list-decimal **:[ol]:ml-5 **:[ul]:list-disc **:[ul]:ml-5
+                                    **:[a]:underline
+                                    **:[blockquote]:border-l-4 **:[blockquote]:pl-2">
+                                    {!! app(ScriptureLinker::class)->linkify($comment->text) !!}
+                                </div>
+
+                                {{-- Reactions row --}}
+                                @php($summary = $comment->reactions->summary($currentUser))
+                                @if ($summary->isNotEmpty())
+                                    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                                        @foreach ($summary as $reaction)
+                                            @php($mine = (bool) ($reaction['commentator_reacted'] ?? false))
+                                            @if ($canComment)
+                                                <button
+                                                    wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}"
+                                                    wire:click="react({{ $comment->id }}, '{{ $reaction['reaction'] }}')"
+                                                    type="button"
+                                                    @class([
+                                                        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors',
+                                                        'border-accent bg-accent/10 text-accent' => $mine,
+                                                        'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $mine,
+                                                    ])
+                                                    data-test="reaction-chip"
+                                                    @if ($mine) data-test-mine="true" @endif
+                                                >
+                                                    <span>{{ $reaction['reaction'] }}</span>
+                                                    <span>{{ $reaction['count'] }}</span>
+                                                </button>
+                                            @else
+                                                <span
+                                                    wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}"
+                                                    class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                                                >
+                                                    <span>{{ $reaction['reaction'] }}</span>
+                                                    <span>{{ $reaction['count'] }}</span>
+                                                </span>
+                                            @endif
+                                        @endforeach
+
+                                        @if ($canComment)
+                                            <flux:dropdown align="start">
+                                                <button
+                                                    type="button"
+                                                    class="inline-flex h-6 items-center justify-center rounded-full border border-dashed border-zinc-300 px-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-600 dark:hover:bg-zinc-800"
+                                                    aria-label="Add reaction"
+                                                    data-test="reaction-picker-trigger"
+                                                >
+                                                    <flux:icon.face-smile variant="micro" />
+                                                </button>
+                                                <flux:popover>
+                                                    <div class="flex">
+                                                        @foreach ($quickReactions as $allowedReaction)
+                                                            <flux:button size="sm" variant="ghost" square wire:click="react({{ $comment->id }}, '{{ $allowedReaction }}')">{{ $allowedReaction }}</flux:button>
+                                                        @endforeach
+                                                    </div>
+                                                </flux:popover>
+                                            </flux:dropdown>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Hover toolbar --}}
+                            @if ($canComment)
+                                <div class="absolute -top-3 right-4 hidden items-center gap-0.5 rounded-md border border-zinc-200 bg-white p-0.5 shadow-md group-hover/row:flex group-focus-within/row:flex dark:border-zinc-700 dark:bg-zinc-900" data-test="hover-toolbar" role="toolbar" aria-label="Message actions">
+                                    <flux:dropdown align="end">
+                                        <flux:tooltip content="React">
+                                            <button type="button" aria-label="React" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:bg-zinc-100 focus-visible:text-zinc-900 focus-visible:outline-none dark:hover:bg-zinc-800 dark:hover:text-white dark:focus-visible:bg-zinc-800 dark:focus-visible:text-white">
+                                                <flux:icon.face-smile variant="micro" />
+                                            </button>
+                                        </flux:tooltip>
+                                        <flux:popover>
+                                            <div class="flex">
+                                                @foreach ($quickReactions as $allowedReaction)
+                                                    <flux:button size="sm" variant="ghost" square wire:click="react({{ $comment->id }}, '{{ $allowedReaction }}')">{{ $allowedReaction }}</flux:button>
+                                                @endforeach
+                                            </div>
+                                        </flux:popover>
+                                    </flux:dropdown>
+
+                                    <flux:tooltip content="Reply (coming soon)">
+                                        <button type="button" aria-label="Reply (coming soon)" disabled class="flex size-7 cursor-not-allowed items-center justify-center rounded text-zinc-300 dark:text-zinc-600" data-test="reply-stub">
+                                            <flux:icon.arrow-uturn-left variant="micro" />
+                                        </button>
+                                    </flux:tooltip>
+
+                                    @can('markPrayer', $comment)
+                                        @php($prayerLabel = $comment->is_prayer ? 'Unmark prayer' : 'Mark as prayer')
+                                        <flux:tooltip content="{{ $prayerLabel }}">
+                                            <button
+                                                type="button"
+                                                wire:click="togglePrayer({{ $comment->id }})"
+                                                aria-label="{{ $prayerLabel }}"
+                                                aria-pressed="{{ $comment->is_prayer ? 'true' : 'false' }}"
+                                                @class([
+                                                    'flex size-7 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent',
+                                                    'text-accent bg-accent/10 hover:bg-accent/20' => $comment->is_prayer,
+                                                    'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white' => ! $comment->is_prayer,
+                                                ])
+                                                data-test="prayer-toggle"
+                                                @if ($comment->is_prayer) data-test-active="true" @endif
+                                            >
+                                                <flux:icon.hand-raised variant="micro" />
+                                            </button>
+                                        </flux:tooltip>
+                                    @endcan
+
+                                    @can('pin', $comment)
+                                        <flux:dropdown align="end">
+                                            <flux:tooltip content="More">
+                                                <button type="button" aria-label="More actions" aria-haspopup="menu" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:bg-zinc-100 focus-visible:text-zinc-900 focus-visible:outline-none dark:hover:bg-zinc-800 dark:hover:text-white dark:focus-visible:bg-zinc-800 dark:focus-visible:text-white" data-test="more-trigger">
+                                                    <flux:icon.ellipsis-horizontal variant="micro" />
+                                                </button>
+                                            </flux:tooltip>
+                                            <flux:menu>
+                                                @if ($comment->isPinned())
+                                                    <flux:menu.item wire:click="unpinComment({{ $comment->id }})" icon="bookmark-slash" data-test="unpin-item">
+                                                        Unpin from top
+                                                    </flux:menu.item>
+                                                @else
+                                                    <flux:menu.item wire:click="pinComment({{ $comment->id }})" icon="bookmark" data-test="pin-item">
+                                                        Pin to top
+                                                    </flux:menu.item>
+                                                @endif
+                                            </flux:menu>
+                                        </flux:dropdown>
+                                    @endcan
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                @endforeach
+            </div>
         </div>
 
+        {{-- Composer --}}
         @can('comment', $conversation)
-            <form wire:submit="postReply" class="mt-6">
-                <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply...">
-                    <x-slot name="input">
-                        <flux:editor
-                            variant="borderless"
-                            toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
-                            class="**:data-[slot=content]:min-h-[100px]!"
-                        />
-                    </x-slot>
-                    <x-slot name="actionsTrailing">
-                        <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" wire:loading.attr="disabled" />
-                    </x-slot>
-                </flux:composer>
-                <flux:error name="reply" />
-            </form>
+            <div class="border-t border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                <form
+                    wire:submit="postReply"
+                    class="mx-auto max-w-3xl"
+                    x-data
+                    x-on:keydown.enter="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $el.requestSubmit() }"
+                >
+                    <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply…  (try mentioning Romans 8:31)">
+                        <x-slot name="input">
+                            <flux:editor
+                                variant="borderless"
+                                toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
+                                class="**:data-[slot=content]:min-h-[100px]!"
+                            />
+                        </x-slot>
+
+                        <x-slot name="footer">
+                            <button
+                                type="button"
+                                wire:click="$toggle('replyIsPrayer')"
+                                aria-pressed="{{ $replyIsPrayer ? 'true' : 'false' }}"
+                                @class([
+                                    'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors',
+                                    'border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200' => $replyIsPrayer,
+                                    'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $replyIsPrayer,
+                                ])
+                                data-test="composer-prayer-toggle"
+                                @if ($replyIsPrayer) data-test-active="true" @endif
+                            >
+                                <flux:icon.hand-raised variant="micro" />
+                                {{ $replyIsPrayer ? 'Sending as prayer' : 'Mark as prayer' }}
+                            </button>
+
+                            <flux:tooltip content="Type @ to mention a member">
+                                <button
+                                    type="button"
+                                    class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                                    data-test="composer-mention"
+                                >
+                                    <flux:icon.at-symbol variant="micro" />
+                                    Mention
+                                </button>
+                            </flux:tooltip>
+
+                            <div class="ms-auto flex items-center gap-2">
+                                <span class="hidden items-center gap-1 text-xs text-zinc-400 sm:inline-flex" data-test="composer-shortcut-hint">
+                                    <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">⌘</kbd>
+                                    <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">↵</kbd>
+                                    to send
+                                </span>
+                                <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" wire:loading.attr="disabled">Send</flux:button>
+                            </div>
+                        </x-slot>
+                    </flux:composer>
+                    <flux:error name="reply" />
+                </form>
+            </div>
         @endcan
     </div>
+
+    {{-- Members rail --}}
+    <aside
+        class="hidden w-[260px] shrink-0 flex-col overflow-auto border-l border-zinc-200 bg-zinc-50 px-5 py-6 lg:flex dark:border-zinc-700 dark:bg-zinc-900"
+        aria-label="Members"
+        data-test="members-rail"
+    >
+        <div class="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            Members · {{ $this->memberCount() }}
+        </div>
+
+        @if ($this->contributors->isNotEmpty())
+            <section class="mb-6" data-test="rail-in-conversation">
+                <div class="mb-2 flex items-center justify-between px-1 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    <span>In conversation</span>
+                    <span>{{ $this->contributors->count() }}</span>
+                </div>
+                <div class="space-y-0.5">
+                    @foreach ($this->contributors as $member)
+                        <div class="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800" wire:key="rail-contrib-{{ $member->id }}">
+                            <flux:avatar size="xs" name="{{ $member->name }}" color="auto" />
+                            <div class="min-w-0 flex-1">
+                                <div class="truncate text-sm font-semibold">{{ $member->name }}</div>
+                                <div class="text-xs text-zinc-500">{{ $member->pivot->role->label() }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        @if ($this->nonContributors->isNotEmpty())
+            <section data-test="rail-not-yet-posted">
+                <div class="mb-2 flex items-center justify-between px-1 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    <span>Not yet posted</span>
+                    <span>{{ $this->nonContributors->count() }}</span>
+                </div>
+                <div class="space-y-0.5">
+                    @foreach ($this->nonContributors as $member)
+                        <div class="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800" wire:key="rail-noncontrib-{{ $member->id }}">
+                            <flux:avatar size="xs" name="{{ $member->name }}" color="auto" />
+                            <div class="min-w-0 flex-1">
+                                <div class="truncate text-sm font-semibold">{{ $member->name }}</div>
+                                <div class="text-xs text-zinc-500">{{ $member->pivot->role->label() }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+    </aside>
 </section>

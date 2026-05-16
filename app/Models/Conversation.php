@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
-use Spatie\Comments\Models\Comment;
 use Spatie\Comments\Models\Concerns\HasComments;
 use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
@@ -41,9 +41,22 @@ class Conversation extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function postComment(string $text, ?CanComment $commentator = null): Comment
+    /** @return MorphMany<Comment, $this> */
+    public function pinnedComments(): MorphMany
     {
+        return $this->morphMany(Comment::class, 'commentable')
+            ->whereNotNull('pinned_at')
+            ->orderByDesc('pinned_at');
+    }
+
+    public function postComment(string $text, ?CanComment $commentator = null, bool $isPrayer = false): Comment
+    {
+        /** @var Comment $comment */
         $comment = $this->comment($text, $commentator);
+
+        if ($isPrayer) {
+            $comment->forceFill(['is_prayer' => true])->save();
+        }
 
         $this->forceFill(['last_comment_at' => $comment->created_at])->save();
 

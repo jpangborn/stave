@@ -185,3 +185,12 @@ textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
+
+a.scripture-ref {
+    @apply inline-block rounded px-1.5 py-0.5 text-[0.95em] font-semibold text-accent no-underline whitespace-nowrap;
+    background-color: color-mix(in oklab, var(--color-accent) 12%, transparent);
+}
+
+a.scripture-ref:hover {
+    background-color: color-mix(in oklab, var(--color-accent) 20%, transparent);
+}
