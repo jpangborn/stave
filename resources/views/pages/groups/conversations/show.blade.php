@@ -226,7 +226,7 @@ new class extends Component {
     {{-- Conversation column --}}
     <div class="flex min-w-0 flex-1 flex-col bg-white dark:bg-zinc-800">
         {{-- Header --}}
-        <header class="border-b border-zinc-200 px-6 pt-4 dark:border-zinc-700">
+        <header class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
             <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2.5">
@@ -248,6 +248,8 @@ new class extends Component {
                         · {{ $conversation->created_at->diffForHumans() }}
                         @php($memberCount = $this->memberCount())
                         · {{ $memberCount }} {{ str('member')->plural($memberCount) }}
+                        @php($commentCount = $this->comments->count())
+                        · {{ $commentCount }} {{ str('comment')->plural($commentCount) }}
                     </flux:subheading>
                 </div>
 
@@ -286,28 +288,6 @@ new class extends Component {
                 </div>
             </div>
 
-            {{-- Tab bar --}}
-            <nav class="mt-3 -mb-px flex gap-1" aria-label="Conversation views">
-                <span
-                    class="flex items-center gap-1.5 border-b-2 border-accent px-3 py-2 text-sm font-bold text-zinc-900 dark:text-white"
-                    aria-current="page"
-                >
-                    Conversation
-                    <flux:badge size="sm" inset="top bottom" data-test="comment-count-badge">{{ $this->comments->count() }}</flux:badge>
-                </span>
-                <flux:tooltip content="Coming soon">
-                    <button
-                        type="button"
-                        disabled
-                        class="cursor-not-allowed border-b-2 border-transparent px-3 py-2 text-sm font-medium text-zinc-400 dark:text-zinc-500"
-                    >Files</button>
-                </flux:tooltip>
-                <a
-                    href="{{ route('groups.show', ['group' => $group, 'tab' => 'members']) }}"
-                    wire:navigate
-                    class="border-b-2 border-transparent px-3 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                >Members</a>
-            </nav>
         </header>
 
         {{-- Pinned strip --}}
@@ -620,6 +600,18 @@ new class extends Component {
         aria-label="Members"
         data-test="members-rail"
     >
+        <section class="mb-6" data-test="rail-files">
+            <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                <span>Files · 0</span>
+                <flux:tooltip content="Coming soon">
+                    <flux:button size="xs" variant="ghost" icon="arrow-up-tray" disabled data-test="rail-files-add">Add</flux:button>
+                </flux:tooltip>
+            </div>
+            <p class="px-1 py-2 text-xs text-zinc-500">
+                No files yet. Drag a PDF or sheet music here to attach it to this conversation.
+            </p>
+        </section>
+
         <div class="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
             Members · {{ $this->memberCount() }}
         </div>
