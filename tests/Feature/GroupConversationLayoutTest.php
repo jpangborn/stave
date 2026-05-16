@@ -219,7 +219,7 @@ test('icon-only buttons carry aria-labels', function (): void {
 
     $this->actingAs($viewer)
         ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
-        ->assertSeeHtml('aria-label="React"')
-        ->assertSeeHtml('aria-label="More actions"')
-        ->assertSeeHtml('aria-label="Add reaction"');
+        ->assertSeeHtml('aria-label="Add reaction"')
+        ->assertSeeHtml('aria-label="Mark as prayer"')
+        ->assertSeeHtml('aria-label="Pin to top"');
 });

@@ -460,11 +460,24 @@ new class extends Component {
 
                             {{-- Hover toolbar --}}
                             @if ($canComment)
-                                <div class="absolute -top-3 right-4 hidden items-center gap-0.5 rounded-md border border-zinc-200 bg-white p-0.5 shadow-md group-hover/row:flex group-focus-within/row:flex dark:border-zinc-700 dark:bg-zinc-900" data-test="hover-toolbar" role="toolbar" aria-label="Message actions">
+                                <div
+                                    class="absolute right-3 top-2.5 z-10 hidden gap-0.5 group-hover/row:flex group-focus-within/row:flex"
+                                    data-test="hover-toolbar"
+                                    role="toolbar"
+                                    aria-label="Message actions"
+                                >
                                     <flux:dropdown align="end">
-                                        <flux:tooltip content="React">
-                                            <button type="button" aria-label="React" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:bg-zinc-100 focus-visible:text-zinc-900 focus-visible:outline-none dark:hover:bg-zinc-800 dark:hover:text-white dark:focus-visible:bg-zinc-800 dark:focus-visible:text-white">
-                                                <flux:icon.face-smile variant="micro" />
+                                        <flux:tooltip content="Add reaction">
+                                            <button
+                                                type="button"
+                                                aria-label="Add reaction"
+                                                @class([
+                                                    'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
+                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
+                                                    'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine,
+                                                ])
+                                            >
+                                                <flux:icon.face-smile variant="micro" class="size-3.5" />
                                             </button>
                                         </flux:tooltip>
                                         <flux:popover>
@@ -476,12 +489,6 @@ new class extends Component {
                                         </flux:popover>
                                     </flux:dropdown>
 
-                                    <flux:tooltip content="Reply (coming soon)">
-                                        <button type="button" aria-label="Reply (coming soon)" disabled class="flex size-7 cursor-not-allowed items-center justify-center rounded text-zinc-300 dark:text-zinc-600" data-test="reply-stub">
-                                            <flux:icon.arrow-uturn-left variant="micro" />
-                                        </button>
-                                    </flux:tooltip>
-
                                     @can('markPrayer', $comment)
                                         @php($prayerLabel = $comment->is_prayer ? 'Unmark prayer' : 'Mark as prayer')
                                         <flux:tooltip content="{{ $prayerLabel }}">
@@ -491,37 +498,46 @@ new class extends Component {
                                                 aria-label="{{ $prayerLabel }}"
                                                 aria-pressed="{{ $comment->is_prayer ? 'true' : 'false' }}"
                                                 @class([
-                                                    'flex size-7 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent',
-                                                    'text-accent bg-accent/10 hover:bg-accent/20' => $comment->is_prayer,
-                                                    'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white' => ! $comment->is_prayer,
+                                                    'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
+                                                    'bg-accent/20 text-accent' => $isMine && $comment->is_prayer,
+                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine && ! $comment->is_prayer,
+                                                    'bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-white' => ! $isMine && $comment->is_prayer,
+                                                    'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine && ! $comment->is_prayer,
                                                 ])
                                                 data-test="prayer-toggle"
                                                 @if ($comment->is_prayer) data-test-active="true" @endif
                                             >
-                                                <flux:icon.hand-raised variant="micro" />
+                                                <flux:icon.hand-raised variant="micro" class="size-3.5" />
                                             </button>
                                         </flux:tooltip>
                                     @endcan
 
                                     @can('pin', $comment)
-                                        <flux:dropdown align="end">
-                                            <flux:tooltip content="More">
-                                                <button type="button" aria-label="More actions" aria-haspopup="menu" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:bg-zinc-100 focus-visible:text-zinc-900 focus-visible:outline-none dark:hover:bg-zinc-800 dark:hover:text-white dark:focus-visible:bg-zinc-800 dark:focus-visible:text-white" data-test="more-trigger">
-                                                    <flux:icon.ellipsis-horizontal variant="micro" />
-                                                </button>
-                                            </flux:tooltip>
-                                            <flux:menu>
-                                                @if ($comment->isPinned())
-                                                    <flux:menu.item wire:click="unpinComment({{ $comment->id }})" icon="bookmark-slash" data-test="unpin-item">
-                                                        Unpin from top
-                                                    </flux:menu.item>
+                                        @php($pinned = $comment->isPinned())
+                                        @php($pinLabel = $pinned ? 'Unpin from top' : 'Pin to top')
+                                        <flux:tooltip content="{{ $pinLabel }}">
+                                            <button
+                                                type="button"
+                                                wire:click="{{ $pinned ? 'unpinComment' : 'pinComment' }}({{ $comment->id }})"
+                                                aria-label="{{ $pinLabel }}"
+                                                aria-pressed="{{ $pinned ? 'true' : 'false' }}"
+                                                @class([
+                                                    'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
+                                                    'bg-accent/20 text-accent' => $isMine && $pinned,
+                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine && ! $pinned,
+                                                    'bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-white' => ! $isMine && $pinned,
+                                                    'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine && ! $pinned,
+                                                ])
+                                                data-test="{{ $pinned ? 'unpin-toggle' : 'pin-toggle' }}"
+                                                @if ($pinned) data-test-active="true" @endif
+                                            >
+                                                @if ($pinned)
+                                                    <flux:icon.bookmark-slash variant="micro" class="size-3.5" />
                                                 @else
-                                                    <flux:menu.item wire:click="pinComment({{ $comment->id }})" icon="bookmark" data-test="pin-item">
-                                                        Pin to top
-                                                    </flux:menu.item>
+                                                    <flux:icon.bookmark variant="micro" class="size-3.5" />
                                                 @endif
-                                            </flux:menu>
-                                        </flux:dropdown>
+                                            </button>
+                                        </flux:tooltip>
                                     @endcan
                                 </div>
                             @endif
