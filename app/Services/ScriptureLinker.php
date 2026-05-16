@@ -19,7 +19,7 @@ class ScriptureLinker
      * Restricting the book to one token prevents an adjacent capitalized word
      * ("See Romans 8:31") from being swept into the match.
      */
-    private const SCRIPTURE_REGEX = '/\b((?:1|2|3|I|II|III)\s+)?([A-Z][a-z]+)\s(\d+):(\d+(?:[\x{2013}-]\d+)?)\b/u';
+    private const SCRIPTURE_REGEX = '/\b((?:1|2|3|I|II|III)\s+)?([A-Z][a-z]+)\.?\s(\d+):(\d+(?:[\x{2013}-]\d+)?)\b/u';
 
     /** @var array<int, string> Canonical book names. The captured book token must appear here for the ref to link. */
     private const CANONICAL_BOOKS = [
@@ -31,6 +31,25 @@ class ScriptureLinker
         'Romans', 'Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians',
         'Thessalonians', 'Timothy', 'Titus', 'Philemon', 'Hebrews', 'James', 'Peter', 'Jude',
         'Revelation',
+    ];
+
+    /** @var array<string, string> Abbreviation → canonical book token. */
+    private const ABBREVIATIONS = [
+        'Gen' => 'Genesis', 'Exod' => 'Exodus', 'Lev' => 'Leviticus', 'Num' => 'Numbers',
+        'Deut' => 'Deuteronomy', 'Josh' => 'Joshua', 'Judg' => 'Judges',
+        'Sam' => 'Samuel', 'Kgs' => 'Kings', 'Chr' => 'Chronicles',
+        'Neh' => 'Nehemiah', 'Esth' => 'Esther',
+        'Ps' => 'Psalms', 'Pss' => 'Psalms',
+        'Prov' => 'Proverbs', 'Eccl' => 'Ecclesiastes',
+        'Isa' => 'Isaiah', 'Jer' => 'Jeremiah', 'Lam' => 'Lamentations', 'Ezek' => 'Ezekiel',
+        'Dan' => 'Daniel', 'Hos' => 'Hosea', 'Obad' => 'Obadiah', 'Mic' => 'Micah',
+        'Nah' => 'Nahum', 'Hab' => 'Habakkuk', 'Zeph' => 'Zephaniah', 'Hag' => 'Haggai',
+        'Zech' => 'Zechariah', 'Mal' => 'Malachi',
+        'Matt' => 'Matthew', 'Mt' => 'Matthew', 'Mk' => 'Mark', 'Lk' => 'Luke', 'Jn' => 'John',
+        'Rom' => 'Romans', 'Cor' => 'Corinthians', 'Gal' => 'Galatians', 'Eph' => 'Ephesians',
+        'Phil' => 'Philippians', 'Phlm' => 'Philemon', 'Col' => 'Colossians',
+        'Thess' => 'Thessalonians', 'Tim' => 'Timothy',
+        'Heb' => 'Hebrews', 'Jas' => 'James', 'Pet' => 'Peter', 'Rev' => 'Revelation',
     ];
 
     /** @var array<string, string> Overrides for book tokens whose MereBible slug differs from a simple lowercase. */
@@ -97,7 +116,8 @@ class ScriptureLinker
         $emitted = false;
 
         foreach ($matches[0] as $i => [$full, $offset]) {
-            $book = $matches[2][$i][0];
+            $token = $matches[2][$i][0];
+            $book = self::ABBREVIATIONS[$token] ?? $token;
 
             if (! in_array($book, self::CANONICAL_BOOKS, true)) {
                 continue;
