@@ -133,12 +133,13 @@ test('pinned strip does not render when there are no pinned comments', function 
         ->assertDontSeeHtml('data-test="pinned-strip"');
 });
 
-test('back link points at the group page', function (): void {
+test('back chip links to the group page with an accessible label', function (): void {
     [$group, $conversation, $viewer] = buildLayoutScenario();
 
     $this->actingAs($viewer)
         ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
-        ->assertSee('Back to Elders')
+        ->assertSeeHtml('data-test="back-to-group"')
+        ->assertSeeHtml('aria-label="Back to Elders"')
         ->assertSee(route('groups.show', $group), false);
 });
 
