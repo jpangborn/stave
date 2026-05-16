@@ -49,6 +49,7 @@ new class() extends Component
                 **:[ol]:list-decimal **:[ol]:ml-5 **:[ul]:list-disc **:[ul]:ml-5
                 **:[a]:underline
                 **:[blockquote]:border-l-4 **:[blockquote]:pl-2
+                **:[p]:not-first:mt-3
                 ">
             @php
                 $prevUser = null;
