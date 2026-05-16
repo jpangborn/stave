@@ -144,28 +144,28 @@ test('the prayer toggle button is marked active when a comment is_prayer', funct
         ->assertSeeHtml('data-test-active="true"');
 });
 
-test('the More dropdown contains the Pin item for an unpinned comment', function (): void {
+test('the pin toggle is rendered for an unpinned comment', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $conversation->postComment('hi', $author);
 
     Livewire::actingAs($author)
         ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
-        ->assertSeeHtml('data-test="pin-item"')
-        ->assertDontSeeHtml('data-test="unpin-item"');
+        ->assertSeeHtml('data-test="pin-toggle"')
+        ->assertDontSeeHtml('data-test="unpin-toggle"');
 });
 
-test('the More dropdown contains the Unpin item for a pinned comment', function (): void {
+test('the unpin toggle is rendered for a pinned comment', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $comment = $conversation->postComment('pinned', $author);
     $comment->fresh()->pin($author);
 
     Livewire::actingAs($author)
         ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
-        ->assertSeeHtml('data-test="unpin-item"')
-        ->assertDontSeeHtml('data-test="pin-item"');
+        ->assertSeeHtml('data-test="unpin-toggle"')
+        ->assertDontSeeHtml('data-test="pin-toggle"');
 });
 
-test('the More dropdown is hidden for a member who cannot pin', function (): void {
+test('the pin toggle is hidden for a member who cannot pin', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $other = User::factory()->create();
     $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
@@ -173,7 +173,8 @@ test('the More dropdown is hidden for a member who cannot pin', function (): voi
 
     Livewire::actingAs($other)
         ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
-        ->assertDontSeeHtml('data-test="more-trigger"');
+        ->assertDontSeeHtml('data-test="pin-toggle"')
+        ->assertDontSeeHtml('data-test="unpin-toggle"');
 });
 
 test('the prayer toggle button is rendered for active group members', function (): void {

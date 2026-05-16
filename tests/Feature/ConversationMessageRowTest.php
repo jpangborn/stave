@@ -206,7 +206,8 @@ test('the hover toolbar renders for users who can comment', function (): void {
     $this->actingAs($viewer)
         ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
         ->assertSeeHtml('data-test="hover-toolbar"')
-        ->assertSeeHtml('data-test="reply-stub"');
+        ->assertSeeHtml('data-test="prayer-toggle"')
+        ->assertSeeHtml('data-test="pin-toggle"');
 });
 
 test('the hover toolbar does not render for read-only viewers (leaders-only group)', function (): void {
