@@ -135,6 +135,18 @@ test('pinned strip renders when there is a pinned comment and dismisses on click
         ->assertDontSeeHtml('data-test="pinned-strip"');
 });
 
+test('pinned strip decodes HTML entities in the comment preview', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+    $comment = $conversation->postComment("What's missing?", $viewer);
+    $comment->fresh()->pin($viewer);
+
+    Livewire::actingAs($viewer)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->assertSeeHtml('data-test="pinned-strip"')
+        ->assertSee("What's missing?")
+        ->assertDontSeeHtml('What&amp;#039;s');
+});
+
 test('pinned strip does not render when there are no pinned comments', function (): void {
     [$group, $conversation, $viewer] = buildLayoutScenario();
     $conversation->postComment('Just a normal message.', $viewer);
