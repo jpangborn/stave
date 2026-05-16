@@ -386,7 +386,11 @@ new class extends Component {
                                     **:[ol]:list-decimal **:[ol]:ml-5 **:[ul]:list-disc **:[ul]:ml-5
                                     **:[a]:underline
                                     **:[blockquote]:border-l-4 **:[blockquote]:pl-2
-                                    **:[p]:not-first:mt-3">
+                                    **:[h1]:not-first:mt-3 **:[h2]:not-first:mt-3 **:[h3]:not-first:mt-3
+                                    **:[ul]:not-first:mt-3 **:[ol]:not-first:mt-3
+                                    **:[blockquote]:not-first:mt-3
+                                    **:[p]:not-first:mt-3
+                                    **:[h1+p]:mt-0 **:[h2+p]:mt-0 **:[h3+p]:mt-0">
                                     {!! app(ScriptureLinker::class)->linkify($comment->text) !!}
                                 </div>
 
