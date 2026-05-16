@@ -125,3 +125,99 @@ test('handles a numeric-prefixed book whose last token is canonical', function (
 
     expect($result)->toContain('>1 John 1:14</a>');
 });
+
+test('wraps an abbreviated single reference', function (): void {
+    $result = linkify('<p>Rom 3:23 is sobering.</p>');
+
+    expect($result)->toContain('>Rom 3:23</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/romans/3?verse=23"');
+});
+
+test('wraps an abbreviated numeric-prefixed reference', function (): void {
+    $result = linkify('<p>1 Cor 1:1 opens the letter.</p>');
+
+    expect($result)->toContain('>1 Cor 1:1</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/1-corinthians/1?verse=1"');
+});
+
+test('wraps an abbreviation with a trailing period', function (): void {
+    $result = linkify('<p>Rom. 8:31 is the closer.</p>');
+
+    expect($result)->toContain('>Rom. 8:31</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/romans/8?verse=31"');
+});
+
+test('wraps an abbreviated verse range with a hyphen', function (): void {
+    $result = linkify('<p>Rom 8:31-39 is the arc.</p>');
+
+    expect($result)->toContain('>Rom 8:31-39</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/romans/8?verse=31&amp;endVerse=39"');
+});
+
+test('wraps an abbreviated verse range with an en-dash', function (): void {
+    $result = linkify('<p>Rom 8:31–39 is the arc.</p>');
+
+    expect($result)->toContain('>Rom 8:31–39</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/romans/8?verse=31&amp;endVerse=39"');
+});
+
+test('disambiguates Phil as Philippians', function (): void {
+    $result = linkify('<p>Phil 4:13 reframes strength.</p>');
+
+    expect($result)->toContain('>Phil 4:13</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/philippians/4?verse=13"');
+});
+
+test('disambiguates Phlm as Philemon', function (): void {
+    $result = linkify('<p>Phlm 1:6 ties faith to action.</p>');
+
+    expect($result)->toContain('>Phlm 1:6</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/philemon/1?verse=6"');
+});
+
+test('maps the Ps abbreviation through to the psalms slug', function (): void {
+    $result = linkify('<p>Ps 23:1 echoes the same.</p>');
+
+    expect($result)->toContain('>Ps 23:1</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/psalms/23?verse=1"');
+});
+
+test('wraps gospel abbreviation Mt', function (): void {
+    $result = linkify('<p>Mt 5:3 opens the sermon.</p>');
+
+    expect($result)->toContain('>Mt 5:3</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/matthew/5?verse=3"');
+});
+
+test('wraps gospel abbreviation Mk', function (): void {
+    $result = linkify('<p>Mk 1:1 starts the gospel.</p>');
+
+    expect($result)->toContain('>Mk 1:1</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/mark/1?verse=1"');
+});
+
+test('wraps gospel abbreviation Lk', function (): void {
+    $result = linkify('<p>Lk 2:11 announces the birth.</p>');
+
+    expect($result)->toContain('>Lk 2:11</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/luke/2?verse=11"');
+});
+
+test('wraps gospel abbreviation Jn', function (): void {
+    $result = linkify('<p>Jn 3:16 is the line.</p>');
+
+    expect($result)->toContain('>Jn 3:16</a>')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/john/3?verse=16"');
+});
+
+test('does not link an unrecognized abbreviation', function (): void {
+    $result = linkify('<p>Xyz 1:1 and Foo. 2:2 should not link.</p>');
+
+    expect($result)->not->toContain('scripture-ref');
+});
+
+test('does not false-positive on a non-book period token', function (): void {
+    $result = linkify('<p>Mr. 8:31 should not link.</p>');
+
+    expect($result)->not->toContain('scripture-ref');
+});
