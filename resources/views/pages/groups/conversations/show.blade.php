@@ -315,7 +315,7 @@ new class extends Component {
             <div>
                 @php($currentUser = Auth::user())
                 @php($canComment = $currentUser?->can('comment', $conversation) ?? false)
-                @php($quickReactions = array_slice(Config::allowedReactions(), 0, 6))
+                @php($quickReactions = Config::allowedReactions())
 
                 @if ($this->comments->isEmpty())
                     <div class="flex flex-col items-center justify-center px-6 py-16 text-center" data-test="empty-state">
