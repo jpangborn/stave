@@ -33,6 +33,14 @@ class ScriptureLinker
         'Revelation',
     ];
 
+    /** @var array<string, string> Overrides for book tokens whose MereBible slug differs from a simple lowercase. */
+    private const BOOK_SLUGS = [
+        'Psalm' => 'psalms',
+        'Psalms' => 'psalms',
+    ];
+
+    private const MEREBIBLE_BASE_URL = 'https://www.merebible.app/read/csb';
+
     public function linkify(string $html): string
     {
         if (trim($html) === '') {
@@ -101,7 +109,12 @@ class ScriptureLinker
 
             $anchor = $dom->createElement('a');
             $anchor->setAttribute('class', 'scripture-ref');
-            $anchor->setAttribute('href', 'https://www.biblegateway.com/passage/?search='.urlencode($full));
+            $anchor->setAttribute('href', $this->buildUrl(
+                $matches[1][$i][0],
+                $book,
+                $matches[3][$i][0],
+                $matches[4][$i][0],
+            ));
             $anchor->setAttribute('target', '_blank');
             $anchor->setAttribute('rel', 'noopener');
             $anchor->appendChild($dom->createTextNode($full));
@@ -120,5 +133,32 @@ class ScriptureLinker
         }
 
         $textNode->parentNode?->replaceChild($fragment, $textNode);
+    }
+
+    private function buildUrl(string $prefix, string $book, string $chapter, string $verses): string
+    {
+        $slug = self::BOOK_SLUGS[$book] ?? strtolower($book);
+
+        $trimmedPrefix = trim($prefix);
+        if ($trimmedPrefix !== '') {
+            $arabic = match ($trimmedPrefix) {
+                'I' => '1',
+                'II' => '2',
+                'III' => '3',
+                default => $trimmedPrefix,
+            };
+            $slug = $arabic.'-'.$slug;
+        }
+
+        $parts = preg_split('/[\x{2013}\-]/u', $verses, 2);
+        $verse = $parts[0];
+        $endVerse = $parts[1] ?? null;
+
+        $url = self::MEREBIBLE_BASE_URL."/{$slug}/{$chapter}?verse={$verse}";
+        if ($endVerse !== null) {
+            $url .= "&endVerse={$endVerse}";
+        }
+
+        return $url;
     }
 }
