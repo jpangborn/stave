@@ -254,19 +254,20 @@ new class extends Component {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    {{-- Stacked avatar group --}}
-                    <div class="flex -space-x-2">
+                    <flux:avatar.group class="dark:**:ring-zinc-800">
                         @foreach ($this->displayedMembers as $member)
-                            <div class="ring-2 ring-white dark:ring-zinc-800 rounded-lg" wire:key="header-avatar-{{ $member->id }}">
-                                <flux:avatar size="xs" name="{{ $member->name }}" src="{{ $member->gravatar }}" color="auto" />
-                            </div>
+                            <flux:avatar
+                                wire:key="header-avatar-{{ $member->id }}"
+                                size="xs"
+                                name="{{ $member->name }}"
+                                src="{{ $member->gravatar }}"
+                                color="auto"
+                            />
                         @endforeach
                         @if ($this->memberCount() > 4)
-                            <div class="flex size-7 items-center justify-center rounded-lg bg-zinc-200 text-xs font-semibold text-zinc-600 ring-2 ring-white dark:bg-zinc-700 dark:text-zinc-300 dark:ring-zinc-800">
-                                +{{ $this->memberCount() - 4 }}
-                            </div>
+                            <flux:avatar size="xs">+{{ $this->memberCount() - 4 }}</flux:avatar>
                         @endif
-                    </div>
+                    </flux:avatar.group>
 
                     <flux:tooltip content="Search (coming soon)">
                         <flux:button variant="ghost" size="sm" icon="magnifying-glass" square disabled />
