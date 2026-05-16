@@ -11,7 +11,7 @@ test('wraps a canonical single-chapter reference', function (): void {
     $result = linkify('<p>See Romans 8:31 for the closer.</p>');
 
     expect($result)->toContain('<a class="scripture-ref"')
-        ->and($result)->toContain('href="https://www.biblegateway.com/passage/?search=Romans+8%3A31"')
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/romans/8?verse=31"')
         ->and($result)->toContain('target="_blank"')
         ->and($result)->toContain('rel="noopener"')
         ->and($result)->toContain('>Romans 8:31</a>')
@@ -23,7 +23,25 @@ test('wraps a reference with a numeric prefix', function (): void {
     $result = linkify('<p>1 Corinthians 13:4 sets the tone.</p>');
 
     expect($result)->toContain('>1 Corinthians 13:4</a>')
-        ->and($result)->toContain('search=1+Corinthians+13%3A4');
+        ->and($result)->toContain('href="https://www.merebible.app/read/csb/1-corinthians/13?verse=4"');
+});
+
+test('builds a range URL for a hyphenated verse range', function (): void {
+    $result = linkify('<p>Romans 8:31-39 is the arc.</p>');
+
+    expect($result)->toContain('href="https://www.merebible.app/read/csb/romans/8?verse=31&amp;endVerse=39"');
+});
+
+test('builds a range URL for an en-dash verse range', function (): void {
+    $result = linkify('<p>Romans 8:31–39 is the arc.</p>');
+
+    expect($result)->toContain('href="https://www.merebible.app/read/csb/romans/8?verse=31&amp;endVerse=39"');
+});
+
+test('maps the singular Psalm form to the plural psalms slug', function (): void {
+    $result = linkify('<p>Psalm 23:1 echoes the same.</p>');
+
+    expect($result)->toContain('href="https://www.merebible.app/read/csb/psalms/23?verse=1"');
 });
 
 test('wraps a verse range with a hyphen', function (): void {
