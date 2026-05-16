@@ -347,7 +347,7 @@ new class extends Component {
                         <div
                             wire:key="comment-{{ $comment->id }}"
                             @class([
-                                'group/row relative flex gap-3 rounded-md border-l-2 px-3 py-3 transition-colors',
+                                'group/row relative mt-1 flex gap-3 rounded-md border-l-2 px-3 py-3 transition-colors',
                                 'border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-900/60' => ! $isMine,
                                 'border-accent bg-accent/5 hover:bg-accent/10' => $isMine,
                             ])
