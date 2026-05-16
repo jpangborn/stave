@@ -461,7 +461,7 @@ new class extends Component {
                             {{-- Hover toolbar --}}
                             @if ($canComment)
                                 <div
-                                    class="absolute right-3 top-2.5 z-10 hidden gap-0.5 group-hover/row:flex group-focus-within/row:flex"
+                                    class="absolute right-3 top-2.5 z-10 hidden gap-0.5 group-hover/row:flex group-focus-within/row:flex group-has-[[data-flux-popover][data-open]]/row:flex"
                                     data-test="hover-toolbar"
                                     role="toolbar"
                                     aria-label="Message actions"
