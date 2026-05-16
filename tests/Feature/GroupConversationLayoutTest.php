@@ -37,28 +37,39 @@ function buildLayoutScenario(int $extraMembers = 0): array
     return [$group, $conversation, $viewer];
 }
 
-test('shows the tab bar with Conversation Files and Members tabs', function (): void {
-    [$group, $conversation, $viewer] = buildLayoutScenario();
-
-    $this->actingAs($viewer)
-        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
-        ->assertSuccessful()
-        ->assertSee('Conversation', false)
-        ->assertSee('Files', false)
-        ->assertSee('Members', false)
-        ->assertSeeHtml('data-test="comment-count-badge"');
-});
-
-test('the conversation count badge reflects the number of comments', function (): void {
+test('the subheading shows the comment count', function (): void {
     [$group, $conversation, $viewer] = buildLayoutScenario();
     $conversation->postComment('first', $viewer);
     $conversation->postComment('second', $viewer);
 
+    $this->actingAs($viewer)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertSuccessful()
+        ->assertSee('2 comments');
+});
+
+test('the subheading singularises the comment count', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+    $conversation->postComment('only one', $viewer);
+
+    $this->actingAs($viewer)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertSee('1 comment')
+        ->assertDontSee('1 comments');
+});
+
+test('the rail renders a Files section above Members', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+
     Livewire::actingAs($viewer)
         ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->assertSeeHtml('data-test="rail-files"')
+        ->assertSeeHtml('data-test="rail-files-add"')
+        ->assertSee('Files · 0')
+        ->assertSee('No files yet')
         ->assertSeeHtmlInOrder([
-            'data-test="comment-count-badge"',
-            '2',
+            'data-test="rail-files"',
+            'Members ·',
         ]);
 });
 
@@ -140,14 +151,6 @@ test('back link points at the group page', function (): void {
         ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
         ->assertSee('Back to Elders')
         ->assertSee(route('groups.show', $group), false);
-});
-
-test('Members tab links to the groups page members tab', function (): void {
-    [$group, $conversation, $viewer] = buildLayoutScenario();
-
-    $this->actingAs($viewer)
-        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
-        ->assertSee(route('groups.show', ['group' => $group, 'tab' => 'members']), false);
 });
 
 // --- Phase G: empty state ---
