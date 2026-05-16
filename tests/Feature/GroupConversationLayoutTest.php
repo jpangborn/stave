@@ -149,3 +149,77 @@ test('Members tab links to the groups page members tab', function (): void {
         ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
         ->assertSee(route('groups.show', ['group' => $group, 'tab' => 'members']), false);
 });
+
+// --- Phase G: empty state ---
+
+test('empty state renders when the conversation has no comments', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+
+    $this->actingAs($viewer)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertSeeHtml('data-test="empty-state"')
+        ->assertSee('No messages yet')
+        ->assertSee('Kick things off');
+});
+
+test('empty state encourages read-only viewers differently than commenters', function (): void {
+    $leader = User::factory()->create();
+    $reader = User::factory()->create();
+    $group = Group::factory()->create([
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ONLY_LEADERS,
+    ]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($reader, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $conversation = Conversation::factory()->create(['group_id' => $group->id, 'user_id' => $leader->id]);
+
+    $this->actingAs($reader)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertSeeHtml('data-test="empty-state"')
+        ->assertDontSee('Kick things off')
+        ->assertSee('Be the first to post here once messaging opens up');
+});
+
+test('empty state disappears once at least one comment exists', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+    $conversation->postComment('hello', $viewer);
+
+    $this->actingAs($viewer)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertDontSeeHtml('data-test="empty-state"');
+});
+
+// --- Phase G: accessibility ---
+
+test('the hover toolbar exposes a toolbar landmark with a label', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+    $conversation->postComment('hi', $viewer);
+
+    $this->actingAs($viewer)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertSeeHtml('role="toolbar"')
+        ->assertSeeHtml('aria-label="Message actions"');
+});
+
+test('the prayer toggle reports its pressed state via aria-pressed', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+    $comment = $conversation->postComment('praying', $viewer);
+    $comment->fresh()->togglePrayer();
+
+    $this->actingAs($viewer)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertSeeHtml('aria-pressed="true"');
+});
+
+test('icon-only buttons carry aria-labels', function (): void {
+    [$group, $conversation, $viewer] = buildLayoutScenario();
+    $comment = $conversation->postComment('hi', $viewer);
+    $comment->fresh()->react('👍', $viewer);
+
+    $this->actingAs($viewer)
+        ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
+        ->assertSeeHtml('aria-label="React"')
+        ->assertSeeHtml('aria-label="More actions"')
+        ->assertSeeHtml('aria-label="Add reaction"');
+});

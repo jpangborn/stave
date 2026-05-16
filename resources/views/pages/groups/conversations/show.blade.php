@@ -81,7 +81,7 @@ new class extends Component {
     public function contributors(): BaseCollection
     {
         $contributorIds = $this->conversation->comments()
-            ->where('commentator_type', User::class)
+            ->where('commentator_type', (new User)->getMorphClass())
             ->distinct()
             ->pluck('commentator_id');
 
@@ -240,7 +240,8 @@ new class extends Component {
                     <flux:subheading class="mt-1">
                         Started by {{ $conversation->creator?->name ?? 'Unknown' }}
                         · {{ $conversation->created_at->diffForHumans() }}
-                        · {{ $this->memberCount() }} {{ str('member')->plural($this->memberCount()) }}
+                        @php($memberCount = $this->memberCount())
+                        · {{ $memberCount }} {{ str('member')->plural($memberCount) }}
                     </flux:subheading>
                 </div>
 
@@ -318,7 +319,7 @@ new class extends Component {
                         {{ Str::limit(strip_tags($firstPinned->text), 140) }}
                     </div>
                 </div>
-                <flux:button wire:click="dismissPinnedStrip" variant="ghost" size="sm" icon="x-mark" square />
+                <flux:button wire:click="dismissPinnedStrip" variant="ghost" size="sm" icon="x-mark" square aria-label="Dismiss pinned message" />
             </div>
         @endif
 
@@ -328,6 +329,20 @@ new class extends Component {
                 @php($currentUser = Auth::user())
                 @php($canComment = $currentUser?->can('comment', $conversation) ?? false)
                 @php($quickReactions = array_slice(Config::allowedReactions(), 0, 6))
+
+                @if ($this->comments->isEmpty())
+                    <div class="flex flex-col items-center justify-center px-6 py-16 text-center" data-test="empty-state">
+                        <flux:icon.chat-bubble-left-right class="size-10 text-zinc-300 dark:text-zinc-600" />
+                        <flux:heading size="lg" class="mt-4">No messages yet</flux:heading>
+                        <flux:subheading class="mt-1">
+                            @if ($canComment)
+                                Kick things off — your reply will start the thread.
+                            @else
+                                Be the first to post here once messaging opens up.
+                            @endif
+                        </flux:subheading>
+                    </div>
+                @endif
 
                 @foreach ($this->groupedComments as $dateString => $dayComments)
                     <div class="my-2 flex items-center gap-3.5 px-2 py-3" data-test="day-divider">
@@ -445,10 +460,10 @@ new class extends Component {
 
                             {{-- Hover toolbar --}}
                             @if ($canComment)
-                                <div class="absolute -top-3 right-4 hidden items-center gap-0.5 rounded-md border border-zinc-200 bg-white p-0.5 shadow-md group-hover/row:flex dark:border-zinc-700 dark:bg-zinc-900" data-test="hover-toolbar">
+                                <div class="absolute -top-3 right-4 hidden items-center gap-0.5 rounded-md border border-zinc-200 bg-white p-0.5 shadow-md group-hover/row:flex group-focus-within/row:flex dark:border-zinc-700 dark:bg-zinc-900" data-test="hover-toolbar" role="toolbar" aria-label="Message actions">
                                     <flux:dropdown align="end">
                                         <flux:tooltip content="React">
-                                            <button type="button" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white">
+                                            <button type="button" aria-label="React" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:bg-zinc-100 focus-visible:text-zinc-900 focus-visible:outline-none dark:hover:bg-zinc-800 dark:hover:text-white dark:focus-visible:bg-zinc-800 dark:focus-visible:text-white">
                                                 <flux:icon.face-smile variant="micro" />
                                             </button>
                                         </flux:tooltip>
@@ -462,18 +477,21 @@ new class extends Component {
                                     </flux:dropdown>
 
                                     <flux:tooltip content="Reply (coming soon)">
-                                        <button type="button" disabled class="flex size-7 cursor-not-allowed items-center justify-center rounded text-zinc-300 dark:text-zinc-600" data-test="reply-stub">
+                                        <button type="button" aria-label="Reply (coming soon)" disabled class="flex size-7 cursor-not-allowed items-center justify-center rounded text-zinc-300 dark:text-zinc-600" data-test="reply-stub">
                                             <flux:icon.arrow-uturn-left variant="micro" />
                                         </button>
                                     </flux:tooltip>
 
                                     @can('markPrayer', $comment)
-                                        <flux:tooltip content="{{ $comment->is_prayer ? 'Unmark prayer' : 'Mark as prayer' }}">
+                                        @php($prayerLabel = $comment->is_prayer ? 'Unmark prayer' : 'Mark as prayer')
+                                        <flux:tooltip content="{{ $prayerLabel }}">
                                             <button
                                                 type="button"
                                                 wire:click="togglePrayer({{ $comment->id }})"
+                                                aria-label="{{ $prayerLabel }}"
+                                                aria-pressed="{{ $comment->is_prayer ? 'true' : 'false' }}"
                                                 @class([
-                                                    'flex size-7 items-center justify-center rounded',
+                                                    'flex size-7 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent',
                                                     'text-accent bg-accent/10 hover:bg-accent/20' => $comment->is_prayer,
                                                     'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white' => ! $comment->is_prayer,
                                                 ])
@@ -488,7 +506,7 @@ new class extends Component {
                                     @can('pin', $comment)
                                         <flux:dropdown align="end">
                                             <flux:tooltip content="More">
-                                                <button type="button" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white" data-test="more-trigger">
+                                                <button type="button" aria-label="More actions" aria-haspopup="menu" class="flex size-7 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:bg-zinc-100 focus-visible:text-zinc-900 focus-visible:outline-none dark:hover:bg-zinc-800 dark:hover:text-white dark:focus-visible:bg-zinc-800 dark:focus-visible:text-white" data-test="more-trigger">
                                                     <flux:icon.ellipsis-horizontal variant="micro" />
                                                 </button>
                                             </flux:tooltip>
@@ -535,6 +553,7 @@ new class extends Component {
                             <button
                                 type="button"
                                 wire:click="$toggle('replyIsPrayer')"
+                                aria-pressed="{{ $replyIsPrayer ? 'true' : 'false' }}"
                                 @class([
                                     'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors',
                                     'border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200' => $replyIsPrayer,
