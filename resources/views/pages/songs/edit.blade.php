@@ -102,7 +102,7 @@ new class extends Component {
                     @if (!$form->song->recordings->isEmpty())
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             @foreach($form->song->recordings as $recording)
-                                <livewire:recording-card :$recording :key="$recording->id"/>
+                                <livewire:recordings.card :$recording :key="$recording->id"/>
                             @endforeach
                         </div>
                     @else
@@ -120,7 +120,7 @@ new class extends Component {
                     @if (!$form->song->sheets->isEmpty())
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             @foreach($form->song->sheets as $sheet)
-                                <livewire:sheet-card :$sheet :key="$sheet->id"/>
+                                <livewire:sheets.card :$sheet :key="$sheet->id"/>
                             @endforeach
                         </div>
                     @else
@@ -137,7 +137,7 @@ new class extends Component {
             <flux:separator variant="subtle" />
 
             @can(Permission::EDIT_SONGS)
-                <livewire:upload-song-files :song="$form->song"/>
+                <livewire:songs.upload-files :song="$form->song"/>
             @endcan
         </flux:tab.panel>
     </flux:tab.group>
