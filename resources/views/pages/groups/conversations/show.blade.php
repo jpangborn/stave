@@ -227,15 +227,21 @@ new class extends Component {
     <div class="flex min-w-0 flex-1 flex-col bg-white dark:bg-zinc-800">
         {{-- Header --}}
         <header class="border-b border-zinc-200 px-6 pt-4 dark:border-zinc-700">
-            <flux:button :href="route('groups.show', $group)" variant="ghost" size="sm" icon="arrow-left" wire:navigate>
-                Back to {{ $group->name }}
-            </flux:button>
-
-            <div class="mt-3 flex items-start justify-between gap-4">
+            <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <a
+                            href="{{ route('groups.show', $group) }}"
+                            wire:navigate
+                            title="Back to {{ $group->name }}"
+                            aria-label="Back to {{ $group->name }}"
+                            class="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 py-1 pl-2 pr-2.5 text-xs font-semibold leading-none text-zinc-900 transition-colors duration-100 hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600"
+                            data-test="back-to-group"
+                        >
+                            <flux:icon.arrow-left variant="micro" class="size-3" />
+                            {{ $group->name }}
+                        </a>
                         <flux:heading size="xl" level="1">{{ $conversation->title }}</flux:heading>
-                        <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->name }}</flux:badge>
                     </div>
                     <flux:subheading class="mt-1">
                         Started by {{ $conversation->creator?->name ?? 'Unknown' }}
