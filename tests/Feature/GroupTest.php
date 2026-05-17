@@ -387,3 +387,66 @@ test('leaders can delete a group from the edit page', function (): void {
 
     $this->assertDatabaseMissing('groups', ['id' => $group->id]);
 });
+
+test('leaders can add multiple members in one batch', function (): void {
+    $leader = User::factory()->create();
+    $alice = User::factory()->create(['name' => 'Alice']);
+    $bob = User::factory()->create(['name' => 'Bob']);
+    $group = Group::factory()->create([
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    Livewire::actingAs($leader)
+        ->test('pages::groups.show', ['group' => $group])
+        ->call('addMembers', [$alice->id, $bob->id]);
+
+    expect($group->members()->whereKey($alice->id)->exists())->toBeTrue();
+    expect($group->members()->whereKey($bob->id)->exists())->toBeTrue();
+
+    $alicePivot = $group->allUsers()->whereKey($alice->id)->first()->pivot;
+    $bobPivot = $group->allUsers()->whereKey($bob->id)->first()->pivot;
+    expect($alicePivot->role)->toBe(GroupRole::MEMBER);
+    expect($bobPivot->role)->toBe(GroupRole::MEMBER);
+});
+
+test('regular members cannot add members via addMembers', function (): void {
+    $member = User::factory()->create();
+    $leader = User::factory()->create();
+    $newcomer = User::factory()->create();
+    $group = Group::factory()->create([
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    Livewire::actingAs($member)
+        ->test('pages::groups.show', ['group' => $group])
+        ->call('addMembers', [$newcomer->id])
+        ->assertForbidden();
+
+    expect($group->members()->whereKey($newcomer->id)->exists())->toBeFalse();
+});
+
+test('addMembers picks up users via the popover pickUser flow', function (): void {
+    $leader = User::factory()->create();
+    $candidate = User::factory()->create();
+    $group = Group::factory()->create([
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    Livewire::actingAs($leader)
+        ->test('pages::groups.show', ['group' => $group])
+        ->call('openAddMember')
+        ->call('pickUser', $candidate->id)
+        ->assertSet('pickedUserIds', [$candidate->id])
+        ->call('confirmAddMembers')
+        ->assertSet('addMemberOpen', false)
+        ->assertSet('pickedUserIds', []);
+
+    expect($group->members()->whereKey($candidate->id)->exists())->toBeTrue();
+});

@@ -233,8 +233,7 @@ test('leader can directly add a member', function (): void {
     $this->actingAs($leader);
 
     Livewire::test('pages::groups.show', ['group' => $group])
-        ->set('selectedUserId', $user->id)
-        ->call('addMember')
+        ->call('addMembers', [$user->id])
         ->assertHasNoErrors();
 
     $this->assertDatabaseHas('group_user', [
@@ -256,8 +255,7 @@ test('non-leader cannot add a member', function (): void {
     $this->actingAs($member);
 
     Livewire::test('pages::groups.show', ['group' => $group])
-        ->set('selectedUserId', $user->id)
-        ->call('addMember')
+        ->call('addMembers', [$user->id])
         ->assertForbidden();
 });
 
@@ -344,7 +342,7 @@ test('members tab is visible to leaders', function (): void {
 
     Livewire::test('pages::groups.show', ['group' => $group])
         ->set('tab', 'members')
-        ->assertSee('Add Member')
+        ->assertSee('Add member')
         ->assertSee($member->name);
 });
 
@@ -362,7 +360,7 @@ test('members tab is visible to regular members', function (): void {
     Livewire::test('pages::groups.show', ['group' => $group])
         ->set('tab', 'members')
         ->assertSee($leader->name)
-        ->assertDontSee('Add Member')
+        ->assertDontSee('Add member')
         ->assertDontSee($pending->name)
         ->assertDontSee('Pending Requests');
 });
@@ -378,7 +376,7 @@ test('members tab is not visible to non-members', function (): void {
     Livewire::test('pages::groups.show', ['group' => $group])
         ->set('tab', 'members')
         ->assertDontSee($leader->name)
-        ->assertDontSee('Add Member');
+        ->assertDontSee('Add member');
 });
 
 // --- Show Page Content ---
