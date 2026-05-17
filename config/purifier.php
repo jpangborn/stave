@@ -39,7 +39,7 @@ return [
         ],
         'comment_body' => [
             'HTML.Doctype' => 'HTML 4.01 Transitional',
-            'HTML.Allowed' => 'p,br,strong,b,em,i,u,s,h1,h2,h3,ul,ol,li,blockquote,a[href|title|target|rel],img[src|alt|width|height|data-conversation-file-id]',
+            'HTML.Allowed' => 'p,br,strong,b,em,i,u,s,h1,h2,h3,ul,ol,li,blockquote,a[href|title|target|rel],img[src|alt|width|height|data-conversation-file-id],span[class|data-mention]',
             'URI.AllowedSchemes' => ['https' => true],
             'AutoFormat.RemoveEmpty' => true,
             'Attr.AllowedFrameTargets' => ['_blank'],
@@ -112,6 +112,7 @@ return [
         'custom_attributes' => [
             ['a', 'target', 'Enum#_blank,_self,_target,_top'],
             ['img', 'data-conversation-file-id', 'Text'],
+            ['span', 'data-mention', 'Text'],
         ],
         'custom_elements' => [
             ['u', 'Inline', 'Inline', 'Common'],
