@@ -11,6 +11,7 @@ use Spatie\Comments\Models\Comment as SpatieComment;
  * @property ?Carbon $pinned_at
  * @property ?int $pinned_by_user_id
  * @property bool $is_prayer
+ * @property ?Carbon $edited_at
  */
 class Comment extends SpatieComment
 {
@@ -20,6 +21,7 @@ class Comment extends SpatieComment
         return [
             'pinned_at' => 'datetime',
             'is_prayer' => 'boolean',
+            'edited_at' => 'datetime',
         ];
     }
 
@@ -33,6 +35,12 @@ class Comment extends SpatieComment
     public function attachments(): HasMany
     {
         return $this->hasMany(ConversationFile::class)->where('is_inline_image', false);
+    }
+
+    /** @return HasMany<ConversationFile, $this> */
+    public function inlineImages(): HasMany
+    {
+        return $this->hasMany(ConversationFile::class)->where('is_inline_image', true);
     }
 
     public function isPinned(): bool
@@ -63,6 +71,13 @@ class Comment extends SpatieComment
     public function togglePrayer(): self
     {
         $this->forceFill(['is_prayer' => ! $this->is_prayer])->save();
+
+        return $this;
+    }
+
+    public function markAsEdited(): self
+    {
+        $this->forceFill(['edited_at' => now()])->save();
 
         return $this;
     }

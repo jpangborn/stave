@@ -25,6 +25,18 @@ class CommentPolicy
         return $this->pin($user, $comment);
     }
 
+    public function update(User $user, Comment $comment): bool
+    {
+        $conversation = $this->conversationFor($comment);
+
+        if (! $conversation instanceof Conversation) {
+            return false;
+        }
+
+        return $this->isAuthor($user, $comment)
+            || $conversation->group->hasLeader($user);
+    }
+
     public function markPrayer(User $user, Comment $comment): bool
     {
         $conversation = $this->conversationFor($comment);

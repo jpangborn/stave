@@ -48,6 +48,25 @@ new class extends Component {
     /** @var array<int> ConversationFile IDs of attachments staged for the next reply. */
     public array $pendingAttachmentIds = [];
 
+    public ?int $editingCommentId = null;
+
+    public string $editingText = '';
+
+    public bool $editingIsPrayer = false;
+
+    public ?TemporaryUploadedFile $editingNewImage = null;
+
+    public ?TemporaryUploadedFile $editingNewAttachment = null;
+
+    /** @var array<int> ConversationFile IDs of inline images staged while editing. */
+    public array $editingPendingImageIds = [];
+
+    /** @var array<int> ConversationFile IDs of attachments staged while editing. */
+    public array $editingPendingAttachmentIds = [];
+
+    /** @var array<int> ConversationFile IDs of existing attachments marked for removal on save. */
+    public array $editingRemovedAttachmentIds = [];
+
     private const IMAGE_RULES = ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'];
 
     private const ATTACHMENT_RULES = ['file', 'mimes:pdf,md,txt,mp3,m4a,aac,wav', 'max:25600'];
@@ -96,6 +115,46 @@ new class extends Component {
     public function pendingAttachments(): Collection
     {
         return $this->loadPending($this->pendingAttachmentIds);
+    }
+
+    /** @return Collection<int, ConversationFile> */
+    #[Computed]
+    public function editingPendingImages(): Collection
+    {
+        return $this->loadPending($this->editingPendingImageIds);
+    }
+
+    /** @return Collection<int, ConversationFile> */
+    #[Computed]
+    public function editingPendingAttachments(): Collection
+    {
+        return $this->loadPending($this->editingPendingAttachmentIds);
+    }
+
+    #[Computed]
+    public function editingComment(): ?Comment
+    {
+        if ($this->editingCommentId === null) {
+            return null;
+        }
+
+        return $this->comments->firstWhere('id', $this->editingCommentId);
+    }
+
+    /** @return Collection<int, ConversationFile> */
+    #[Computed]
+    public function editingExistingAttachments(): Collection
+    {
+        $comment = $this->editingComment;
+
+        if (! $comment instanceof Comment) {
+            return new Collection;
+        }
+
+        /** @var Collection<int, ConversationFile> */
+        return $comment->attachments
+            ->reject(fn (ConversationFile $file): bool => in_array($file->id, $this->editingRemovedAttachmentIds, true))
+            ->values();
     }
 
     /**
@@ -357,6 +416,13 @@ new class extends Component {
             return;
         }
 
+        $this->deleteOrphanUpload($id);
+
+        $ids = array_values(array_filter($ids, fn (int $existing): bool => $existing !== $id));
+    }
+
+    private function deleteOrphanUpload(int $id): void
+    {
         $file = ConversationFile::query()
             ->where('conversation_id', $this->conversation->id)
             ->find($id);
@@ -364,8 +430,6 @@ new class extends Component {
         if ($file && $file->uploader_id === Auth::id() && $file->comment_id === null) {
             $file->delete();
         }
-
-        $ids = array_values(array_filter($ids, fn (int $existing): bool => $existing !== $id));
     }
 
     public function deleteAttachment(int $id): void
@@ -463,6 +527,239 @@ new class extends Component {
         $comment->togglePrayer();
 
         unset($this->comments);
+    }
+
+    public function startEditing(int $commentId): void
+    {
+        /** @var Comment $comment */
+        $comment = $this->conversation->comments()->findOrFail($commentId);
+
+        $this->authorize('update', $comment);
+
+        if ($this->editingCommentId !== null && $this->editingCommentId !== $commentId) {
+            $this->cancelEditing();
+        }
+
+        $this->editingCommentId = $comment->id;
+        $this->editingText = $comment->original_text;
+        $this->editingIsPrayer = (bool) $comment->is_prayer;
+        $this->editingPendingImageIds = [];
+        $this->editingPendingAttachmentIds = [];
+        $this->editingRemovedAttachmentIds = [];
+
+        $this->sheetCommentId = null;
+        Flux::modal('message-actions')->close();
+
+        unset(
+            $this->editingComment,
+            $this->editingExistingAttachments,
+            $this->editingPendingImages,
+            $this->editingPendingAttachments,
+        );
+    }
+
+    public function cancelEditing(): void
+    {
+        foreach ($this->editingPendingImageIds as $id) {
+            $this->deleteOrphanUpload($id);
+        }
+
+        foreach ($this->editingPendingAttachmentIds as $id) {
+            $this->deleteOrphanUpload($id);
+        }
+
+        $this->reset(
+            'editingCommentId',
+            'editingText',
+            'editingIsPrayer',
+            'editingPendingImageIds',
+            'editingPendingAttachmentIds',
+            'editingRemovedAttachmentIds',
+        );
+
+        unset(
+            $this->editingComment,
+            $this->editingExistingAttachments,
+            $this->editingPendingImages,
+            $this->editingPendingAttachments,
+        );
+    }
+
+    public function saveEdit(): void
+    {
+        $comment = $this->editingComment;
+
+        if (! $comment instanceof Comment) {
+            return;
+        }
+
+        $this->authorize('update', $comment);
+
+        $newHtml = $this->buildEditedHtml();
+
+        $plainText = trim(strip_tags($newHtml));
+        $hasInlineImage = preg_match('/<img\b/i', $newHtml) === 1;
+        $hasRetainedAttachments = $this->editingExistingAttachments->isNotEmpty()
+            || $this->editingPendingAttachmentIds !== [];
+
+        if ($plainText === '' && ! $hasInlineImage && ! $hasRetainedAttachments) {
+            $this->addError('editingText', 'Write a message or attach a file.');
+
+            return;
+        }
+
+        $previousInlineImageIds = $comment->inlineImages()->pluck('id')->all();
+        $previousText = $comment->original_text;
+        $previousIsPrayer = (bool) $comment->is_prayer;
+
+        $comment->original_text = $newHtml;
+        $comment->is_prayer = $this->editingIsPrayer;
+        $comment->save();
+
+        $newlyAttachedIds = array_merge($this->editingPendingImageIds, $this->editingPendingAttachmentIds);
+        if ($newlyAttachedIds !== []) {
+            ConversationFile::query()
+                ->whereIn('id', $newlyAttachedIds)
+                ->where('conversation_id', $this->conversation->id)
+                ->update(['comment_id' => $comment->id]);
+        }
+
+        if ($this->editingRemovedAttachmentIds !== []) {
+            ConversationFile::query()
+                ->whereIn('id', $this->editingRemovedAttachmentIds)
+                ->where('comment_id', $comment->id)
+                ->get()
+                ->each(fn (ConversationFile $file) => $file->delete());
+        }
+
+        $retainedInlineImageIds = $this->extractConversationFileIds($newHtml);
+        $orphanedInlineImageIds = array_values(array_diff($previousInlineImageIds, $retainedInlineImageIds));
+
+        if ($orphanedInlineImageIds !== []) {
+            ConversationFile::query()
+                ->whereIn('id', $orphanedInlineImageIds)
+                ->get()
+                ->each(fn (ConversationFile $file) => $file->delete());
+        }
+
+        $changed = $newHtml !== $previousText
+            || $this->editingIsPrayer !== $previousIsPrayer
+            || $newlyAttachedIds !== []
+            || $this->editingRemovedAttachmentIds !== []
+            || $orphanedInlineImageIds !== [];
+
+        if ($changed) {
+            $comment->markAsEdited();
+        }
+
+        $this->reset(
+            'editingCommentId',
+            'editingText',
+            'editingIsPrayer',
+            'editingPendingImageIds',
+            'editingPendingAttachmentIds',
+            'editingRemovedAttachmentIds',
+        );
+
+        unset(
+            $this->comments,
+            $this->attachments,
+            $this->editingComment,
+            $this->editingExistingAttachments,
+            $this->editingPendingImages,
+            $this->editingPendingAttachments,
+        );
+
+        Flux::toast(variant: 'success', text: 'Message updated.');
+    }
+
+    private function buildEditedHtml(): string
+    {
+        $imagesHtml = $this->editingPendingImages
+            ->map(fn (ConversationFile $file): string => sprintf(
+                '<p><img src="%s" alt="%s" data-conversation-file-id="%d"></p>',
+                e($file->url),
+                e($file->original_name),
+                $file->id,
+            ))
+            ->implode('');
+
+        $body = $this->sanitizeMentions(trim($this->editingText));
+
+        return $imagesHtml.$body;
+    }
+
+    /** @return array<int, int> */
+    private function extractConversationFileIds(string $html): array
+    {
+        if (preg_match_all('/data-conversation-file-id="(\d+)"/', $html, $matches) === false) {
+            return [];
+        }
+
+        return array_values(array_unique(array_map('intval', $matches[1])));
+    }
+
+    public function updatedEditingNewImage(): void
+    {
+        $comment = $this->editingComment;
+        abort_unless($comment instanceof Comment, 403);
+
+        $this->authorize('update', $comment);
+
+        $this->validate(['editingNewImage' => self::IMAGE_RULES]);
+
+        $file = $this->storeUpload($this->editingNewImage, isInlineImage: true);
+
+        $this->editingPendingImageIds[] = $file->id;
+        $this->editingNewImage = null;
+        unset($this->editingPendingImages);
+    }
+
+    public function updatedEditingNewAttachment(): void
+    {
+        $comment = $this->editingComment;
+        abort_unless($comment instanceof Comment, 403);
+
+        $this->authorize('update', $comment);
+
+        $this->validate(['editingNewAttachment' => self::ATTACHMENT_RULES]);
+
+        $file = $this->storeUpload($this->editingNewAttachment, isInlineImage: false);
+
+        $this->editingPendingAttachmentIds[] = $file->id;
+        $this->editingNewAttachment = null;
+        unset($this->editingPendingAttachments);
+    }
+
+    public function removeEditingPendingImage(int $id): void
+    {
+        $this->discardPending($id, $this->editingPendingImageIds);
+        unset($this->editingPendingImages);
+    }
+
+    public function removeEditingPendingAttachment(int $id): void
+    {
+        $this->discardPending($id, $this->editingPendingAttachmentIds);
+        unset($this->editingPendingAttachments);
+    }
+
+    public function removeEditingExistingAttachment(int $id): void
+    {
+        $comment = $this->editingComment;
+
+        if (! $comment instanceof Comment) {
+            return;
+        }
+
+        if (! $comment->attachments->contains('id', $id)) {
+            return;
+        }
+
+        if (! in_array($id, $this->editingRemovedAttachmentIds, true)) {
+            $this->editingRemovedAttachmentIds[] = $id;
+        }
+
+        unset($this->editingExistingAttachments);
     }
 
     public function dismissPinnedStrip(): void
@@ -739,9 +1036,34 @@ new class extends Component {
                                             <span class="text-zinc-400">·</span>
                                         @endif
                                         <span class="text-zinc-400">{{ $comment->created_at->diffForHumans() }}</span>
+                                        @if ($comment->edited_at)
+                                            <span class="text-zinc-400" title="Edited {{ $comment->edited_at->diffForHumans() }}" data-test="edited-indicator">(edited)</span>
+                                        @endif
                                     </div>
                                 </div>
 
+                                @if ($editingCommentId === $comment->id)
+                                    <div class="mt-2" data-test="inline-edit-composer">
+                                        <x-conversation-composer
+                                            editor-model="editingText"
+                                            prayer-model="editingIsPrayer"
+                                            :prayer-active="$editingIsPrayer"
+                                            new-image-model="editingNewImage"
+                                            new-attachment-model="editingNewAttachment"
+                                            :pending-images="$this->editingPendingImages"
+                                            :pending-attachments="$this->editingPendingAttachments"
+                                            remove-image-action="removeEditingPendingImage"
+                                            remove-attachment-action="removeEditingPendingAttachment"
+                                            submit-action="saveEdit"
+                                            submit-label="Save changes"
+                                            cancel-action="cancelEditing"
+                                            :editing="true"
+                                            :existing-attachments="$this->editingExistingAttachments"
+                                            remove-existing-attachment-action="removeEditingExistingAttachment"
+                                            test-prefix="edit-composer"
+                                        />
+                                    </div>
+                                @else
                                 {{-- Body --}}
                                 <div class="mt-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-200
                                     **:[h1]:text-xl **:[h1]:font-semibold **:[h2]:text-lg **:[h2]:font-semibold **:[h3]:font-semibold
@@ -845,10 +1167,11 @@ new class extends Component {
                                         @endif
                                     </div>
                                 @endif
+                                @endif
                             </div>
 
                             {{-- Mobile action sheet trigger — always visible on touch, hidden on desktop --}}
-                            @if ($canComment)
+                            @if ($canComment && $editingCommentId !== $comment->id)
                                 <button
                                     type="button"
                                     wire:click="openActions({{ $comment->id }})"
@@ -865,13 +1188,31 @@ new class extends Component {
                             @endif
 
                             {{-- Hover toolbar --}}
-                            @if ($canComment)
+                            @if ($canComment && $editingCommentId !== $comment->id)
                                 <div
                                     class="absolute right-3 top-2.5 z-10 hidden gap-0.5 group-hover/row:flex group-focus-within/row:flex group-has-[[data-flux-popover][data-open]]/row:flex"
                                     data-test="hover-toolbar"
                                     role="toolbar"
                                     aria-label="Message actions"
                                 >
+                                    @can('update', $comment)
+                                        <flux:tooltip content="Edit message">
+                                            <button
+                                                type="button"
+                                                wire:click="startEditing({{ $comment->id }})"
+                                                aria-label="Edit message"
+                                                @class([
+                                                    'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
+                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
+                                                    'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine,
+                                                ])
+                                                data-test="edit-toggle"
+                                            >
+                                                <flux:icon.pencil-square variant="micro" class="size-3.5" />
+                                            </button>
+                                        </flux:tooltip>
+                                    @endcan
+
                                     <flux:dropdown align="end">
                                         <flux:tooltip content="Add reaction">
                                             <button
@@ -955,222 +1296,84 @@ new class extends Component {
 
         {{-- Composer --}}
         @can('comment', $conversation)
-            <div
-                class="relative border-t border-zinc-200 px-3.5 py-2.5 lg:px-6 lg:py-4 dark:border-zinc-700"
-                x-data="{
-                    expanded: false,
-                    isDragging: false,
-                    get hasDraft() { return (this.$wire.reply ?? '').replace(/<[^>]*>/g, '').trim().length > 0; },
-                    expand() {
-                        this.expanded = true;
-                        this.$nextTick(() => this.$root.querySelector('[contenteditable=\'true\']')?.focus());
-                    },
-                    collapse() {
-                        this.expanded = false;
-                    },
-                    maybeCollapseOnBlur(event) {
-                        if (this.hasDraft) return;
-                        const next = event.relatedTarget;
-                        if (next && this.$root.contains(next)) return;
-                        this.collapse();
-                    },
-                    handleDrop(event) {
-                        this.isDragging = false;
-                        const files = Array.from(event.dataTransfer?.files ?? []);
-                        if (!files.length) return;
-                        this.expand();
-                        for (const file of files) {
-                            const isImage = (file.type || '').startsWith('image/');
-                            const input = isImage ? this.$refs.imageInput : this.$refs.attachInput;
-                            if (!input) continue;
-                            const dt = new DataTransfer();
-                            dt.items.add(file);
-                            input.files = dt.files;
-                            input.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                    },
-                }"
-                x-on:dragover.prevent="isDragging = true"
-                x-on:dragleave.prevent="isDragging = false"
-                x-on:drop.prevent="handleDrop($event)"
-            >
+            @if (! $editingCommentId)
                 <div
-                    x-show="isDragging"
-                    x-cloak
-                    class="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-accent bg-accent/10 text-sm font-semibold text-accent"
-                    data-test="composer-drop-overlay"
+                    class="relative border-t border-zinc-200 px-3.5 py-2.5 lg:px-6 lg:py-4 dark:border-zinc-700"
+                    x-data="{
+                        expanded: false,
+                        isDragging: false,
+                        get hasDraft() { return (this.$wire.reply ?? '').replace(/<[^>]*>/g, '').trim().length > 0; },
+                        expand() {
+                            this.expanded = true;
+                            this.$nextTick(() => this.$root.querySelector('[contenteditable=\'true\']')?.focus());
+                        },
+                        collapse() {
+                            this.expanded = false;
+                        },
+                        maybeCollapseOnBlur(event) {
+                            if (this.hasDraft) return;
+                            const next = event.relatedTarget;
+                            if (next && this.$root.contains(next)) return;
+                            this.collapse();
+                        },
+                        handleDrop(event) {
+                            this.isDragging = false;
+                            const files = Array.from(event.dataTransfer?.files ?? []);
+                            if (!files.length) return;
+                            this.expand();
+                            for (const file of files) {
+                                const isImage = (file.type || '').startsWith('image/');
+                                const input = isImage ? this.$refs.imageInput : this.$refs.attachInput;
+                                if (!input) continue;
+                                const dt = new DataTransfer();
+                                dt.items.add(file);
+                                input.files = dt.files;
+                                input.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        },
+                    }"
+                    x-on:dragover.prevent="isDragging = true"
+                    x-on:dragleave.prevent="isDragging = false"
+                    x-on:drop.prevent="handleDrop($event)"
                 >
-                    Drop to attach
-                </div>
-                {{-- Mobile collapsed pill — invisible on desktop --}}
-                <button
-                    type="button"
-                    x-show="!expanded && !hasDraft"
-                    x-on:click="expand()"
-                    class="flex w-full items-center gap-2.5 rounded-full border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-left text-sm text-zinc-500 lg:hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
-                    data-test="composer-mobile-pill"
-                >
-                    <flux:icon.pencil-square variant="micro" />
-                    <span class="flex-1">Write a reply…</span>
-                    <span class="grid size-7 place-items-center rounded-full bg-accent text-white">
-                        <flux:icon.paper-airplane variant="micro" />
-                    </span>
-                </button>
-
-                {{-- Full composer — hidden on mobile when collapsed, always shown on desktop --}}
-                <div x-show="expanded || hasDraft" class="lg:!block" x-on:focusout="maybeCollapseOnBlur($event)">
-                    <form
-                        wire:submit="postReply"
-                        x-on:keydown.enter="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $el.requestSubmit() }"
+                    <div
+                        x-show="isDragging"
+                        x-cloak
+                        class="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-accent bg-accent/10 text-sm font-semibold text-accent"
+                        data-test="composer-drop-overlay"
                     >
-                        <input type="file" x-ref="imageInput" wire:model="newImage" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" data-test="composer-image-input" />
-                        <input type="file" x-ref="attachInput" wire:model="newAttachment" accept=".pdf,.md,.txt,audio/*" class="hidden" data-test="composer-attach-input" />
+                        Drop to attach
+                    </div>
+                    {{-- Mobile collapsed pill — invisible on desktop --}}
+                    <button
+                        type="button"
+                        x-show="!expanded && !hasDraft"
+                        x-on:click="expand()"
+                        class="flex w-full items-center gap-2.5 rounded-full border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-left text-sm text-zinc-500 lg:hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                        data-test="composer-mobile-pill"
+                    >
+                        <flux:icon.pencil-square variant="micro" />
+                        <span class="flex-1">Write a reply…</span>
+                        <span class="grid size-7 place-items-center rounded-full bg-accent text-white">
+                            <flux:icon.paper-airplane variant="micro" />
+                        </span>
+                    </button>
 
-                        <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply…  (use @ to mention a member)">
-                            <x-slot name="input">
-                                <flux:editor
-                                    variant="borderless"
-                                    toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
-                                    class="**:data-[slot=content]:min-h-[100px]!"
-                                />
-
-                                @php($pendingImages = $this->pendingImages)
-                                @php($pendingAttachments = $this->pendingAttachments)
-                                @if ($pendingImages->isNotEmpty() || $pendingAttachments->isNotEmpty())
-                                    <div class="mt-2 space-y-2" data-test="composer-pending">
-                                        @if ($pendingImages->isNotEmpty())
-                                            <div class="flex flex-wrap gap-2">
-                                                @foreach ($pendingImages as $image)
-                                                    <div
-                                                        class="group/pending relative size-20 overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-700"
-                                                        wire:key="pending-image-{{ $image->id }}"
-                                                        data-test="pending-image"
-                                                    >
-                                                        <img src="{{ $image->url }}" alt="{{ $image->original_name }}" class="size-full object-cover" />
-                                                        <button
-                                                            type="button"
-                                                            wire:click="removePendingImage({{ $image->id }})"
-                                                            class="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-zinc-900/70 text-white opacity-0 transition-opacity hover:bg-zinc-900 focus-visible:opacity-100 group-hover/pending:opacity-100"
-                                                            aria-label="Remove image"
-                                                            data-test="pending-image-remove"
-                                                        >
-                                                            <flux:icon.x-mark variant="micro" class="size-3" />
-                                                        </button>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @endif
-
-                                        @if ($pendingAttachments->isNotEmpty())
-                                            <div class="flex flex-wrap gap-1.5">
-                                                @foreach ($pendingAttachments as $attachment)
-                                                    <span
-                                                        class="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 py-1 pl-2.5 pr-1 text-xs dark:border-zinc-700 dark:bg-zinc-800"
-                                                        wire:key="pending-attachment-{{ $attachment->id }}"
-                                                        data-test="pending-attachment"
-                                                    >
-                                                        <flux:icon.paper-clip variant="micro" class="text-zinc-500" />
-                                                        <span class="max-w-[16ch] truncate font-medium text-zinc-700 dark:text-zinc-200">{{ $attachment->original_name }}</span>
-                                                        <button
-                                                            type="button"
-                                                            wire:click="removePendingAttachment({{ $attachment->id }})"
-                                                            class="grid size-4 place-items-center rounded-full text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 dark:hover:bg-zinc-700"
-                                                            aria-label="Remove attachment"
-                                                            data-test="pending-attachment-remove"
-                                                        >
-                                                            <flux:icon.x-mark variant="micro" class="size-3" />
-                                                        </button>
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endif
-
-                                <flux:error name="newImage" />
-                                <flux:error name="newAttachment" />
-                            </x-slot>
-
-                            <x-slot name="footer">
-                                <flux:tooltip content="Attach image">
-                                    <button
-                                        type="button"
-                                        x-on:click="$refs.imageInput.click()"
-                                        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
-                                        aria-label="Attach image"
-                                        data-test="composer-image-button"
-                                    >
-                                        <flux:icon.photo variant="micro" wire:loading.remove wire:target="newImage" />
-                                        <flux:icon.arrow-path variant="micro" class="animate-spin" wire:loading wire:target="newImage" />
-                                    </button>
-                                </flux:tooltip>
-
-                                <flux:tooltip content="Attach file">
-                                    <button
-                                        type="button"
-                                        x-on:click="$refs.attachInput.click()"
-                                        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
-                                        aria-label="Attach file"
-                                        data-test="composer-attach-button"
-                                    >
-                                        <flux:icon.paper-clip variant="micro" wire:loading.remove wire:target="newAttachment" />
-                                        <flux:icon.arrow-path variant="micro" class="animate-spin" wire:loading wire:target="newAttachment" />
-                                    </button>
-                                </flux:tooltip>
-
-                                <button
-                                    type="button"
-                                    wire:click="$toggle('replyIsPrayer')"
-                                    aria-pressed="{{ $replyIsPrayer ? 'true' : 'false' }}"
-                                    @class([
-                                        'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors',
-                                        'border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200' => $replyIsPrayer,
-                                        'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $replyIsPrayer,
-                                    ])
-                                    data-test="composer-prayer-toggle"
-                                    @if ($replyIsPrayer) data-test-active="true" @endif
-                                >
-                                    <flux:icon.hand-raised variant="micro" />
-                                    <span class="lg:hidden">Prayer</span>
-                                    <span class="hidden lg:inline">{{ $replyIsPrayer ? 'Sending as prayer' : 'Mark as prayer' }}</span>
-                                </button>
-
-                                <flux:tooltip content="Mention a member">
-                                    <button
-                                        type="button"
-                                        x-on:click="$root.querySelector('ui-editor')?.editor?.chain().focus().insertContent('@').run()"
-                                        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
-                                        data-test="composer-mention"
-                                    >
-                                        <flux:icon.at-symbol variant="micro" />
-                                        <span class="lg:hidden">@</span>
-                                        <span class="hidden lg:inline">Mention</span>
-                                    </button>
-                                </flux:tooltip>
-
-                                <div class="ms-auto flex items-center gap-2">
-                                    <span class="hidden items-center gap-1 text-xs text-zinc-400 lg:inline-flex" data-test="composer-shortcut-hint">
-                                        <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">⌘</kbd>
-                                        <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">↵</kbd>
-                                        to send
-                                    </span>
-                                    <button
-                                        type="button"
-                                        x-on:click="collapse()"
-                                        class="grid size-7 place-items-center rounded-md text-zinc-500 hover:bg-zinc-100 lg:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
-                                        aria-label="Collapse composer"
-                                        data-test="composer-collapse"
-                                    >
-                                        <flux:icon.chevron-down variant="micro" />
-                                    </button>
-                                    <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" wire:loading.attr="disabled">Send</flux:button>
-                                </div>
-                            </x-slot>
-                        </flux:composer>
-                        <flux:error name="reply" />
-                    </form>
+                    {{-- Full composer — hidden on mobile when collapsed, always shown on desktop --}}
+                    <div x-show="expanded || hasDraft" class="lg:!block" x-on:focusout="maybeCollapseOnBlur($event)">
+                        <x-conversation-composer
+                            editor-model="reply"
+                            prayer-model="replyIsPrayer"
+                            :prayer-active="$replyIsPrayer"
+                            new-image-model="newImage"
+                            new-attachment-model="newAttachment"
+                            :pending-images="$this->pendingImages"
+                            :pending-attachments="$this->pendingAttachments"
+                            submit-action="postReply"
+                        />
+                    </div>
                 </div>
-            </div>
+            @endif
         @endcan
     </div>
 
@@ -1380,6 +1583,21 @@ new class extends Component {
                             <span @class(['text-accent' => $pinned])>
                                 {{ $pinned ? 'Unpin from top' : 'Pin to top' }}
                             </span>
+                        </button>
+                    @endcan
+
+                    @can('update', $sheetComment)
+                        <button
+                            type="button"
+                            wire:click="startEditing({{ $sheetComment->id }})"
+                            x-on:click="$flux.modal('message-actions').close()"
+                            class="flex w-full items-center gap-3.5 border-b border-zinc-100 px-5 py-3.5 text-left text-[15px] font-medium dark:border-zinc-800"
+                            data-test="sheet-edit"
+                        >
+                            <span class="grid size-8 shrink-0 place-items-center rounded-md bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                <flux:icon.pencil-square variant="micro" />
+                            </span>
+                            Edit message
                         </button>
                     @endcan
 
