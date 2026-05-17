@@ -21,7 +21,13 @@ class ConversationFactory extends Factory
             'group_id' => Group::factory(),
             'user_id' => User::factory(),
             'title' => $this->faker->sentence(4),
+            'allow_replies' => true,
             'last_comment_at' => null,
         ];
+    }
+
+    public function repliesDisabled(): self
+    {
+        return $this->state(['allow_replies' => false]);
     }
 }

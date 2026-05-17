@@ -26,7 +26,15 @@ class ConversationPolicy
 
     public function comment(User $user, Conversation $conversation): bool
     {
-        return $this->canPost($user, $conversation->group);
+        if (! $this->canPost($user, $conversation->group)) {
+            return false;
+        }
+
+        if (! $conversation->allowsReplies()) {
+            return $conversation->group->hasLeader($user);
+        }
+
+        return true;
     }
 
     public function update(User $user, Conversation $conversation): bool
@@ -40,6 +48,11 @@ class ConversationPolicy
     }
 
     public function pin(User $user, Conversation $conversation): bool
+    {
+        return $conversation->group->hasLeader($user);
+    }
+
+    public function updateReplies(User $user, Conversation $conversation): bool
     {
         return $conversation->group->hasLeader($user);
     }
