@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Spatie\Comments\Actions\ResolveMentionsAutocompleteAction;
 use Spatie\Comments\Support\Config;
 
 new class extends Component {
@@ -132,6 +133,49 @@ new class extends Component {
         };
     }
 
+    /** @return array<int, array{id: int, name: string, gravatar: string}> */
+    public function mentionCandidates(string $query): array
+    {
+        $this->authorize('view', $this->conversation);
+
+        /** @var ResolveMentionsAutocompleteAction $action */
+        $action = app(config('comments.actions.resolve_mentions_autocomplete'));
+
+        /** @var array<int, User> $candidates */
+        $candidates = $action->execute($query, $this->conversation);
+
+        return array_map(fn (User $user): array => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'gravatar' => $user->gravatar,
+        ], $candidates);
+    }
+
+    private function sanitizeMentions(string $html): string
+    {
+        $memberIds = $this->conversation->group->members()->pluck('users.id');
+
+        return (string) preg_replace_callback(
+            '/<(\w+)(\s+[^>]*?)data-mention="([^"]+)"([^>]*?)>(.*?)<\/\1>/s',
+            function (array $match) use ($memberIds): string {
+                $mentionId = $match[3];
+
+                if ($memberIds->contains((int) $mentionId)) {
+                    return $match[0];
+                }
+
+                // Strip the data-mention attribute, keeping the element intact
+                $tag = $match[1];
+                $attrsBefore = $match[2];
+                $attrsAfter = $match[4];
+                $content = $match[5];
+
+                return "<{$tag}{$attrsBefore}{$attrsAfter}>{$content}</{$tag}>";
+            },
+            $html,
+        );
+    }
+
     public function postReply(): void
     {
         $this->authorize('comment', $this->conversation);
@@ -146,7 +190,9 @@ new class extends Component {
             return;
         }
 
-        $this->conversation->postComment($validated['reply'], Auth::user(), $this->replyIsPrayer);
+        $reply = $this->sanitizeMentions($validated['reply']);
+
+        $this->conversation->postComment($reply, Auth::user(), $this->replyIsPrayer);
 
         $this->reset('reply', 'replyIsPrayer');
         unset($this->comments, $this->contributors, $this->nonContributors);
@@ -728,7 +774,7 @@ new class extends Component {
                         wire:submit="postReply"
                         x-on:keydown.enter="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $el.requestSubmit() }"
                     >
-                        <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply…  (try mentioning Romans 8:31)">
+                        <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply…  (use @ to mention a member)">
                             <x-slot name="input">
                                 <flux:editor
                                     variant="borderless"
@@ -755,9 +801,10 @@ new class extends Component {
                                     <span class="hidden lg:inline">{{ $replyIsPrayer ? 'Sending as prayer' : 'Mark as prayer' }}</span>
                                 </button>
 
-                                <flux:tooltip content="Type @ to mention a member">
+                                <flux:tooltip content="Mention a member">
                                     <button
                                         type="button"
+                                        x-on:click="$root.querySelector('ui-editor')?.editor?.chain().focus().insertContent('@').run()"
                                         class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
                                         data-test="composer-mention"
                                     >

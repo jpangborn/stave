@@ -4,6 +4,9 @@ namespace App\Models\Traits;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
+/**
+ * @property-read string $gravatar
+ */
 trait HasGravatar
 {
     public function gravatar(): Attribute

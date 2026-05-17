@@ -1,12 +1,13 @@
 <?php
 
+use App\Actions\Comments\ResolveGroupMentionsAutocompleteAction;
+use App\CommentTransformers\RawHtmlMentionsTransformer;
 use App\Models\Comment;
 use App\Models\User;
 use App\Notifications\ServiceCommentNotification;
 use Spatie\Comments\Actions\ApproveCommentAction;
 use Spatie\Comments\Actions\ProcessCommentAction;
 use Spatie\Comments\Actions\RejectCommentAction;
-use Spatie\Comments\Actions\ResolveMentionsAutocompleteAction;
 use Spatie\Comments\Actions\SendNotificationsForApprovedCommentAction;
 use Spatie\Comments\Actions\SendNotificationsForPendingCommentAction;
 use Spatie\Comments\Models\CommentNotificationSubscription;
@@ -32,8 +33,7 @@ return [
      * for example from Markdown to HTML
      */
     'comment_transformers' => [
-        // MarkdownToHtmlTransformer::class,
-        // MentionsTransformer::class,
+        RawHtmlMentionsTransformer::class,
     ],
 
     /*
@@ -127,7 +127,7 @@ return [
         'send_notifications_for_pending_comment' => SendNotificationsForPendingCommentAction::class,
         'approve_comment' => ApproveCommentAction::class,
         'reject_comment' => RejectCommentAction::class,
-        'resolve_mentions_autocomplete' => ResolveMentionsAutocompleteAction::class,
+        'resolve_mentions_autocomplete' => ResolveGroupMentionsAutocompleteAction::class,
         'send_notifications_for_approved_comment' => SendNotificationsForApprovedCommentAction::class,
     ],
 
