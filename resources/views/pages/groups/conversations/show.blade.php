@@ -1086,6 +1086,9 @@ new class extends Component {
                                         @endif
                                     </div>
                                 @endif
+
+                                <flux:error name="newImage" />
+                                <flux:error name="newAttachment" />
                             </x-slot>
 
                             <x-slot name="footer">
