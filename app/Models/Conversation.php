@@ -75,6 +75,15 @@ class Conversation extends Model
             ->limit(1);
     }
 
+    /** @return MorphMany<Comment, $this> */
+    public function lastComment(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable')
+            ->with('commentator')
+            ->latest()
+            ->limit(1);
+    }
+
     public function isPinned(): bool
     {
         return $this->pinned_at !== null;

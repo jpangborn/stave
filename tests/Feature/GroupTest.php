@@ -128,9 +128,9 @@ test('groups index search filters by name', function (): void {
     $component = Livewire::test('pages::groups.index')
         ->set('search', 'Youth');
 
-    $groups = $component->get('groups');
-    expect($groups)->toHaveCount(1);
-    expect($groups->first()->name)->toBe('Youth Group');
+    $discover = $component->get('discover');
+    expect($discover)->toHaveCount(1);
+    expect($discover->first()->name)->toBe('Youth Group');
 });
 
 test('leaders can delete a group from the index page', function (): void {
@@ -449,4 +449,136 @@ test('addMembers picks up users via the popover pickUser flow', function (): voi
         ->assertSet('pickedUserIds', []);
 
     expect($group->members()->whereKey($candidate->id)->exists())->toBeTrue();
+});
+
+/** @group groups-index-redesign */
+test('my groups card shows latest message preview when a comment exists', function (): void {
+    $user = User::factory()->create();
+    $author = User::factory()->create(['name' => 'Alice Author']);
+    $group = Group::factory()->create(['name' => 'Worship Team', 'visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($author, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $conversation = $group->conversations()->create([
+        'user_id' => $author->id,
+        'title' => 'Practice Sunday',
+        'allow_replies' => true,
+    ]);
+    $conversation->postComment('<p>Rehearsal moved to 8am</p>', $author);
+
+    Livewire::actingAs($user)
+        ->test('pages::groups.index')
+        ->assertSee('Alice Author')
+        ->assertSee('Rehearsal moved to 8am');
+});
+
+test('my groups card shows "No messages yet" when group has no comments', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['name' => 'Quiet Group', 'visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    Livewire::actingAs($user)
+        ->test('pages::groups.index')
+        ->assertSee('Quiet Group')
+        ->assertSee('No messages yet.');
+});
+
+test('discover search matches description as well as name', function (): void {
+    $user = User::factory()->create();
+    Group::factory()->create([
+        'name' => 'Sunday Choir',
+        'description' => '<p>Plain old singers.</p>',
+        'visibility' => GroupVisibility::PUBLIC,
+    ]);
+    Group::factory()->create([
+        'name' => 'Outreach',
+        'description' => '<p>Community evangelism crew.</p>',
+        'visibility' => GroupVisibility::PUBLIC,
+    ]);
+
+    $this->actingAs($user);
+
+    $discover = Livewire::test('pages::groups.index')
+        ->set('search', 'evangelism')
+        ->get('discover');
+
+    expect($discover)->toHaveCount(1);
+    expect($discover->first()->name)->toBe('Outreach');
+});
+
+test('discover filter chips restrict by messaging and combine with search', function (): void {
+    $user = User::factory()->create();
+    Group::factory()->create([
+        'name' => 'Singers Club',
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    Group::factory()->create([
+        'name' => 'Singers Council',
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ONLY_LEADERS,
+    ]);
+    Group::factory()->create([
+        'name' => 'Choir Council',
+        'visibility' => GroupVisibility::PUBLIC,
+        'messaging' => GroupMessaging::ONLY_LEADERS,
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::groups.index')
+        ->call('setMessagingFilter', 'only-leaders');
+
+    $only = $component->get('discover');
+    expect($only)->toHaveCount(2);
+    expect($only->pluck('name'))->toContain('Singers Council', 'Choir Council');
+
+    $component->set('search', 'Singers');
+    $combined = $component->get('discover');
+    expect($combined)->toHaveCount(1);
+    expect($combined->first()->name)->toBe('Singers Council');
+});
+
+test('discover excludes groups the current user is already a member of', function (): void {
+    $user = User::factory()->create();
+    $joined = Group::factory()->create(['name' => 'My Group', 'visibility' => GroupVisibility::PUBLIC]);
+    $joined->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    Group::factory()->create(['name' => 'Other Group', 'visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    $discover = Livewire::test('pages::groups.index')->get('discover');
+
+    expect($discover->pluck('name')->all())->toBe(['Other Group']);
+});
+
+test('discover join action sends a join request and removes the group from discover', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['name' => 'Joinable', 'visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test('pages::groups.index');
+    expect($component->get('discover')->pluck('name')->all())->toBe(['Joinable']);
+
+    $component->call('join', $group->id);
+
+    $this->assertDatabaseHas('group_user', [
+        'group_id' => $group->id,
+        'user_id' => $user->id,
+        'status' => MembershipStatus::PENDING->value,
+    ]);
+
+    expect($component->get('discover')->pluck('name')->all())->toBe([]);
+});
+
+test('messaging filter rejects unknown values and defaults to all', function (): void {
+    $user = User::factory()->create();
+    Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::groups.index')
+        ->call('setMessagingFilter', 'bogus')
+        ->assertSet('messagingFilter', 'all');
 });

@@ -8,11 +8,14 @@ use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
 use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Mews\Purifier\Casts\CleanHtmlInput;
 
 /**
@@ -81,6 +84,14 @@ class Group extends Model
         return $this->hasMany(Conversation::class);
     }
 
+    /** @return HasOne<Conversation, $this> */
+    public function latestConversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class)
+            ->whereNotNull('last_comment_at')
+            ->latestOfMany('last_comment_at');
+    }
+
     public function hasActiveMember(User $user): bool
     {
         return $this->members()->whereKey($user->id)->exists();
@@ -89,5 +100,17 @@ class Group extends Model
     public function hasLeader(User $user): bool
     {
         return $this->leaders()->whereKey($user->id)->exists();
+    }
+
+    protected function coverUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->image
+            ? Storage::disk('digital-ocean')->url($this->image)
+            : null);
+    }
+
+    protected function firstLetter(): Attribute
+    {
+        return Attribute::get(fn (): string => (string) Str::upper(Str::substr($this->name ?? '?', 0, 1)));
     }
 }
