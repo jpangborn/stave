@@ -153,3 +153,37 @@ test('a pending member cannot mark prayer', function (): void {
 
     expect($pending->can('markPrayer', $comment))->toBeFalse();
 });
+
+// --- Policy: delete ---
+
+test('author of the comment can delete their own comment', function (): void {
+    [$group, $conversation, $comment, $author] = makeGroupConversation();
+
+    expect($author->can('delete', $comment))->toBeTrue();
+});
+
+test('group leader can delete any comment in the conversation', function (): void {
+    [$group, $conversation, $comment] = makeGroupConversation();
+
+    $leader = User::factory()->create();
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+
+    expect($leader->can('delete', $comment))->toBeTrue();
+});
+
+test('a non-leader member who did not author the comment cannot delete it', function (): void {
+    [$group, $conversation, $comment] = makeGroupConversation();
+
+    $otherMember = User::factory()->create();
+    $group->allUsers()->attach($otherMember, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    expect($otherMember->can('delete', $comment))->toBeFalse();
+});
+
+test('a user outside the group cannot delete a comment', function (): void {
+    [$group, $conversation, $comment] = makeGroupConversation();
+
+    $outsider = User::factory()->create();
+
+    expect($outsider->can('delete', $comment))->toBeFalse();
+});
