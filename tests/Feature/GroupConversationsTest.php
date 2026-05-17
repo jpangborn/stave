@@ -386,12 +386,33 @@ test('reacting with a disallowed value is rejected', function (): void {
 
 // --- Delete (policy::delete) ---
 
-test('the author can delete their own conversation', function (): void {
+test('an author who is not a leader cannot delete their own conversation', function (): void {
     $author = User::factory()->create();
     $group = Group::factory()->create([
         'messaging' => GroupMessaging::ALL_MEMBERS,
     ]);
     attachMember($group, $author);
+
+    $conversation = Conversation::factory()->create([
+        'group_id' => $group->id,
+        'user_id' => $author->id,
+    ]);
+
+    $this->actingAs($author);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('deleteConversation')
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('conversations', ['id' => $conversation->id]);
+});
+
+test('an author who is also a leader can delete their own conversation', function (): void {
+    $author = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $author, GroupRole::LEADER);
 
     $conversation = Conversation::factory()->create([
         'group_id' => $group->id,

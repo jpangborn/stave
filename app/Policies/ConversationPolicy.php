@@ -36,7 +36,7 @@ class ConversationPolicy
 
     public function delete(User $user, Conversation $conversation): bool
     {
-        return $this->isAuthorOrLeader($user, $conversation);
+        return $conversation->group->hasLeader($user);
     }
 
     private function isAuthorOrLeader(User $user, Conversation $conversation): bool
