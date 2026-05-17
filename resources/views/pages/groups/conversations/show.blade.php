@@ -221,6 +221,8 @@ new class extends Component {
     public function openActions(int $commentId): void
     {
         $this->sheetCommentId = $commentId;
+
+        Flux::modal('message-actions')->show();
     }
 
     public function closeActions(): void
@@ -993,14 +995,4 @@ new class extends Component {
             </div>
         @endif
     </flux:modal>
-
-    {{-- Open the sheet whenever sheetCommentId becomes non-null --}}
-    <div
-        x-data
-        x-init="$wire.$watch('sheetCommentId', value => {
-            if (value !== null) {
-                $nextTick(() => $flux.modal('message-actions').show());
-            }
-        })"
-    ></div>
 </section>
