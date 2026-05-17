@@ -6,6 +6,7 @@ use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
 use App\Models\Group;
 use Flux\Flux;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -65,7 +66,7 @@ new class extends Component {
     }
 
     #[Computed]
-    public function discover()
+    public function discover(): LengthAwarePaginator
     {
         return Group::query()
             ->where('visibility', GroupVisibility::PUBLIC)

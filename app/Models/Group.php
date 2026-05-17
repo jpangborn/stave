@@ -111,6 +111,10 @@ class Group extends Model
 
     protected function firstLetter(): Attribute
     {
-        return Attribute::get(fn (): string => (string) Str::upper(Str::substr($this->name ?? '?', 0, 1)));
+        return Attribute::get(function (): string {
+            $first = Str::upper(Str::substr(trim((string) ($this->name ?? '')), 0, 1));
+
+            return $first !== '' ? $first : '?';
+        });
     }
 }

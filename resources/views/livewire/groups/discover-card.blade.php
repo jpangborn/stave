@@ -23,9 +23,10 @@
         </p>
 
         <div class="flex items-center justify-between gap-3 pt-2 mt-auto border-t border-zinc-100 dark:border-zinc-800">
+            @php $membersCount = $group->members_count ?? $group->members()->count(); @endphp
             <span class="text-xs text-zinc-500">
-                <span class="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">{{ $group->members_count ?? $group->members()->count() }}</span>
-                {{ Str::plural('member', $group->members_count ?? 0) }}
+                <span class="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">{{ $membersCount }}</span>
+                {{ Str::plural('member', $membersCount) }}
             </span>
 
             @can('join', $group)
