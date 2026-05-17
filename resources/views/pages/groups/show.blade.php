@@ -429,7 +429,10 @@ new class extends Component {
     {
         $this->authorize('manageMembers', $this->group);
 
-        $targetRole = GroupRole::from($role);
+        $targetRole = GroupRole::tryFrom($role);
+        if (! $targetRole) {
+            return;
+        }
 
         DB::transaction(function () use ($userId, $targetRole): void {
             $user = $this->group->members()

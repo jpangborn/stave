@@ -33,8 +33,8 @@
                     size="sm"
                     :icon="$userIsLeader ? 'star' : 'user'"
                     icon:trailing="chevron-down"
-                    :disabled="$isOnlyLeader"
-                    :title="$isOnlyLeader ? 'A group must have at least one leader.' : null"
+                    :disabled="$userIsLeader && $isOnlyLeader"
+                    :title="$userIsLeader && $isOnlyLeader ? 'A group must have at least one leader.' : null"
                     class="!justify-start !font-semibold {{ $userIsLeader ? '!text-purple-600 dark:!text-purple-300' : '' }}">
                     {{ $userIsLeader ? 'Leader' : 'Member' }}
                 </flux:button>
@@ -104,8 +104,8 @@
                         variant="danger"
                         wire:click="removeMember({{ $user->id }})"
                         wire:confirm="Remove {{ $user->name }} from this group?"
-                        :disabled="$isOnlyLeader"
-                        :title="$isOnlyLeader ? 'A group must have at least one leader.' : null">
+                        :disabled="$userIsLeader && $isOnlyLeader"
+                        :title="$userIsLeader && $isOnlyLeader ? 'A group must have at least one leader.' : null">
                         Remove from group
                     </flux:menu.item>
                 </flux:menu>
