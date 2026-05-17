@@ -25,6 +25,10 @@ new class extends Component {
 
     public bool $pinnedStripOpen = true;
 
+    public bool $headerExpanded = false;
+
+    public ?int $sheetCommentId = null;
+
     public function mount(Group $group, Conversation $conversation): void
     {
         abort_unless($conversation->group_id === $group->id, 404);
@@ -209,6 +213,31 @@ new class extends Component {
         $this->pinnedStripOpen = false;
     }
 
+    public function toggleHeaderExpanded(): void
+    {
+        $this->headerExpanded = ! $this->headerExpanded;
+    }
+
+    public function openActions(int $commentId): void
+    {
+        $this->sheetCommentId = $commentId;
+    }
+
+    public function closeActions(): void
+    {
+        $this->sheetCommentId = null;
+    }
+
+    #[Computed]
+    public function sheetComment(): ?Comment
+    {
+        if ($this->sheetCommentId === null) {
+            return null;
+        }
+
+        return $this->comments->firstWhere('id', $this->sheetCommentId);
+    }
+
     public function deleteConversation(): void
     {
         $this->authorize('delete', $this->conversation);
@@ -226,8 +255,76 @@ new class extends Component {
     {{-- Conversation column --}}
     <div class="flex min-w-0 flex-1 flex-col bg-white dark:bg-zinc-800">
         {{-- Header --}}
-        <header class="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
-            <div class="flex items-start justify-between gap-4">
+        @php($memberCount = $this->memberCount())
+        @php($commentCount = $this->comments->count())
+        <header class="border-b border-zinc-200 px-3.5 pb-2.5 pt-3 lg:px-6 lg:py-4 dark:border-zinc-700">
+            {{-- Mobile header --}}
+            <div class="flex flex-col gap-2 lg:hidden" data-test="conversation-header-mobile">
+                <div class="flex items-center gap-2">
+                    <a
+                        href="{{ route('groups.show', $group) }}"
+                        wire:navigate
+                        title="Back to {{ $group->name }}"
+                        aria-label="Back to {{ $group->name }}"
+                        class="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 py-1 pl-2 pr-2.5 text-xs font-semibold leading-none text-zinc-900 transition-colors duration-100 hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 dark:bg-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-600"
+                        data-test="back-to-group-mobile"
+                    >
+                        <flux:icon.arrow-left variant="micro" class="size-3" />
+                        {{ $group->name }}
+                    </a>
+                    <div class="flex-1"></div>
+                    <button
+                        type="button"
+                        wire:click="toggleHeaderExpanded"
+                        class="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                        aria-label="{{ $headerExpanded ? 'Hide members' : 'Show members' }}"
+                        data-test="member-count-chip"
+                    >
+                        <flux:icon.users variant="micro" />
+                        {{ $memberCount }}
+                    </button>
+                    @can('delete', $conversation)
+                        <flux:dropdown align="end">
+                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" square />
+                            <flux:menu>
+                                <flux:menu.item
+                                    wire:click="deleteConversation"
+                                    icon="trash"
+                                    variant="danger"
+                                    wire:confirm="Delete this conversation and all its messages?"
+                                >Delete conversation</flux:menu.item>
+                            </flux:menu>
+                        </flux:dropdown>
+                    @endcan
+                </div>
+                <div class="flex items-start gap-1.5">
+                    <flux:heading size="lg" level="1" class="min-w-0 flex-1 pr-1">{{ $conversation->title }}</flux:heading>
+                    <button
+                        type="button"
+                        wire:click="toggleHeaderExpanded"
+                        aria-label="{{ $headerExpanded ? 'Collapse details' : 'Expand details' }}"
+                        aria-expanded="{{ $headerExpanded ? 'true' : 'false' }}"
+                        @class([
+                            'grid size-8 shrink-0 place-items-center rounded-md text-zinc-500 transition-transform duration-150 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800',
+                            'rotate-180' => $headerExpanded,
+                        ])
+                        data-test="header-expand-toggle"
+                    >
+                        <flux:icon.chevron-down variant="micro" />
+                    </button>
+                </div>
+                @if ($headerExpanded)
+                    <flux:subheading data-test="header-meta-mobile">
+                        Started by {{ $conversation->creator?->name ?? 'Unknown' }}
+                        · {{ $conversation->created_at->diffForHumans() }}<br>
+                        {{ $memberCount }} {{ str('member')->plural($memberCount) }}
+                        · {{ $commentCount }} {{ str('comment')->plural($commentCount) }}
+                    </flux:subheading>
+                @endif
+            </div>
+
+            {{-- Desktop header --}}
+            <div class="hidden items-start justify-between gap-4 lg:flex" data-test="conversation-header-desktop">
                 <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2.5">
                         <a
@@ -246,9 +343,7 @@ new class extends Component {
                     <flux:subheading class="mt-1">
                         Started by {{ $conversation->creator?->name ?? 'Unknown' }}
                         · {{ $conversation->created_at->diffForHumans() }}
-                        @php($memberCount = $this->memberCount())
                         · {{ $memberCount }} {{ str('member')->plural($memberCount) }}
-                        @php($commentCount = $this->comments->count())
                         · {{ $commentCount }} {{ str('comment')->plural($commentCount) }}
                     </flux:subheading>
                 </div>
@@ -291,10 +386,14 @@ new class extends Component {
 
         </header>
 
-        {{-- Pinned strip --}}
+        {{-- Pinned strip — hidden on mobile until the header is expanded --}}
         @if ($pinnedStripOpen && $this->pinnedComments->isNotEmpty())
             @php($firstPinned = $this->pinnedComments->first())
-            <div class="mx-6 mt-4 flex items-start gap-2.5 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2.5" data-test="pinned-strip">
+            <div @class([
+                'mx-3.5 mt-3 flex items-start gap-2.5 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2.5 lg:mx-6 lg:mt-4',
+                'hidden lg:flex' => ! $headerExpanded,
+                'flex' => $headerExpanded,
+            ]) data-test="pinned-strip">
                 <div class="flex size-6 shrink-0 items-center justify-center rounded-md border border-accent/30 bg-white text-accent dark:bg-zinc-900">
                     <flux:icon.bookmark variant="micro" />
                 </div>
@@ -347,36 +446,41 @@ new class extends Component {
                         <div
                             wire:key="comment-{{ $comment->id }}"
                             @class([
-                                'group/row relative mt-1 flex gap-3 rounded-md border-l-2 px-3 py-3 transition-colors',
+                                'group/row relative mt-1 flex gap-2.5 rounded-md border-l-2 px-2.5 py-3 transition-colors lg:gap-3 lg:px-3',
                                 'border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-900/60' => ! $isMine,
                                 'border-accent bg-accent/5 hover:bg-accent/10' => $isMine,
                             ])
                             data-test="message-row"
                             @if ($isMine) data-test-mine="true" @endif
                         >
-                            <flux:avatar size="md" name="{{ $comment->commentator?->name }}" src="{{ $comment->commentator?->gravatar }}" color="auto" />
+                            <flux:avatar size="sm" class="lg:hidden" name="{{ $comment->commentator?->name }}" src="{{ $comment->commentator?->gravatar }}" color="auto" />
+                            <flux:avatar size="md" class="hidden lg:flex" name="{{ $comment->commentator?->name }}" src="{{ $comment->commentator?->gravatar }}" color="auto" />
 
-                            <div class="min-w-0 flex-1">
-                                {{-- Header line --}}
-                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                    <span @class([
-                                        'text-sm font-bold',
-                                        'text-accent' => $isMine,
-                                        'text-zinc-900 dark:text-white' => ! $isMine,
-                                    ])>
-                                        {{ $comment->commentator?->name ?? 'Unknown' }}@if ($isMine) <span class="font-normal text-zinc-500">(you)</span>@endif
-                                    </span>
-                                    @if ($role)
-                                        <span class="text-xs text-zinc-500">{{ $role }}</span>
-                                    @endif
-                                    <span class="text-xs text-zinc-400">· {{ $comment->created_at->diffForHumans() }}</span>
-
-                                    @if ($comment->isPinned())
-                                        <flux:badge size="sm" color="green" inset="top bottom" data-test="pinned-badge">Pinned</flux:badge>
-                                    @endif
-                                    @if ($comment->is_prayer)
-                                        <flux:badge size="sm" color="amber" inset="top bottom" data-test="prayer-badge">Prayer</flux:badge>
-                                    @endif
+                            <div class="min-w-0 flex-1 pr-8 lg:pr-0">
+                                {{-- Header — stacked rows on mobile, single baseline row on desktop --}}
+                                <div class="flex flex-col gap-y-0.5 lg:flex-row lg:flex-wrap lg:items-baseline lg:gap-x-2 lg:gap-y-1">
+                                    <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                        <span @class([
+                                            'text-sm font-bold',
+                                            'text-accent' => $isMine,
+                                            'text-zinc-900 dark:text-white' => ! $isMine,
+                                        ])>
+                                            {{ $comment->commentator?->name ?? 'Unknown' }}@if ($isMine) <span class="font-normal text-zinc-500">(you)</span>@endif
+                                        </span>
+                                        @if ($comment->isPinned())
+                                            <flux:badge size="sm" color="green" inset="top bottom" data-test="pinned-badge">Pinned</flux:badge>
+                                        @endif
+                                        @if ($comment->is_prayer)
+                                            <flux:badge size="sm" color="amber" inset="top bottom" data-test="prayer-badge">Prayer</flux:badge>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-baseline gap-x-1.5 text-xs text-zinc-500">
+                                        @if ($role)
+                                            <span>{{ $role }}</span>
+                                            <span class="text-zinc-400">·</span>
+                                        @endif
+                                        <span class="text-zinc-400">{{ $comment->created_at->diffForHumans() }}</span>
+                                    </div>
                                 </div>
 
                                 {{-- Body --}}
@@ -441,7 +545,19 @@ new class extends Component {
                                         @endforeach
 
                                         @if ($canComment)
-                                            <flux:dropdown align="start">
+                                            {{-- Mobile: dashed + chip opens the action sheet --}}
+                                            <button
+                                                type="button"
+                                                wire:click="openActions({{ $comment->id }})"
+                                                class="inline-flex h-6 items-center justify-center rounded-full border border-dashed border-zinc-300 px-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 lg:hidden dark:border-zinc-600 dark:hover:bg-zinc-800"
+                                                aria-label="Add reaction"
+                                                data-test="reaction-picker-trigger-mobile"
+                                            >
+                                                <flux:icon.face-smile variant="micro" />
+                                            </button>
+
+                                            {{-- Desktop: dashed + chip opens an inline emoji popover --}}
+                                            <flux:dropdown align="start" class="hidden lg:inline-flex">
                                                 <button
                                                     type="button"
                                                     class="inline-flex h-6 items-center justify-center rounded-full border border-dashed border-zinc-300 px-2 text-xs text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-600 dark:hover:bg-zinc-800"
@@ -462,6 +578,23 @@ new class extends Component {
                                     </div>
                                 @endif
                             </div>
+
+                            {{-- Mobile action sheet trigger — always visible on touch, hidden on desktop --}}
+                            @if ($canComment)
+                                <button
+                                    type="button"
+                                    wire:click="openActions({{ $comment->id }})"
+                                    aria-label="Message actions"
+                                    @class([
+                                        'absolute right-2 top-2 grid size-8 place-items-center rounded-md transition-colors duration-100 hover:bg-zinc-100 lg:hidden dark:hover:bg-zinc-800',
+                                        'text-accent' => $isMine,
+                                        'text-zinc-500 dark:text-zinc-400' => ! $isMine,
+                                    ])
+                                    data-test="message-actions-trigger"
+                                >
+                                    <flux:icon.ellipsis-horizontal variant="micro" class="size-4" />
+                                </button>
+                            @endif
 
                             {{-- Hover toolbar --}}
                             @if ($canComment)
@@ -554,61 +687,108 @@ new class extends Component {
 
         {{-- Composer --}}
         @can('comment', $conversation)
-            <div class="border-t border-zinc-200 px-6 py-4 dark:border-zinc-700">
-                <form
-                    wire:submit="postReply"
-                    x-data
-                    x-on:keydown.enter="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $el.requestSubmit() }"
+            <div
+                class="border-t border-zinc-200 px-3.5 py-2.5 lg:px-6 lg:py-4 dark:border-zinc-700"
+                x-data="{
+                    expanded: false,
+                    get hasDraft() { return (this.$wire.reply ?? '').replace(/<[^>]*>/g, '').trim().length > 0; },
+                    expand() {
+                        this.expanded = true;
+                        this.$nextTick(() => this.$root.querySelector('[contenteditable=\'true\']')?.focus());
+                    },
+                    collapse() {
+                        this.expanded = false;
+                    },
+                    maybeCollapseOnBlur(event) {
+                        if (this.hasDraft) return;
+                        const next = event.relatedTarget;
+                        if (next && this.$root.contains(next)) return;
+                        this.collapse();
+                    },
+                }"
+            >
+                {{-- Mobile collapsed pill — invisible on desktop --}}
+                <button
+                    type="button"
+                    x-show="!expanded && !hasDraft"
+                    x-on:click="expand()"
+                    class="flex w-full items-center gap-2.5 rounded-full border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-left text-sm text-zinc-500 lg:hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                    data-test="composer-mobile-pill"
                 >
-                    <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply…  (try mentioning Romans 8:31)">
-                        <x-slot name="input">
-                            <flux:editor
-                                variant="borderless"
-                                toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
-                                class="**:data-[slot=content]:min-h-[100px]!"
-                            />
-                        </x-slot>
+                    <flux:icon.pencil-square variant="micro" />
+                    <span class="flex-1">Write a reply…</span>
+                    <span class="grid size-7 place-items-center rounded-full bg-accent text-white">
+                        <flux:icon.paper-airplane variant="micro" />
+                    </span>
+                </button>
 
-                        <x-slot name="footer">
-                            <button
-                                type="button"
-                                wire:click="$toggle('replyIsPrayer')"
-                                aria-pressed="{{ $replyIsPrayer ? 'true' : 'false' }}"
-                                @class([
-                                    'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors',
-                                    'border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200' => $replyIsPrayer,
-                                    'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $replyIsPrayer,
-                                ])
-                                data-test="composer-prayer-toggle"
-                                @if ($replyIsPrayer) data-test-active="true" @endif
-                            >
-                                <flux:icon.hand-raised variant="micro" />
-                                {{ $replyIsPrayer ? 'Sending as prayer' : 'Mark as prayer' }}
-                            </button>
+                {{-- Full composer — hidden on mobile when collapsed, always shown on desktop --}}
+                <div x-show="expanded || hasDraft" class="lg:!block" x-on:focusout="maybeCollapseOnBlur($event)">
+                    <form
+                        wire:submit="postReply"
+                        x-on:keydown.enter="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $el.requestSubmit() }"
+                    >
+                        <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply…  (try mentioning Romans 8:31)">
+                            <x-slot name="input">
+                                <flux:editor
+                                    variant="borderless"
+                                    toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
+                                    class="**:data-[slot=content]:min-h-[100px]!"
+                                />
+                            </x-slot>
 
-                            <flux:tooltip content="Type @ to mention a member">
+                            <x-slot name="footer">
                                 <button
                                     type="button"
-                                    class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
-                                    data-test="composer-mention"
+                                    wire:click="$toggle('replyIsPrayer')"
+                                    aria-pressed="{{ $replyIsPrayer ? 'true' : 'false' }}"
+                                    @class([
+                                        'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors',
+                                        'border-yellow-300 bg-yellow-50 text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-200' => $replyIsPrayer,
+                                        'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $replyIsPrayer,
+                                    ])
+                                    data-test="composer-prayer-toggle"
+                                    @if ($replyIsPrayer) data-test-active="true" @endif
                                 >
-                                    <flux:icon.at-symbol variant="micro" />
-                                    Mention
+                                    <flux:icon.hand-raised variant="micro" />
+                                    <span class="lg:hidden">Prayer</span>
+                                    <span class="hidden lg:inline">{{ $replyIsPrayer ? 'Sending as prayer' : 'Mark as prayer' }}</span>
                                 </button>
-                            </flux:tooltip>
 
-                            <div class="ms-auto flex items-center gap-2">
-                                <span class="hidden items-center gap-1 text-xs text-zinc-400 sm:inline-flex" data-test="composer-shortcut-hint">
-                                    <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">⌘</kbd>
-                                    <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">↵</kbd>
-                                    to send
-                                </span>
-                                <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" wire:loading.attr="disabled">Send</flux:button>
-                            </div>
-                        </x-slot>
-                    </flux:composer>
-                    <flux:error name="reply" />
-                </form>
+                                <flux:tooltip content="Type @ to mention a member">
+                                    <button
+                                        type="button"
+                                        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                                        data-test="composer-mention"
+                                    >
+                                        <flux:icon.at-symbol variant="micro" />
+                                        <span class="lg:hidden">@</span>
+                                        <span class="hidden lg:inline">Mention</span>
+                                    </button>
+                                </flux:tooltip>
+
+                                <div class="ms-auto flex items-center gap-2">
+                                    <span class="hidden items-center gap-1 text-xs text-zinc-400 lg:inline-flex" data-test="composer-shortcut-hint">
+                                        <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">⌘</kbd>
+                                        <kbd class="rounded border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">↵</kbd>
+                                        to send
+                                    </span>
+                                    <button
+                                        type="button"
+                                        x-on:click="collapse()"
+                                        class="grid size-7 place-items-center rounded-md text-zinc-500 hover:bg-zinc-100 lg:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
+                                        aria-label="Collapse composer"
+                                        data-test="composer-collapse"
+                                    >
+                                        <flux:icon.chevron-down variant="micro" />
+                                    </button>
+                                    <flux:button type="submit" variant="primary" size="sm" icon="paper-airplane" wire:loading.attr="disabled">Send</flux:button>
+                                </div>
+                            </x-slot>
+                        </flux:composer>
+                        <flux:error name="reply" />
+                    </form>
+                </div>
             </div>
         @endcan
     </div>
@@ -675,4 +855,152 @@ new class extends Component {
             </section>
         @endif
     </aside>
+
+    {{-- Mobile action sheet --}}
+    @php($sheetComment = $this->sheetComment)
+    <flux:modal
+        name="message-actions"
+        flyout
+        position="bottom"
+        variant="bare"
+        class="lg:hidden"
+        x-on:close="$wire.closeActions()"
+    >
+        @if ($sheetComment)
+            @php($currentUser = Auth::user())
+            @php($myReactions = $sheetComment->reactions
+                ->filter(fn ($r) => $currentUser
+                    && $r->commentator_id === $currentUser->getKey()
+                    && $r->commentator_type === $currentUser->getMorphClass())
+                ->pluck('reaction')
+                ->all())
+            <div
+                role="dialog"
+                aria-label="Message actions"
+                class="rounded-t-2xl bg-white pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:bg-zinc-900"
+                data-test="message-actions-sheet"
+            >
+                {{-- Drag handle --}}
+                <div class="mx-auto mt-2.5 h-1 w-10 rounded-full bg-zinc-300 dark:bg-zinc-600"></div>
+
+                {{-- Context --}}
+                <div class="px-4 pb-3 pt-2.5">
+                    <div class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                        {{ $sheetComment->commentator?->name ?? 'Unknown' }}
+                        · {{ $sheetComment->created_at->diffForHumans() }}
+                    </div>
+                    <div class="mt-1 line-clamp-2 text-sm text-zinc-700 dark:text-zinc-200">
+                        {{ Str::limit(html_entity_decode(strip_tags($sheetComment->text), ENT_QUOTES | ENT_HTML5), 180) }}
+                    </div>
+                </div>
+
+                {{-- Reactions row --}}
+                <div class="flex gap-1.5 border-t border-zinc-200 px-3.5 pb-3 pt-3.5 dark:border-zinc-700">
+                    @foreach (Config::allowedReactions() as $allowedReaction)
+                        @php($mine = in_array($allowedReaction, $myReactions, true))
+                        <button
+                            type="button"
+                            wire:click="react({{ $sheetComment->id }}, '{{ $allowedReaction }}')"
+                            x-on:click="$flux.modal('message-actions').close()"
+                            @class([
+                                'flex h-12 flex-1 items-center justify-center rounded-xl border text-[1.375rem] leading-none transition-colors',
+                                'border-accent bg-accent/10' => $mine,
+                                'border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700' => ! $mine,
+                            ])
+                            data-test="sheet-reaction"
+                            @if ($mine) data-test-mine="true" @endif
+                        >{{ $allowedReaction }}</button>
+                    @endforeach
+                </div>
+
+                {{-- Action rows --}}
+                <div class="border-t border-zinc-200 dark:border-zinc-700">
+                    @can('markPrayer', $sheetComment)
+                        <button
+                            type="button"
+                            wire:click="togglePrayer({{ $sheetComment->id }})"
+                            x-on:click="$flux.modal('message-actions').close()"
+                            class="flex w-full items-center gap-3.5 border-b border-zinc-100 px-5 py-3.5 text-left text-[15px] font-medium dark:border-zinc-800"
+                            data-test="sheet-prayer"
+                            @if ($sheetComment->is_prayer) data-test-active="true" @endif
+                        >
+                            <span @class([
+                                'grid size-8 shrink-0 place-items-center rounded-md',
+                                'bg-accent/15 text-accent' => $sheetComment->is_prayer,
+                                'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' => ! $sheetComment->is_prayer,
+                            ])>
+                                <flux:icon.hand-raised variant="micro" />
+                            </span>
+                            <span @class(['text-accent' => $sheetComment->is_prayer])>
+                                {{ $sheetComment->is_prayer ? 'Unmark as prayer' : 'Mark as prayer' }}
+                            </span>
+                        </button>
+                    @endcan
+
+                    @can('pin', $sheetComment)
+                        @php($pinned = $sheetComment->isPinned())
+                        <button
+                            type="button"
+                            wire:click="{{ $pinned ? 'unpinComment' : 'pinComment' }}({{ $sheetComment->id }})"
+                            x-on:click="$flux.modal('message-actions').close()"
+                            class="flex w-full items-center gap-3.5 border-b border-zinc-100 px-5 py-3.5 text-left text-[15px] font-medium dark:border-zinc-800"
+                            data-test="sheet-pin"
+                            @if ($pinned) data-test-active="true" @endif
+                        >
+                            <span @class([
+                                'grid size-8 shrink-0 place-items-center rounded-md',
+                                'bg-accent/15 text-accent' => $pinned,
+                                'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' => ! $pinned,
+                            ])>
+                                @if ($pinned)
+                                    <flux:icon.bookmark-slash variant="micro" />
+                                @else
+                                    <flux:icon.bookmark variant="micro" />
+                                @endif
+                            </span>
+                            <span @class(['text-accent' => $pinned])>
+                                {{ $pinned ? 'Unpin from top' : 'Pin to top' }}
+                            </span>
+                        </button>
+                    @endcan
+
+                    <button
+                        type="button"
+                        x-on:click="navigator.clipboard?.writeText($el.dataset.copyText); $flux.modal('message-actions').close()"
+                        data-copy-text="{{ html_entity_decode(strip_tags($sheetComment->text), ENT_QUOTES | ENT_HTML5) }}"
+                        class="flex w-full items-center gap-3.5 border-b border-zinc-100 px-5 py-3.5 text-left text-[15px] font-medium dark:border-zinc-800"
+                        data-test="sheet-copy"
+                    >
+                        <span class="grid size-8 shrink-0 place-items-center rounded-md bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            <flux:icon.clipboard-document variant="micro" />
+                        </span>
+                        Copy text
+                    </button>
+                </div>
+
+                {{-- Cancel --}}
+                <div class="px-3.5 pb-1 pt-2.5">
+                    <flux:modal.close>
+                        <button
+                            type="button"
+                            class="h-12 w-full rounded-xl border border-zinc-200 bg-white text-[15px] font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+                            data-test="sheet-cancel"
+                        >
+                            Cancel
+                        </button>
+                    </flux:modal.close>
+                </div>
+            </div>
+        @endif
+    </flux:modal>
+
+    {{-- Open the sheet whenever sheetCommentId becomes non-null --}}
+    <div
+        x-data
+        x-init="$wire.$watch('sheetCommentId', value => {
+            if (value !== null) {
+                $nextTick(() => $flux.modal('message-actions').show());
+            }
+        })"
+    ></div>
 </section>
