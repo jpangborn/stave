@@ -39,6 +39,11 @@ class ConversationPolicy
         return $conversation->group->hasLeader($user);
     }
 
+    public function pin(User $user, Conversation $conversation): bool
+    {
+        return $conversation->group->hasLeader($user);
+    }
+
     private function isAuthorOrLeader(User $user, Conversation $conversation): bool
     {
         return $this->isAuthor($user, $conversation)

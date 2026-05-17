@@ -15,6 +15,8 @@ use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
 /**
  * @property ?Carbon $last_comment_at
+ * @property ?Carbon $pinned_at
+ * @property ?int $pinned_by_user_id
  */
 #[Fillable(['group_id', 'user_id', 'title'])]
 class Conversation extends Model
@@ -27,6 +29,7 @@ class Conversation extends Model
     {
         return [
             'last_comment_at' => 'datetime',
+            'pinned_at' => 'datetime',
         ];
     }
 
@@ -42,12 +45,52 @@ class Conversation extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /** @return BelongsTo<User, $this> */
+    public function pinnedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pinned_by_user_id');
+    }
+
     /** @return MorphMany<Comment, $this> */
     public function pinnedComments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable')
             ->whereNotNull('pinned_at')
             ->orderByDesc('pinned_at');
+    }
+
+    /** @return MorphMany<Comment, $this> */
+    public function firstComment(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable')
+            ->with('commentator')
+            ->oldest()
+            ->limit(1);
+    }
+
+    public function isPinned(): bool
+    {
+        return $this->pinned_at !== null;
+    }
+
+    public function pin(User $pinnedBy): self
+    {
+        $this->forceFill([
+            'pinned_at' => now(),
+            'pinned_by_user_id' => $pinnedBy->id,
+        ])->save();
+
+        return $this;
+    }
+
+    public function unpin(): self
+    {
+        $this->forceFill([
+            'pinned_at' => null,
+            'pinned_by_user_id' => null,
+        ])->save();
+
+        return $this;
     }
 
     /** @return HasMany<ConversationFile, $this> */
