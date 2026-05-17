@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Spatie\Comments\Models\Concerns\HasComments;
@@ -47,6 +48,18 @@ class Conversation extends Model
         return $this->morphMany(Comment::class, 'commentable')
             ->whereNotNull('pinned_at')
             ->orderByDesc('pinned_at');
+    }
+
+    /** @return HasMany<ConversationFile, $this> */
+    public function files(): HasMany
+    {
+        return $this->hasMany(ConversationFile::class);
+    }
+
+    /** @return HasMany<ConversationFile, $this> */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ConversationFile::class)->where('is_inline_image', false);
     }
 
     public function postComment(string $text, ?CanComment $commentator = null, bool $isPrayer = false): Comment

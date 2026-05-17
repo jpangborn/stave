@@ -5,6 +5,7 @@ use App\CommentTransformers\RawHtmlMentionsTransformer;
 use App\Models\Comment;
 use App\Models\User;
 use App\Notifications\ServiceCommentNotification;
+use App\Support\CommentBodySanitizer;
 use Spatie\Comments\Actions\ApproveCommentAction;
 use Spatie\Comments\Actions\ProcessCommentAction;
 use Spatie\Comments\Actions\RejectCommentAction;
@@ -13,7 +14,6 @@ use Spatie\Comments\Actions\SendNotificationsForPendingCommentAction;
 use Spatie\Comments\Models\CommentNotificationSubscription;
 use Spatie\Comments\Models\Reaction;
 use Spatie\Comments\Notifications\PendingCommentNotification;
-use Spatie\Comments\Support\CommentSanitizer;
 
 return [
     /*
@@ -40,7 +40,7 @@ return [
      * After all transformers have transformed the comment text, it will
      * be passed to this class to sanitize it
      */
-    'comment_sanitizer' => CommentSanitizer::class,
+    'comment_sanitizer' => CommentBodySanitizer::class,
 
     /*
      * These attributes will be allowed in the comment text. All other

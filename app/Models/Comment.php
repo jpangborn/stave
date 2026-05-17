@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Spatie\Comments\Models\Comment as SpatieComment;
 
@@ -26,6 +27,12 @@ class Comment extends SpatieComment
     public function pinnedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pinned_by_user_id');
+    }
+
+    /** @return HasMany<ConversationFile, $this> */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ConversationFile::class)->where('is_inline_image', false);
     }
 
     public function isPinned(): bool
