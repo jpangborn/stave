@@ -36,6 +36,8 @@ new class extends Component {
 
     public ?int $sheetCommentId = null;
 
+    public ?int $commentToDeleteId = null;
+
     public ?TemporaryUploadedFile $newImage = null;
 
     public ?TemporaryUploadedFile $newAttachment = null;
@@ -762,6 +764,47 @@ new class extends Component {
         unset($this->editingExistingAttachments);
     }
 
+    public function confirmDeleteComment(int $commentId): void
+    {
+        /** @var Comment $comment */
+        $comment = $this->conversation->comments()->findOrFail($commentId);
+
+        $this->authorize('delete', $comment);
+
+        $this->commentToDeleteId = $commentId;
+
+        Flux::modal('message-actions')->close();
+        Flux::modal('delete-comment')->show();
+    }
+
+    public function deleteComment(): void
+    {
+        if ($this->commentToDeleteId === null) {
+            return;
+        }
+
+        /** @var Comment $comment */
+        $comment = $this->conversation->comments()->findOrFail($this->commentToDeleteId);
+
+        $this->authorize('delete', $comment);
+
+        ConversationFile::where('comment_id', $comment->id)->get()
+            ->each(fn (ConversationFile $file) => $file->delete());
+
+        $comment->delete();
+
+        if ($this->sheetCommentId === $comment->id) {
+            $this->sheetCommentId = null;
+        }
+
+        $this->commentToDeleteId = null;
+
+        unset($this->comments, $this->pinnedComments);
+
+        Flux::modal('delete-comment')->close();
+        Flux::toast(variant: 'success', text: 'Message deleted.');
+    }
+
     public function dismissPinnedStrip(): void
     {
         $this->pinnedStripOpen = false;
@@ -1286,6 +1329,20 @@ new class extends Component {
                                             </button>
                                         </flux:tooltip>
                                     @endcan
+
+                                    @can('delete', $comment)
+                                        <flux:tooltip content="Delete message">
+                                            <button
+                                                type="button"
+                                                wire:click="confirmDeleteComment({{ $comment->id }})"
+                                                aria-label="Delete message"
+                                                class="flex size-[26px] cursor-pointer items-center justify-center rounded-md text-zinc-500 transition-colors duration-[120ms] hover:bg-red-50 hover:text-red-600 focus-visible:bg-red-50 focus-visible:text-red-600 focus-visible:outline-none dark:hover:bg-red-950/40 dark:hover:text-red-400 dark:focus-visible:bg-red-950/40 dark:focus-visible:text-red-400"
+                                                data-test="delete-toggle"
+                                            >
+                                                <flux:icon.trash variant="micro" class="size-3.5" />
+                                            </button>
+                                        </flux:tooltip>
+                                    @endcan
                                 </div>
                             @endif
                         </div>
@@ -1613,6 +1670,20 @@ new class extends Component {
                         </span>
                         Copy text
                     </button>
+
+                    @can('delete', $sheetComment)
+                        <button
+                            type="button"
+                            wire:click="confirmDeleteComment({{ $sheetComment->id }})"
+                            class="flex w-full items-center gap-3.5 border-b border-zinc-100 px-5 py-3.5 text-left text-[15px] font-medium text-red-600 dark:border-zinc-800 dark:text-red-400"
+                            data-test="sheet-delete"
+                        >
+                            <span class="grid size-8 shrink-0 place-items-center rounded-md bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                                <flux:icon.trash variant="micro" />
+                            </span>
+                            Delete message
+                        </button>
+                    @endcan
                 </div>
 
                 {{-- Cancel --}}
@@ -1629,5 +1700,25 @@ new class extends Component {
                 </div>
             </div>
         @endif
+    </flux:modal>
+
+    <flux:modal name="delete-comment" class="min-w-[22rem]">
+        <form wire:submit="deleteComment" class="space-y-6">
+            <div>
+                <flux:heading size="lg">Delete message?</flux:heading>
+                <flux:subheading>
+                    This permanently removes the message, its reactions, and any attachments. This cannot be undone.
+                </flux:subheading>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost" type="button">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="danger" data-test="confirm-delete-comment">
+                    Delete message
+                </flux:button>
+            </div>
+        </form>
     </flux:modal>
 </section>

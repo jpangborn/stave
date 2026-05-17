@@ -48,6 +48,18 @@ class CommentPolicy
         return $conversation->group->hasActiveMember($user);
     }
 
+    public function delete(User $user, Comment $comment): bool
+    {
+        $conversation = $this->conversationFor($comment);
+
+        if (! $conversation instanceof Conversation) {
+            return false;
+        }
+
+        return $this->isAuthor($user, $comment)
+            || $conversation->group->hasLeader($user);
+    }
+
     private function conversationFor(Comment $comment): ?Conversation
     {
         $commentable = $comment->commentable;

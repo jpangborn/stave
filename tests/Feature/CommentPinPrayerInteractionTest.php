@@ -5,9 +5,12 @@ use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
 use App\Enums\MembershipStatus;
 use App\Models\Conversation;
+use App\Models\ConversationFile;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -186,4 +189,131 @@ test('the prayer toggle button is rendered for active group members', function (
     Livewire::actingAs($member)
         ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
         ->assertSeeHtml('data-test="prayer-toggle"');
+});
+
+// --- deleteComment ---
+
+test('confirmDeleteComment stages the comment id when authorized', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $comment = $conversation->postComment('delete me', $author);
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('confirmDeleteComment', $comment->id)
+        ->assertSet('commentToDeleteId', $comment->id);
+});
+
+test('an author can delete their own comment via deleteComment', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $comment = $conversation->postComment('delete me', $author);
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('confirmDeleteComment', $comment->id)
+        ->call('deleteComment')
+        ->assertSet('commentToDeleteId', null);
+
+    expect($conversation->fresh()->comments()->whereKey($comment->id)->exists())->toBeFalse();
+});
+
+test('a group leader can delete any comment', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $member = User::factory()->create();
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $comment = $conversation->postComment('member message', $member);
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('confirmDeleteComment', $comment->id)
+        ->call('deleteComment');
+
+    expect($conversation->fresh()->comments()->whereKey($comment->id)->exists())->toBeFalse();
+});
+
+test('a non-author non-leader member cannot delete a comment', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $other = User::factory()->create();
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    $comment = $conversation->postComment('not yours', $author);
+
+    Livewire::actingAs($other)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('confirmDeleteComment', $comment->id)
+        ->assertForbidden();
+
+    expect($conversation->fresh()->comments()->whereKey($comment->id)->exists())->toBeTrue();
+});
+
+test('deleteComment removes the comment files from storage', function (): void {
+    Storage::fake('digital-ocean', ['url' => 'https://stave.atl1.digitaloceanspaces.com']);
+
+    [$group, $conversation, $author] = buildInteractionScenario();
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->set('newAttachment', UploadedFile::fake()->create('notes.pdf', 100, 'application/pdf'))
+        ->set('reply', '<p>with file</p>')
+        ->call('postReply')
+        ->assertHasNoErrors();
+
+    $comment = $conversation->fresh()->comments()->first();
+    $file = ConversationFile::where('comment_id', $comment->id)->firstOrFail();
+
+    Storage::disk('digital-ocean')->assertExists($file->path);
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('confirmDeleteComment', $comment->id)
+        ->call('deleteComment');
+
+    Storage::disk('digital-ocean')->assertMissing($file->path);
+    expect(ConversationFile::query()->whereKey($file->id)->exists())->toBeFalse();
+});
+
+test('deleting a pinned comment removes it from the pinned strip', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $comment = $conversation->postComment('pinned then deleted', $author);
+    $comment->fresh()->pin($author);
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->assertSeeHtml('data-test="pinned-strip"')
+        ->call('confirmDeleteComment', $comment->id)
+        ->call('deleteComment')
+        ->assertDontSeeHtml('data-test="pinned-strip"');
+});
+
+test('deleting the active mobile-sheet comment clears sheetCommentId', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $comment = $conversation->postComment('sheet target', $author);
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('openActions', $comment->id)
+        ->assertSet('sheetCommentId', $comment->id)
+        ->call('confirmDeleteComment', $comment->id)
+        ->call('deleteComment')
+        ->assertSet('sheetCommentId', null);
+});
+
+test('the delete toggle is rendered for the comment author', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $conversation->postComment('mine', $author);
+
+    Livewire::actingAs($author)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->assertSeeHtml('data-test="delete-toggle"');
+});
+
+test('the delete toggle is hidden for a member who cannot delete', function (): void {
+    [$group, $conversation, $author] = buildInteractionScenario();
+    $other = User::factory()->create();
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $conversation->postComment('not yours', $author);
+
+    Livewire::actingAs($other)
+        ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->assertDontSeeHtml('data-test="delete-toggle"');
 });
