@@ -2,6 +2,7 @@
 
 use App\Models\Comment;
 use App\Models\Conversation;
+use App\Models\ConversationFile;
 use App\Models\Group;
 use App\Models\User;
 use App\Services\ScriptureLinker;
@@ -10,12 +11,17 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use Spatie\Comments\Support\Config;
 
 new class extends Component {
+    use WithFileUploads;
+
     public Group $group;
     public Conversation $conversation;
 
@@ -28,6 +34,22 @@ new class extends Component {
     public bool $headerExpanded = false;
 
     public ?int $sheetCommentId = null;
+
+    public ?TemporaryUploadedFile $newImage = null;
+
+    public ?TemporaryUploadedFile $newAttachment = null;
+
+    public ?TemporaryUploadedFile $standaloneUpload = null;
+
+    /** @var array<int> ConversationFile IDs of images staged for the next reply. */
+    public array $pendingImageIds = [];
+
+    /** @var array<int> ConversationFile IDs of attachments staged for the next reply. */
+    public array $pendingAttachmentIds = [];
+
+    private const IMAGE_RULES = ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'];
+
+    private const ATTACHMENT_RULES = ['file', 'mimes:pdf,md,txt,mp3,m4a,aac,wav', 'max:25600'];
 
     public function mount(Group $group, Conversation $conversation): void
     {
@@ -45,9 +67,58 @@ new class extends Component {
     {
         /** @var Collection<int, Comment> */
         return $this->conversation->comments()
-            ->with(['commentator', 'reactions.commentator'])
+            ->with(['commentator', 'reactions.commentator', 'attachments'])
             ->orderBy('created_at')
             ->get();
+    }
+
+    /** @return Collection<int, ConversationFile> */
+    #[Computed]
+    public function attachments(): Collection
+    {
+        /** @var Collection<int, ConversationFile> */
+        return $this->conversation->attachments()
+            ->with('uploader')
+            ->latest()
+            ->get();
+    }
+
+    /** @return Collection<int, ConversationFile> */
+    #[Computed]
+    public function pendingImages(): Collection
+    {
+        return $this->loadPending($this->pendingImageIds);
+    }
+
+    /** @return Collection<int, ConversationFile> */
+    #[Computed]
+    public function pendingAttachments(): Collection
+    {
+        return $this->loadPending($this->pendingAttachmentIds);
+    }
+
+    /**
+     * @param  array<int>  $ids
+     * @return Collection<int, ConversationFile>
+     */
+    private function loadPending(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        /** @var Collection<int, ConversationFile> $files */
+        $files = ConversationFile::query()
+            ->whereIn('id', $ids)
+            ->where('conversation_id', $this->conversation->id)
+            ->get()
+            ->keyBy('id');
+
+        /** @var Collection<int, ConversationFile> */
+        return (new Collection(array_map(
+            fn (int $id): ?ConversationFile => $files->get($id),
+            $ids,
+        )))->filter()->values();
     }
 
     /** @return Collection<int, Comment> */
@@ -136,20 +207,162 @@ new class extends Component {
     {
         $this->authorize('comment', $this->conversation);
 
-        $validated = $this->validate([
-            'reply' => ['required', 'string'],
-        ]);
+        $hasText = trim(strip_tags($this->reply)) !== '';
+        $hasMedia = $this->pendingImageIds !== [] || $this->pendingAttachmentIds !== [];
 
-        if (trim(strip_tags($validated['reply'])) === '') {
-            $this->addError('reply', 'Please write a reply.');
+        if (! $hasText && ! $hasMedia) {
+            $this->addError('reply', 'Write a message or attach a file.');
 
             return;
         }
 
-        $this->conversation->postComment($validated['reply'], Auth::user(), $this->replyIsPrayer);
+        $text = $this->buildReplyHtml();
 
-        $this->reset('reply', 'replyIsPrayer');
-        unset($this->comments, $this->contributors, $this->nonContributors);
+        /** @var Comment $comment */
+        $comment = $this->conversation->postComment($text, Auth::user(), $this->replyIsPrayer);
+
+        ConversationFile::query()
+            ->whereIn('id', array_merge($this->pendingImageIds, $this->pendingAttachmentIds))
+            ->where('conversation_id', $this->conversation->id)
+            ->update(['comment_id' => $comment->id]);
+
+        $this->reset('reply', 'replyIsPrayer', 'pendingImageIds', 'pendingAttachmentIds');
+        unset(
+            $this->comments,
+            $this->contributors,
+            $this->nonContributors,
+            $this->attachments,
+            $this->pendingImages,
+            $this->pendingAttachments,
+        );
+    }
+
+    private function buildReplyHtml(): string
+    {
+        $imagesHtml = $this->pendingImages
+            ->map(fn (ConversationFile $file): string => sprintf(
+                '<p><img src="%s" alt="%s" data-conversation-file-id="%d"></p>',
+                e($file->url),
+                e($file->original_name),
+                $file->id,
+            ))
+            ->implode('');
+
+        $body = trim($this->reply);
+
+        return $imagesHtml.$body;
+    }
+
+    public function updatedNewImage(): void
+    {
+        $this->authorize('comment', $this->conversation);
+
+        $this->validate(['newImage' => self::IMAGE_RULES]);
+
+        $file = $this->storeUpload($this->newImage, isInlineImage: true);
+
+        $this->pendingImageIds[] = $file->id;
+        $this->newImage = null;
+        unset($this->pendingImages);
+    }
+
+    public function updatedNewAttachment(): void
+    {
+        $this->authorize('comment', $this->conversation);
+
+        $this->validate(['newAttachment' => self::ATTACHMENT_RULES]);
+
+        $file = $this->storeUpload($this->newAttachment, isInlineImage: false);
+
+        $this->pendingAttachmentIds[] = $file->id;
+        $this->newAttachment = null;
+        unset($this->pendingAttachments);
+    }
+
+    public function updatedStandaloneUpload(): void
+    {
+        $this->authorize('comment', $this->conversation);
+
+        $this->validate(['standaloneUpload' => self::ATTACHMENT_RULES]);
+
+        $this->storeUpload($this->standaloneUpload, isInlineImage: false);
+
+        $this->standaloneUpload = null;
+        unset($this->attachments);
+
+        Flux::modal('add-file')->close();
+        Flux::toast(variant: 'success', text: 'File added.');
+    }
+
+    public function removePendingImage(int $id): void
+    {
+        $this->discardPending($id, $this->pendingImageIds);
+        unset($this->pendingImages);
+    }
+
+    public function removePendingAttachment(int $id): void
+    {
+        $this->discardPending($id, $this->pendingAttachmentIds);
+        unset($this->pendingAttachments);
+    }
+
+    /** @param  array<int>  $ids */
+    private function discardPending(int $id, array &$ids): void
+    {
+        if (! in_array($id, $ids, true)) {
+            return;
+        }
+
+        $file = ConversationFile::query()
+            ->where('conversation_id', $this->conversation->id)
+            ->find($id);
+
+        if ($file && $file->uploader_id === Auth::id() && $file->comment_id === null) {
+            $file->delete();
+        }
+
+        $ids = array_values(array_filter($ids, fn (int $existing): bool => $existing !== $id));
+    }
+
+    public function deleteAttachment(int $id): void
+    {
+        /** @var ConversationFile $file */
+        $file = ConversationFile::query()
+            ->where('conversation_id', $this->conversation->id)
+            ->findOrFail($id);
+
+        $this->authorize('delete', $file);
+
+        $file->delete();
+
+        unset($this->attachments, $this->comments);
+        Flux::toast(variant: 'success', text: 'File deleted.');
+    }
+
+    private function storeUpload(TemporaryUploadedFile $upload, bool $isInlineImage): ConversationFile
+    {
+        $ulid = (string) Str::ulid();
+        $extension = strtolower($upload->getClientOriginalExtension() ?: 'bin');
+        $path = "conversations/{$this->conversation->id}/{$ulid}.{$extension}";
+
+        Storage::disk('digital-ocean')->putFileAs(
+            "conversations/{$this->conversation->id}",
+            $upload,
+            "{$ulid}.{$extension}",
+            ['visibility' => 'public'],
+        );
+
+        return ConversationFile::create([
+            'ulid' => $ulid,
+            'conversation_id' => $this->conversation->id,
+            'uploader_id' => Auth::id(),
+            'disk' => 'digital-ocean',
+            'path' => $path,
+            'original_name' => $upload->getClientOriginalName(),
+            'mime_type' => $upload->getMimeType() ?: 'application/octet-stream',
+            'size' => $upload->getSize() ?: 0,
+            'is_inline_image' => $isInlineImage,
+        ]);
     }
 
     public function react(int $commentId, string $reaction): void
@@ -490,6 +703,7 @@ new class extends Component {
                                     **:[ol]:list-decimal **:[ol]:ml-5 **:[ul]:list-disc **:[ul]:ml-5
                                     **:[a]:underline
                                     **:[blockquote]:border-l-4 **:[blockquote]:pl-2
+                                    **:[img]:my-2 **:[img]:max-w-full **:[img]:rounded-lg **:[img]:border **:[img]:border-zinc-200 dark:**:[img]:border-zinc-700
                                     **:[h1]:not-first:mt-3 **:[h2]:not-first:mt-3 **:[h3]:not-first:mt-3
                                     **:[ul]:not-first:mt-3 **:[ol]:not-first:mt-3
                                     **:[blockquote]:not-first:mt-3
@@ -497,6 +711,14 @@ new class extends Component {
                                     **:[h1+p]:mt-0 **:[h2+p]:mt-0 **:[h3+p]:mt-0">
                                     {!! app(ScriptureLinker::class)->linkify($comment->text) !!}
                                 </div>
+
+                                @if ($comment->attachments->isNotEmpty())
+                                    <div class="mt-2 grid gap-1.5 sm:grid-cols-2" data-test="comment-attachments">
+                                        @foreach ($comment->attachments as $attachment)
+                                            <x-conversation-attachment-card :attachment="$attachment" />
+                                        @endforeach
+                                    </div>
+                                @endif
 
                                 {{-- Reactions row --}}
                                 @php($summary = $comment->reactions->summary($currentUser))
@@ -688,9 +910,10 @@ new class extends Component {
         {{-- Composer --}}
         @can('comment', $conversation)
             <div
-                class="border-t border-zinc-200 px-3.5 py-2.5 lg:px-6 lg:py-4 dark:border-zinc-700"
+                class="relative border-t border-zinc-200 px-3.5 py-2.5 lg:px-6 lg:py-4 dark:border-zinc-700"
                 x-data="{
                     expanded: false,
+                    isDragging: false,
                     get hasDraft() { return (this.$wire.reply ?? '').replace(/<[^>]*>/g, '').trim().length > 0; },
                     expand() {
                         this.expanded = true;
@@ -705,8 +928,34 @@ new class extends Component {
                         if (next && this.$root.contains(next)) return;
                         this.collapse();
                     },
+                    handleDrop(event) {
+                        this.isDragging = false;
+                        const files = Array.from(event.dataTransfer?.files ?? []);
+                        if (!files.length) return;
+                        this.expand();
+                        for (const file of files) {
+                            const isImage = (file.type || '').startsWith('image/');
+                            const input = isImage ? this.$refs.imageInput : this.$refs.attachInput;
+                            if (!input) continue;
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            input.files = dt.files;
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    },
                 }"
+                x-on:dragover.prevent="isDragging = true"
+                x-on:dragleave.prevent="isDragging = false"
+                x-on:drop.prevent="handleDrop($event)"
             >
+                <div
+                    x-show="isDragging"
+                    x-cloak
+                    class="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-accent bg-accent/10 text-sm font-semibold text-accent"
+                    data-test="composer-drop-overlay"
+                >
+                    Drop to attach
+                </div>
                 {{-- Mobile collapsed pill — invisible on desktop --}}
                 <button
                     type="button"
@@ -728,6 +977,9 @@ new class extends Component {
                         wire:submit="postReply"
                         x-on:keydown.enter="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $el.requestSubmit() }"
                     >
+                        <input type="file" x-ref="imageInput" wire:model="newImage" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" data-test="composer-image-input" />
+                        <input type="file" x-ref="attachInput" wire:model="newAttachment" accept=".pdf,.md,.txt,audio/*" class="hidden" data-test="composer-attach-input" />
+
                         <flux:composer wire:model="reply" label="Reply" label:sr-only placeholder="Write a reply…  (try mentioning Romans 8:31)">
                             <x-slot name="input">
                                 <flux:editor
@@ -735,9 +987,88 @@ new class extends Component {
                                     toolbar="heading | bold italic underline strike | bullet ordered blockquote | link ~ undo redo"
                                     class="**:data-[slot=content]:min-h-[100px]!"
                                 />
+
+                                @php($pendingImages = $this->pendingImages)
+                                @php($pendingAttachments = $this->pendingAttachments)
+                                @if ($pendingImages->isNotEmpty() || $pendingAttachments->isNotEmpty())
+                                    <div class="mt-2 space-y-2" data-test="composer-pending">
+                                        @if ($pendingImages->isNotEmpty())
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach ($pendingImages as $image)
+                                                    <div
+                                                        class="group/pending relative size-20 overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-700"
+                                                        wire:key="pending-image-{{ $image->id }}"
+                                                        data-test="pending-image"
+                                                    >
+                                                        <img src="{{ $image->url }}" alt="{{ $image->original_name }}" class="size-full object-cover" />
+                                                        <button
+                                                            type="button"
+                                                            wire:click="removePendingImage({{ $image->id }})"
+                                                            class="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-zinc-900/70 text-white opacity-0 transition-opacity hover:bg-zinc-900 focus-visible:opacity-100 group-hover/pending:opacity-100"
+                                                            aria-label="Remove image"
+                                                            data-test="pending-image-remove"
+                                                        >
+                                                            <flux:icon.x-mark variant="micro" class="size-3" />
+                                                        </button>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        @if ($pendingAttachments->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1.5">
+                                                @foreach ($pendingAttachments as $attachment)
+                                                    <span
+                                                        class="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 py-1 pl-2.5 pr-1 text-xs dark:border-zinc-700 dark:bg-zinc-800"
+                                                        wire:key="pending-attachment-{{ $attachment->id }}"
+                                                        data-test="pending-attachment"
+                                                    >
+                                                        <flux:icon.paper-clip variant="micro" class="text-zinc-500" />
+                                                        <span class="max-w-[16ch] truncate font-medium text-zinc-700 dark:text-zinc-200">{{ $attachment->original_name }}</span>
+                                                        <button
+                                                            type="button"
+                                                            wire:click="removePendingAttachment({{ $attachment->id }})"
+                                                            class="grid size-4 place-items-center rounded-full text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700 dark:hover:bg-zinc-700"
+                                                            aria-label="Remove attachment"
+                                                            data-test="pending-attachment-remove"
+                                                        >
+                                                            <flux:icon.x-mark variant="micro" class="size-3" />
+                                                        </button>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
                             </x-slot>
 
                             <x-slot name="footer">
+                                <flux:tooltip content="Attach image">
+                                    <button
+                                        type="button"
+                                        x-on:click="$refs.imageInput.click()"
+                                        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                                        aria-label="Attach image"
+                                        data-test="composer-image-button"
+                                    >
+                                        <flux:icon.photo variant="micro" wire:loading.remove wire:target="newImage" />
+                                        <flux:icon.arrow-path variant="micro" class="animate-spin" wire:loading wire:target="newImage" />
+                                    </button>
+                                </flux:tooltip>
+
+                                <flux:tooltip content="Attach file">
+                                    <button
+                                        type="button"
+                                        x-on:click="$refs.attachInput.click()"
+                                        class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                                        aria-label="Attach file"
+                                        data-test="composer-attach-button"
+                                    >
+                                        <flux:icon.paper-clip variant="micro" wire:loading.remove wire:target="newAttachment" />
+                                        <flux:icon.arrow-path variant="micro" class="animate-spin" wire:loading wire:target="newAttachment" />
+                                    </button>
+                                </flux:tooltip>
+
                                 <button
                                     type="button"
                                     wire:click="$toggle('replyIsPrayer')"
@@ -799,16 +1130,27 @@ new class extends Component {
         aria-label="Members"
         data-test="members-rail"
     >
+        @php($railAttachments = $this->attachments)
         <section class="mb-6" data-test="rail-files">
             <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                <span>Files · 0</span>
-                <flux:tooltip content="Coming soon">
-                    <flux:button size="xs" variant="ghost" icon="arrow-up-tray" disabled data-test="rail-files-add">Add</flux:button>
-                </flux:tooltip>
+                <span>Files · {{ $railAttachments->count() }}</span>
+                @can('comment', $conversation)
+                    <flux:modal.trigger name="add-file">
+                        <flux:button size="xs" variant="ghost" icon="arrow-up-tray" data-test="rail-files-add">Add</flux:button>
+                    </flux:modal.trigger>
+                @endcan
             </div>
-            <p class="px-1 py-2 text-xs text-zinc-500">
-                No files yet. Drag a PDF or sheet music here to attach it to this conversation.
-            </p>
+            @if ($railAttachments->isEmpty())
+                <p class="px-1 py-2 text-xs text-zinc-500">
+                    No files yet. Use the Add button or the paperclip in the composer.
+                </p>
+            @else
+                <div class="space-y-1.5">
+                    @foreach ($railAttachments as $attachment)
+                        <x-conversation-attachment-card :attachment="$attachment" compact />
+                    @endforeach
+                </div>
+            @endif
         </section>
 
         <div class="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
@@ -855,6 +1197,33 @@ new class extends Component {
             </section>
         @endif
     </aside>
+
+    {{-- Add-file modal (triggered from the files rail) --}}
+    @can('comment', $conversation)
+        <flux:modal name="add-file" class="md:w-96" data-test="add-file-modal">
+            <div class="space-y-4">
+                <div>
+                    <flux:heading size="lg">Add a file</flux:heading>
+                    <flux:subheading>PDF, markdown, text, or audio up to 25 MB.</flux:subheading>
+                </div>
+
+                <input
+                    type="file"
+                    wire:model="standaloneUpload"
+                    accept=".pdf,.md,.txt,audio/*"
+                    class="block w-full text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:cursor-pointer dark:text-zinc-200"
+                    data-test="add-file-input"
+                />
+
+                <div wire:loading wire:target="standaloneUpload" class="flex items-center gap-2 text-sm text-zinc-500">
+                    <flux:icon.arrow-path variant="micro" class="animate-spin" />
+                    Uploading…
+                </div>
+
+                <flux:error name="standaloneUpload" />
+            </div>
+        </flux:modal>
+    @endcan
 
     {{-- Mobile action sheet --}}
     @php($sheetComment = $this->sheetComment)

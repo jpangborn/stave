@@ -37,6 +37,13 @@ return [
             'CSS.AllowedProperties' => '',
             'AutoFormat.RemoveEmpty' => true,
         ],
+        'comment_body' => [
+            'HTML.Doctype' => 'HTML 4.01 Transitional',
+            'HTML.Allowed' => 'p,br,strong,b,em,i,u,s,h1,h2,h3,ul,ol,li,blockquote,a[href|title|target|rel],img[src|alt|width|height|data-conversation-file-id]',
+            'URI.AllowedSchemes' => ['https' => true],
+            'AutoFormat.RemoveEmpty' => true,
+            'Attr.AllowedFrameTargets' => ['_blank'],
+        ],
         'test' => [
             'Attr.EnableID' => 'true',
         ],
@@ -46,7 +53,7 @@ return [
         ],
         'custom_definition' => [
             'id' => 'html5-definitions',
-            'rev' => 1,
+            'rev' => 2,
             'debug' => false,
             'elements' => [
                 // http://developers.whatwg.org/sections.html
@@ -104,6 +111,7 @@ return [
         ],
         'custom_attributes' => [
             ['a', 'target', 'Enum#_blank,_self,_target,_top'],
+            ['img', 'data-conversation-file-id', 'Text'],
         ],
         'custom_elements' => [
             ['u', 'Inline', 'Inline', 'Common'],
