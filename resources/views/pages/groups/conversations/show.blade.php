@@ -847,6 +847,22 @@ new class extends Component {
 
         $this->redirect(route('groups.show', $this->group), navigate: true);
     }
+
+    public function toggleReplies(): void
+    {
+        $this->authorize('updateReplies', $this->conversation);
+
+        $this->conversation->forceFill([
+            'allow_replies' => ! $this->conversation->allow_replies,
+        ])->save();
+
+        Flux::toast(
+            variant: 'success',
+            text: $this->conversation->allow_replies
+                ? 'Replies enabled.'
+                : 'Replies disabled. Only leaders can post.',
+        );
+    }
 };
 ?>
 
@@ -886,6 +902,16 @@ new class extends Component {
                         <flux:dropdown align="end">
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" square />
                             <flux:menu>
+                                @can('updateReplies', $conversation)
+                                    <flux:menu.item
+                                        wire:click="toggleReplies"
+                                        icon="{{ $conversation->allow_replies ? 'lock-closed' : 'chat-bubble-left-right' }}"
+                                        data-test="toggle-replies"
+                                    >
+                                        {{ $conversation->allow_replies ? 'Disable replies' : 'Enable replies' }}
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
+                                @endcan
                                 <flux:menu.item
                                     wire:click="deleteConversation"
                                     icon="trash"
@@ -971,6 +997,16 @@ new class extends Component {
                         <flux:dropdown align="end">
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" square />
                             <flux:menu>
+                                @can('updateReplies', $conversation)
+                                    <flux:menu.item
+                                        wire:click="toggleReplies"
+                                        icon="{{ $conversation->allow_replies ? 'lock-closed' : 'chat-bubble-left-right' }}"
+                                        data-test="toggle-replies"
+                                    >
+                                        {{ $conversation->allow_replies ? 'Disable replies' : 'Enable replies' }}
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
+                                @endcan
                                 <flux:menu.item
                                     wire:click="deleteConversation"
                                     icon="trash"
@@ -1350,6 +1386,23 @@ new class extends Component {
                 @endforeach
             </div>
         </div>
+
+        {{-- Replies-disabled banner (visible to anyone who can't post — including viewers of a locked thread) --}}
+        @cannot('comment', $conversation)
+            @if (! $conversation->allow_replies)
+                <div
+                    class="border-t border-yellow-300 bg-yellow-50 px-3.5 py-3 lg:px-6 dark:border-yellow-700 dark:bg-yellow-900/20"
+                    data-test="replies-disabled-banner"
+                >
+                    <div class="flex items-start gap-2.5">
+                        <flux:icon.lock-closed variant="micro" class="mt-0.5 size-4 shrink-0 text-yellow-700 dark:text-yellow-300" />
+                        <div class="text-sm text-yellow-800 dark:text-yellow-200">
+                            Replies are turned off for this conversation. Only group leaders can post.
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endcannot
 
         {{-- Composer --}}
         @can('comment', $conversation)

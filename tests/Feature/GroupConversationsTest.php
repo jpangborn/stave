@@ -159,11 +159,81 @@ test('a member can create a conversation and an opening comment', function (): v
 
     expect($conversation->title)->toBe('Welcome aboard');
     expect($conversation->user_id)->toBe($author->id);
+    expect($conversation->allow_replies)->toBeTrue();
+    expect($conversation->pinned_at)->toBeNull();
     expect($conversation->comments()->count())->toBe(1);
     expect($conversation->refresh()->last_comment_at)->not->toBeNull();
 
     Notification::assertSentTo($other, NewConversationNotification::class);
     Notification::assertNotSentTo($author, NewConversationNotification::class);
+});
+
+test('a member can create a conversation with replies disabled', function (): void {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $author);
+
+    $this->actingAs($author);
+
+    Livewire::test('pages::groups.conversations.create', ['group' => $group])
+        ->set('title', 'Announcement only')
+        ->set('body', '<p>Read-only.</p>')
+        ->set('allowReplies', false)
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect();
+
+    $conversation = Conversation::where('group_id', $group->id)->firstOrFail();
+    expect($conversation->allow_replies)->toBeFalse();
+});
+
+test('a leader can pin the conversation on create', function (): void {
+    Notification::fake();
+
+    $leader = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $leader, GroupRole::LEADER);
+
+    $this->actingAs($leader);
+
+    Livewire::test('pages::groups.conversations.create', ['group' => $group])
+        ->set('title', 'Read me first')
+        ->set('body', '<p>Body</p>')
+        ->set('pinOnPost', true)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $conversation = Conversation::where('group_id', $group->id)->firstOrFail();
+    expect($conversation->pinned_at)->not->toBeNull();
+    expect($conversation->pinned_by_user_id)->toBe($leader->id);
+});
+
+test('a non-leader pinOnPost flag is ignored', function (): void {
+    Notification::fake();
+
+    $member = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $member);
+
+    $this->actingAs($member);
+
+    Livewire::test('pages::groups.conversations.create', ['group' => $group])
+        ->set('title', 'Trying to pin')
+        ->set('body', '<p>Body</p>')
+        ->set('pinOnPost', true)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $conversation = Conversation::where('group_id', $group->id)->firstOrFail();
+    expect($conversation->pinned_at)->toBeNull();
 });
 
 test('an empty body fails validation', function (): void {
@@ -288,6 +358,98 @@ test('an empty reply fails validation', function (): void {
         ->assertHasErrors('reply');
 
     expect($conversation->comments()->count())->toBe(0);
+});
+
+test('a non-leader cannot reply when replies are disabled on the conversation', function (): void {
+    $leader = User::factory()->create();
+    $member = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $leader, GroupRole::LEADER);
+    attachMember($group, $member);
+
+    $conversation = Conversation::factory()->repliesDisabled()->create([
+        'group_id' => $group->id,
+        'user_id' => $leader->id,
+    ]);
+
+    $this->actingAs($member);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->set('reply', '<p>Should fail</p>')
+        ->call('postReply')
+        ->assertForbidden();
+
+    expect($conversation->comments()->count())->toBe(0);
+});
+
+test('a leader can reply when replies are disabled', function (): void {
+    $leader = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $leader, GroupRole::LEADER);
+
+    $conversation = Conversation::factory()->repliesDisabled()->create([
+        'group_id' => $group->id,
+        'user_id' => $leader->id,
+    ]);
+
+    $this->actingAs($leader);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->set('reply', '<p>Leader can post</p>')
+        ->call('postReply')
+        ->assertHasNoErrors();
+
+    expect($conversation->comments()->count())->toBe(1);
+});
+
+test('a leader can toggle replies on and off from the show page', function (): void {
+    $leader = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $leader, GroupRole::LEADER);
+
+    $conversation = Conversation::factory()->create([
+        'group_id' => $group->id,
+        'user_id' => $leader->id,
+    ]);
+
+    $this->actingAs($leader);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('toggleReplies');
+
+    expect($conversation->refresh()->allow_replies)->toBeFalse();
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('toggleReplies');
+
+    expect($conversation->refresh()->allow_replies)->toBeTrue();
+});
+
+test('a non-leader cannot toggle replies', function (): void {
+    $author = User::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
+    attachMember($group, $author);
+
+    $conversation = Conversation::factory()->create([
+        'group_id' => $group->id,
+        'user_id' => $author->id,
+    ]);
+
+    $this->actingAs($author);
+
+    Livewire::test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])
+        ->call('toggleReplies')
+        ->assertForbidden();
+
+    expect($conversation->refresh()->allow_replies)->toBeTrue();
 });
 
 test('a non-leader cannot reply when messaging is leaders only', function (): void {

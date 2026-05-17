@@ -17,8 +17,9 @@ use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
  * @property ?Carbon $last_comment_at
  * @property ?Carbon $pinned_at
  * @property ?int $pinned_by_user_id
+ * @property bool $allow_replies
  */
-#[Fillable(['group_id', 'user_id', 'title'])]
+#[Fillable(['group_id', 'user_id', 'title', 'allow_replies'])]
 class Conversation extends Model
 {
     /** @use HasFactory<ConversationFactory> */
@@ -30,7 +31,13 @@ class Conversation extends Model
         return [
             'last_comment_at' => 'datetime',
             'pinned_at' => 'datetime',
+            'allow_replies' => 'boolean',
         ];
+    }
+
+    public function allowsReplies(): bool
+    {
+        return (bool) $this->allow_replies;
     }
 
     /** @return BelongsTo<Group, $this> */
