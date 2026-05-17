@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LiturgyElementType;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -78,5 +79,39 @@ class Service extends Model
             ->get()
             ->pluck('assignee')
             ->unique('id');
+    }
+
+    public function sectionCount(): int
+    {
+        return $this->liturgyElements
+            ->where('type', LiturgyElementType::SECTION)
+            ->count();
+    }
+
+    public function elementCount(): int
+    {
+        return $this->liturgyElements
+            ->where('type', '!=', LiturgyElementType::SECTION)
+            ->count();
+    }
+
+    public function unassignedCount(): int
+    {
+        return $this->liturgyElements
+            ->where('type', '!=', LiturgyElementType::SECTION)
+            ->whereNull('assignee_id')
+            ->count();
+    }
+
+    /**
+     * Count of elements that should have library content but don't.
+     * Excludes section/sermon/prayer/baptism/supper — they either
+     * use inline fields or need no content.
+     */
+    public function missingContentCount(): int
+    {
+        return $this->liturgyElements
+            ->filter(fn (LiturgyElement $el) => $el->requiresContent() && ! $el->hasContent())
+            ->count();
     }
 }

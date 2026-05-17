@@ -2,16 +2,31 @@
 
 namespace App\Observers;
 
+use App\Enums\LiturgyElementType;
 use App\Models\LiturgyElement;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\ServiceCommentSubscriptionService;
+use App\Support\SectionTone;
 
 class LiturgyElementObserver
 {
     public function __construct(
         private ServiceCommentSubscriptionService $subscriptionService
     ) {}
+
+    /**
+     * Handle the LiturgyElement "creating" event.
+     *
+     * Seed a tonal color for sections so element rows can inherit it.
+     * The color persists across renames; only the initial value is auto-picked.
+     */
+    public function creating(LiturgyElement $element): void
+    {
+        if ($element->type === LiturgyElementType::SECTION && $element->section_color === null) {
+            $element->section_color = SectionTone::pick($element->name ?? '');
+        }
+    }
 
     /**
      * Handle the LiturgyElement "created" event.

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\LiturgyElementType;
 use App\Models\LiturgyElement;
 use App\Models\User;
+use App\Support\SectionTone;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -53,5 +54,21 @@ class LiturgyElementFactory extends Factory
         return $this->state(fn () => [
             'assignee_id' => $user->id,
         ]);
+    }
+
+    /**
+     * State: a section element with a tonal color derived from its name.
+     */
+    public function section(?string $name = null): static
+    {
+        return $this->state(function () use ($name) {
+            $resolvedName = $name ?? $this->faker->word();
+
+            return [
+                'type' => LiturgyElementType::SECTION,
+                'name' => $resolvedName,
+                'section_color' => SectionTone::pick($resolvedName),
+            ];
+        });
     }
 }
