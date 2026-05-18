@@ -57,13 +57,28 @@ new class extends Component {
 };
 ?>
 
-<section class="w-full">
+@php
+    $titleLc = mb_strtolower((string) $form->title);
+    $timeOfDay = match (true) {
+        str_contains($titleLc, 'morning') => 'MORNING',
+        str_contains($titleLc, 'afternoon') => 'AFTERNOON',
+        str_contains($titleLc, 'evening') => 'EVENING',
+        str_contains($titleLc, 'night') => 'NIGHT',
+        default => null,
+    };
+    $dayLabel = mb_strtoupper($form->date->format('l'));
+    $eyebrow = $timeOfDay
+        ? $dayLabel.' '.$timeOfDay.' · '.mb_strtoupper($form->date->format('F j, Y'))
+        : $dayLabel.' · '.mb_strtoupper($form->date->format('F j, Y'));
+@endphp
+
+<section class="w-full" data-service-show>
     <header class="flex flex-col gap-4 sm:flex-row sm:items-start">
         <x-service.date-block :date="$form->date" />
 
         <div class="min-w-0 flex-1">
             <div class="text-[11.5px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                {{ $form->date->format('l') }} · {{ $form->date->format('F j, Y') }}
+                {{ $eyebrow }}
             </div>
 
             <h1 class="mt-1 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">

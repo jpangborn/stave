@@ -92,62 +92,51 @@ new class extends Component {
 
 @php
     $tone = SectionTone::classesFor($sectionColor);
-    $showStripe = $sectionColor !== null;
 @endphp
 
-<div :x-sort:item="$element->id" wire:key="sermon-{{ $element->id }}"
-     class="group relative grid items-center gap-3 border-b border-zinc-100 px-2 py-2 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900
-            {{ $showStripe ? 'grid-cols-[4px_18px_36px_minmax(140px,1fr)_minmax(140px,200px)_minmax(160px,240px)_32px]' : 'grid-cols-[18px_36px_minmax(140px,1fr)_minmax(140px,200px)_minmax(160px,240px)_32px]' }}">
+<div>
+    <x-service.element-row
+        :element="$element"
+        :tone="$tone"
+        :section-color="$sectionColor"
+        :is-first-in-section="$isFirstInSection"
+        :is-last-in-section="$isLastInSection"
+        :name="$name"
+        placeholder="Sermon"
+        type-label="Sermon"
+        icon="lectern"
+        wire-key-prefix="sermon"
+    >
+        <x-slot:assignee>
+            @include('livewire.elements._partials.assignee-chip', [
+                'element' => $element,
+                'users' => $users,
+                'recentIds' => $recentAssigneeIds,
+                'open' => $assigneeOpen,
+                'search' => $assigneeSearch,
+            ])
+        </x-slot:assignee>
 
-    @if ($showStripe)
-        <div class="-my-2 self-stretch rounded-sm opacity-60 {{ $tone['stripe'] }}"></div>
-    @endif
+        <x-slot:content>
+            <div class="flex w-full items-center gap-2 rounded-full border border-zinc-200 px-3 py-1 dark:border-zinc-700">
+                <flux:icon name="lectern" class="size-3 shrink-0 text-zinc-500" />
+                <input type="text"
+                       wire:model.live.blur="description"
+                       placeholder="Add sermon title…"
+                       class="h-6 w-full border-0 bg-transparent text-[12.5px] text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-0 dark:text-zinc-100 dark:placeholder-zinc-500" />
+            </div>
+        </x-slot:content>
 
-    <div x-sort-handle class="flex h-6 cursor-grab items-center justify-center text-zinc-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-zinc-600" title="Drag to reorder">
-        <flux:icon name="bars-2" class="size-3.5" />
-    </div>
-
-    <div class="flex size-9 items-center justify-center rounded-lg {{ $tone['swatch'] }}">
-        <flux:icon name="lectern" class="size-4" />
-    </div>
-
-    <div class="min-w-0">
-        <div class="text-[13.5px] font-semibold text-zinc-900 dark:text-zinc-100">
-            <x-service.inline-text
-                wire-model="name"
-                :value="$name"
-                placeholder="Sermon"
-                class="text-[13.5px] font-semibold"
-            />
-        </div>
-        <div class="text-[10.5px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Sermon
-        </div>
-    </div>
-
-    @include('livewire.elements._partials.assignee-chip', [
-        'element' => $element,
-        'users' => $users,
-        'recentIds' => $recentAssigneeIds,
-        'open' => $assigneeOpen,
-        'search' => $assigneeSearch,
-    ])
-
-    <div class="flex w-full items-center gap-2 rounded-full border border-zinc-200 px-3 py-1 dark:border-zinc-700">
-        <flux:icon name="lectern" class="size-3 shrink-0 text-zinc-500" />
-        <input type="text"
-               wire:model.live.blur="description"
-               placeholder="Add sermon title…"
-               class="h-6 w-full border-0 bg-transparent text-[12.5px] text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-0 dark:text-zinc-100 dark:placeholder-zinc-500" />
-    </div>
-
-    <flux:dropdown align="end" offset="-15">
-        <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
-        <flux:menu class="min-w-36">
-            <flux:menu.item wire:click="duplicate" icon="document-duplicate">Duplicate</flux:menu.item>
-            <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
-        </flux:menu>
-    </flux:dropdown>
+        <x-slot:actions>
+            <flux:dropdown align="end" offset="-15">
+                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
+                <flux:menu class="min-w-36">
+                    <flux:menu.item wire:click="duplicate" icon="document-duplicate">Duplicate</flux:menu.item>
+                    <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
+        </x-slot:actions>
+    </x-service.element-row>
 
     <flux:modal name="delete-element" class="min-w-[22rem]">
         <form wire:submit="$parent.delete({{ $element->id }})" class="space-y-6">

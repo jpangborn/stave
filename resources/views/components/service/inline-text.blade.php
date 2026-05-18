@@ -40,6 +40,6 @@
         @blur="editing = false"
         @keydown.enter.prevent="$refs.inlineInput.blur()"
         @keydown.escape.prevent="$refs.inlineInput.blur()"
-        class="{{ $base }} {{ $padClasses }} block w-full max-w-full bg-transparent border-b border-accent outline-none"
+        class="{{ $base }} {{ $padClasses }} block w-full max-w-full rounded-md border border-emerald-400 bg-white outline-none dark:border-emerald-500 dark:bg-zinc-900"
     />
 </div>

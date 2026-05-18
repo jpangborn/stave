@@ -242,6 +242,73 @@ it('renames a section inline', function (): void {
     expect($section->fresh()->name)->toBe('God the Father');
 });
 
+it('renders an uppercase time-of-day descriptor in the header eyebrow', function (): void {
+    $morning = Service::factory()->create([
+        'title' => 'Morning Service',
+        'date' => '2026-05-17 09:00:00',
+    ]);
+
+    $this->get(route('services.show', $morning))
+        ->assertOk()
+        ->assertSee('SUNDAY MORNING · MAY 17, 2026');
+
+    $evening = Service::factory()->create([
+        'title' => 'Evening Service',
+        'date' => '2026-05-17 18:00:00',
+    ]);
+
+    $this->get(route('services.show', $evening))
+        ->assertOk()
+        ->assertSee('SUNDAY EVENING · MAY 17, 2026');
+});
+
+it('defaults the content preview to the current selection when opened', function (): void {
+    $service = Service::factory()->create();
+    $library = Song::factory()->create(['name' => 'Doxology']);
+    $song = $service->liturgyElements()->create([
+        'type' => LiturgyElementType::SONG,
+        'name' => 'Opening',
+        'content_type' => Song::class,
+        'content_id' => $library->id,
+        'order' => 0,
+    ]);
+
+    Livewire::test('elements.song', ['element' => $song])
+        ->call('openContent')
+        ->assertSet('contentOpen', true)
+        ->assertSet('hoverContentId', $library->id);
+});
+
+it('defaults the content preview to the first song when nothing is selected', function (): void {
+    $service = Service::factory()->create();
+    Song::factory()->count(3)->create();
+    $song = $service->liturgyElements()->create([
+        'type' => LiturgyElementType::SONG,
+        'name' => 'Opening',
+        'order' => 0,
+    ]);
+
+    $component = Livewire::test('elements.song', ['element' => $song])
+        ->call('openContent');
+
+    expect($component->get('hoverContentId'))->not->toBeNull();
+});
+
+it('resolves a preview song from hoverContentId', function (): void {
+    $service = Service::factory()->create();
+    $library = Song::factory()->create(['name' => 'His Mercy Is More']);
+    $song = $service->liturgyElements()->create([
+        'type' => LiturgyElementType::SONG,
+        'name' => 'Opening',
+        'order' => 0,
+    ]);
+
+    $component = Livewire::test('elements.song', ['element' => $song])
+        ->set('hoverContentId', $library->id);
+
+    expect($component->get('previewSong')->id)->toBe($library->id);
+});
+
 it('renders the full service page with every element row type', function (): void {
     $service = Service::factory()->create(['title' => 'All-Type Service']);
     $service->liturgyElements()->createMany([
