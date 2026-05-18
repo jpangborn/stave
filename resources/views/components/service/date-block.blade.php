@@ -2,7 +2,7 @@
     'date',
 ])
 
-<div class="flex w-16 shrink-0 flex-col items-center rounded-lg border border-zinc-200 bg-white py-1.5 dark:border-zinc-700 dark:bg-zinc-900">
+<div class="flex w-16 shrink-0 flex-col items-center justify-center rounded-lg border border-zinc-200 bg-white px-2 py-2 dark:border-zinc-700 dark:bg-zinc-900">
     <div class="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
         {{ $date->format('M') }}
     </div>

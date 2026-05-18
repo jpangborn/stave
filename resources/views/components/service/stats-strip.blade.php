@@ -17,9 +17,4 @@
     <x-service.stat label="Unassigned" :value="$unassigned" :warn="$unassigned > 0" />
     <div class="hidden h-6 w-px bg-zinc-200 sm:block dark:bg-zinc-700"></div>
     <x-service.stat label="Missing content" :value="$missing" :warn="$missing > 0" />
-    <div class="grow"></div>
-    <div class="hidden items-center gap-2 text-[11.5px] text-zinc-500 sm:flex dark:text-zinc-400">
-        <kbd class="rounded border border-zinc-200 bg-white px-1.5 py-0.5 font-mono text-[10px] dark:border-zinc-700 dark:bg-zinc-900">⌘K</kbd>
-        to search &amp; add
-    </div>
 </div>

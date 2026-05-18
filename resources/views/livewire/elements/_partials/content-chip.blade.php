@@ -15,16 +15,9 @@
     $emptyHint = $variant === 'song' ? 'No songs match.' : 'No readings match.';
 
     $previewTitle = $previewItem?->{$titleField};
-    $previewLines = [];
-    if ($previewItem) {
-        $body = $variant === 'song'
-            ? ($previewItem->lyrics ?? '')
-            : ($previewItem->text ?? '');
-        $previewLines = collect(preg_split('/\r?\n/', $body))
-            ->slice(0, 20)
-            ->values()
-            ->all();
-    }
+    $previewBody = $previewItem
+        ? ($variant === 'song' ? ($previewItem->lyrics ?? '') : ($previewItem->text ?? ''))
+        : '';
 @endphp
 
 <div class="relative w-full" x-data
@@ -44,7 +37,7 @@
 
     @if ($open)
         <div wire:click="$set('contentOpen', false)" class="fixed inset-0 z-40 bg-black/5"></div>
-        <div class="absolute left-0 top-[calc(100%+4px)] z-50 w-[600px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="absolute right-0 top-[calc(100%+4px)] z-50 w-[600px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
             <div class="border-b border-zinc-200 px-3 py-2 dark:border-zinc-700">
                 <input type="text"
                        x-init="$el.focus()"
@@ -115,16 +108,13 @@
                                 <span class="ml-auto">Last used {{ $previewItem->last_used_date->format('M j, Y') }}</span>
                             @endif
                         </div>
-                        <div class="mt-2.5 space-y-1 text-[12px] leading-relaxed {{ $variant === 'reading' ? 'italic' : '' }} text-zinc-700 dark:text-zinc-300">
-                            @foreach ($previewLines as $line)
-                                @if (trim($line) === '')
-                                    <div class="h-2"></div>
-                                @else
-                                    <div>{{ $line }}</div>
-                                @endif
-                            @endforeach
-                            @if (empty($previewLines))
+                        <div class="mt-2.5 text-[12px] leading-relaxed text-zinc-700 dark:text-zinc-300
+                                    {{ $variant === 'reading' ? 'italic' : '' }}
+                                    [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_h1]:mt-2 [&_h1]:mb-1 [&_h1]:text-[13px] [&_h1]:font-semibold [&_h2]:mt-2 [&_h2]:mb-1 [&_h2]:text-[12.5px] [&_h2]:font-semibold">
+                            @if (trim(strip_tags($previewBody)) === '')
                                 <div class="italic text-zinc-400">No preview available.</div>
+                            @else
+                                {!! $previewBody !!}
                             @endif
                         </div>
                     @else
