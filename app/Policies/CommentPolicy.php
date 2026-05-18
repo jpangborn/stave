@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Comment;
 use App\Models\Conversation;
+use App\Models\Service;
 use App\Models\User;
 
 class CommentPolicy
@@ -27,14 +28,18 @@ class CommentPolicy
 
     public function update(User $user, Comment $comment): bool
     {
-        $conversation = $this->conversationFor($comment);
+        $commentable = $comment->commentable;
 
-        if (! $conversation instanceof Conversation) {
-            return false;
+        if ($commentable instanceof Conversation) {
+            return $this->isAuthor($user, $comment)
+                || $commentable->group->hasLeader($user);
         }
 
-        return $this->isAuthor($user, $comment)
-            || $conversation->group->hasLeader($user);
+        if ($commentable instanceof Service) {
+            return $this->isAuthor($user, $comment);
+        }
+
+        return false;
     }
 
     public function markPrayer(User $user, Comment $comment): bool
@@ -50,14 +55,18 @@ class CommentPolicy
 
     public function delete(User $user, Comment $comment): bool
     {
-        $conversation = $this->conversationFor($comment);
+        $commentable = $comment->commentable;
 
-        if (! $conversation instanceof Conversation) {
-            return false;
+        if ($commentable instanceof Conversation) {
+            return $this->isAuthor($user, $comment)
+                || $commentable->group->hasLeader($user);
         }
 
-        return $this->isAuthor($user, $comment)
-            || $conversation->group->hasLeader($user);
+        if ($commentable instanceof Service) {
+            return $this->isAuthor($user, $comment);
+        }
+
+        return false;
     }
 
     private function conversationFor(Comment $comment): ?Conversation
