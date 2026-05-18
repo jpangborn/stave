@@ -31,8 +31,8 @@
                     {{ $group->name }}
                 </h3>
                 <div class="flex flex-wrap gap-1.5">
-                    <flux:badge size="sm" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
-                    <flux:badge size="sm" :color="$group->messaging->color()">{{ $group->messaging->label() }}</flux:badge>
+                    <flux:badge size="sm" variant="solid" :color="$group->visibility->color()">{{ $group->visibility->label() }}</flux:badge>
+                    <flux:badge size="sm" variant="solid" :color="$group->messaging->color()">{{ $group->messaging->label() }}</flux:badge>
                 </div>
             </div>
         </div>
