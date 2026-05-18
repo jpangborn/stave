@@ -73,7 +73,7 @@ new class extends Component {
 @endphp
 
 <section class="w-full" data-service-show>
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-start">
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-stretch">
         <x-service.date-block :date="$form->date" />
 
         <div class="min-w-0 flex-1">
@@ -90,7 +90,7 @@ new class extends Component {
                 />
             </h1>
 
-            <div class="mt-2 flex flex-wrap items-center gap-2.5 text-[12.5px] text-zinc-500 dark:text-zinc-400">
+            <div class="mt-1 flex flex-wrap items-center gap-2.5 text-[12.5px] text-zinc-500 dark:text-zinc-400">
                 @if ($form->service?->template)
                     <span>Template:</span>
                     <a href="{{ route('templates.show', ['template' => $form->service->template]) }}"
