@@ -8,6 +8,7 @@ use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -148,4 +149,59 @@ test('the composer is hidden for users who cannot comment', function (): void {
         ->get(route('groups.conversations.show', ['group' => $group, 'conversation' => $conversation]))
         ->assertDontSeeHtml('data-test="composer-prayer-toggle"')
         ->assertDontSeeHtml('data-test="composer-shortcut-hint"');
+});
+
+test('omitting newImageModel hides the image attach button', function (): void {
+    $rendered = Blade::render(<<<'BLADE'
+        <x-conversation-composer
+            editor-model="reply"
+            new-attachment-model="newAttachment"
+            :pending-attachments="$pendingAttachments"
+            submit-action="postReply"
+        />
+    BLADE, ['pendingAttachments' => collect()]);
+
+    expect($rendered)
+        ->not->toContain('data-test="composer-image-button"')
+        ->and($rendered)->toContain('data-test="composer-attach-button"');
+});
+
+test('omitting newAttachmentModel hides the file attach button', function (): void {
+    $rendered = Blade::render(<<<'BLADE'
+        <x-conversation-composer
+            editor-model="reply"
+            new-image-model="newImage"
+            :pending-images="$pendingImages"
+            submit-action="postReply"
+        />
+    BLADE, ['pendingImages' => collect()]);
+
+    expect($rendered)
+        ->toContain('data-test="composer-image-button"')
+        ->and($rendered)->not->toContain('data-test="composer-attach-button"');
+});
+
+test('allowPrayer false hides the prayer toggle even with a prayer model', function (): void {
+    $rendered = Blade::render(<<<'BLADE'
+        <x-conversation-composer
+            editor-model="reply"
+            prayer-model="replyIsPrayer"
+            :allow-prayer="false"
+            submit-action="postReply"
+        />
+    BLADE);
+
+    expect($rendered)->not->toContain('data-test="composer-prayer-toggle"');
+});
+
+test('allowMentions false hides the mention button', function (): void {
+    $rendered = Blade::render(<<<'BLADE'
+        <x-conversation-composer
+            editor-model="reply"
+            :allow-mentions="false"
+            submit-action="postReply"
+        />
+    BLADE);
+
+    expect($rendered)->not->toContain('data-test="composer-mention"');
 });

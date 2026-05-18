@@ -1066,13 +1066,7 @@ new class extends Component {
                 @endif
 
                 @foreach ($this->groupedComments as $dateString => $dayComments)
-                    <div class="my-2 flex items-center gap-3.5 px-2 py-3" data-test="day-divider">
-                        <div class="h-px flex-1 bg-zinc-200 dark:bg-zinc-700"></div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                            {{ $this->dayLabel($dateString) }}
-                        </span>
-                        <div class="h-px flex-1 bg-zinc-200 dark:bg-zinc-700"></div>
-                    </div>
+                    <x-conversation.day-divider :label="$this->dayLabel($dateString)" />
 
                     @foreach ($dayComments as $comment)
                         @php($isMine = $comment->commentator?->is($currentUser))
