@@ -54,6 +54,26 @@ new class extends Component {
         return $this->comments->groupBy(fn (Comment $comment): string => $comment->created_at->toDateString())->collect();
     }
 
+    /** @return BaseCollection<int, array{user: User, hasPosted: bool}> */
+    #[Computed]
+    public function participants(): BaseCollection
+    {
+        $posterIds = $this->comments
+            ->pluck('commentator.id')
+            ->filter()
+            ->unique()
+            ->all();
+
+        return $this->service->assignedUsers()
+            ->map(fn (User $user): array => [
+                'user' => $user,
+                'hasPosted' => in_array($user->id, $posterIds, true),
+            ])
+            ->sortBy(fn (array $row): string => sprintf('%d-%s', $row['hasPosted'] ? 0 : 1, mb_strtolower($row['user']->name)))
+            ->values()
+            ->collect();
+    }
+
     #[Computed]
     public function editingComment(): ?Comment
     {
@@ -267,9 +287,11 @@ new class extends Component {
     @php($quickReactions = Config::allowedReactions())
 
     <div
-        class="mx-auto flex w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-800"
+        class="flex w-full overflow-hidden"
         style="height: min(calc(100vh - 22rem), 48rem); min-height: 28rem;"
     >
+        {{-- Conversation column (messages + composer) --}}
+        <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
         {{-- Messages --}}
         <div class="min-h-0 flex-1 overflow-auto px-4 py-3 lg:px-6">
             @if ($this->comments->isEmpty())
@@ -516,6 +538,46 @@ new class extends Component {
                 />
             </div>
         @endif
+        </div>
+
+        {{-- Participants sidebar (lg+ only) --}}
+        <aside
+            class="hidden w-64 shrink-0 flex-col overflow-hidden border-l border-zinc-200 lg:flex dark:border-zinc-700"
+            data-test="discussion-participants"
+        >
+            <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                <flux:heading size="sm">In this discussion</flux:heading>
+                <flux:subheading size="sm">{{ $this->participants->count() }} {{ Str::plural('person', $this->participants->count()) }}</flux:subheading>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-auto px-2 py-2">
+                @forelse ($this->participants as $row)
+                    @php($user = $row['user'])
+                    <div
+                        @class([
+                            'flex items-center gap-2.5 rounded-md px-2 py-1.5',
+                            'opacity-60' => ! $row['hasPosted'],
+                        ])
+                        data-test="participant-row"
+                        data-has-posted="{{ $row['hasPosted'] ? 'true' : 'false' }}"
+                    >
+                        <flux:avatar :name="$user->name" :src="$user->gravatarUrl()" size="xs" color="auto" />
+                        <span class="min-w-0 flex-1 truncate text-sm text-zinc-900 dark:text-zinc-100">{{ $user->name }}</span>
+                        @if ($row['hasPosted'])
+                            <span
+                                class="size-1.5 shrink-0 rounded-full bg-emerald-500"
+                                title="Has posted in this discussion"
+                                aria-label="Has posted in this discussion"
+                            ></span>
+                        @endif
+                    </div>
+                @empty
+                    <div class="px-3 py-4 text-xs text-zinc-500">
+                        No assigned participants yet.
+                    </div>
+                @endforelse
+            </div>
+        </aside>
     </div>
 
     {{-- Mobile action sheet --}}
