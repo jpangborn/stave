@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Enums\LiturgyElementType;
 use App\Livewire\Forms\LiturgyElementForm;
 use App\Models\LiturgyElement;
 use App\Models\Template;
@@ -34,6 +35,82 @@ new class extends Component {
     public function users()
     {
         return User::orderBy("name")->get();
+    }
+
+    /**
+     * Walk the ordered elements once and tag each with its enclosing
+     * section's color + first/last-in-section flags.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function layout(): array
+    {
+        $elements = $this->template->liturgyElements;
+        $out = [];
+        $currentSection = null;
+        $sectionIndex = 0;
+        $sectionElementCount = 0;
+        $sectionBufferStart = 0;
+
+        foreach ($elements as $el) {
+            if ($el->type === LiturgyElementType::SECTION) {
+                if ($currentSection !== null) {
+                    for ($j = $sectionBufferStart; $j < count($out); $j++) {
+                        $out[$j]['section_element_count'] = $sectionElementCount;
+                    }
+                    $out[$sectionBufferStart - 1]['section_element_count'] = $sectionElementCount;
+                }
+                $sectionIndex++;
+                $currentSection = $el;
+                $sectionElementCount = 0;
+                $sectionBufferStart = count($out) + 1;
+
+                $out[] = [
+                    'element' => $el,
+                    'section_color' => $el->section_color,
+                    'section_index' => $sectionIndex,
+                    'is_first_in_section' => false,
+                    'is_last_in_section' => false,
+                    'section_element_count' => 0,
+                ];
+                continue;
+            }
+
+            $sectionElementCount++;
+            $isFirst = ! isset($out[count($out) - 1]) || $out[count($out) - 1]['element']->type === LiturgyElementType::SECTION;
+            $out[] = [
+                'element' => $el,
+                'section_color' => $currentSection?->section_color,
+                'section_index' => $currentSection !== null ? $sectionIndex : null,
+                'is_first_in_section' => $isFirst,
+                'is_last_in_section' => false,
+                'section_element_count' => null,
+            ];
+        }
+
+        $lastByIndex = [];
+        foreach ($out as $idx => $row) {
+            if ($row['element']->type !== LiturgyElementType::SECTION) {
+                $lastByIndex[$row['section_index']] = $idx;
+            }
+        }
+        foreach ($lastByIndex as $lastIdx) {
+            $out[$lastIdx]['is_last_in_section'] = true;
+        }
+
+        if ($currentSection !== null) {
+            for ($j = $sectionBufferStart; $j < count($out); $j++) {
+                if ($out[$j]['element']->type !== LiturgyElementType::SECTION) {
+                    $out[$j]['section_element_count'] = $sectionElementCount;
+                }
+            }
+            $headerIdx = $sectionBufferStart - 1;
+            if ($headerIdx >= 0 && isset($out[$headerIdx])) {
+                $out[$headerIdx]['section_element_count'] = $sectionElementCount;
+            }
+        }
+
+        return $out;
     }
 
     #[On("service-element-changed")]
@@ -103,19 +180,31 @@ new class extends Component {
 ?>
 
 <div>
-    <flux:table class="w-full">
-        <flux:table.rows x-sort="$wire.sort($item, $position)" x-sort:config="{ handle: '[x-sort-handle]' }">
-            @if($this->template->liturgyElements->isEmpty())
-                <flux:table.row>
-                    <flux:table.cell align="center">No Service Elements</flux:table.cell>
-                </flux:table.row>
-            @else
-                @foreach($this->template->liturgyElements as $element)
-                    @livewire($element->type->component(), ['element' => $element, 'users' => $this->users], key($element->id))
-                @endforeach
-            @endif
-        </flux:table.rows>
-    </flux:table>
+    <div x-sort="$wire.sort($item, $position)" x-sort:config="{ handle: '[x-sort-handle]' }" class="mt-2">
+        @php($rows = $this->layout())
+
+        @if (empty($rows))
+            <div class="rounded-lg border border-dashed border-zinc-300 px-6 py-12 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                No template elements yet.
+            </div>
+        @else
+            @foreach ($rows as $row)
+                @livewire(
+                    $row['element']->type->component(),
+                    [
+                        'element' => $row['element'],
+                        'users' => $this->users,
+                        'sectionColor' => $row['section_color'],
+                        'sectionIndex' => $row['section_index'],
+                        'sectionElementCount' => $row['section_element_count'],
+                        'isFirstInSection' => $row['is_first_in_section'],
+                        'isLastInSection' => $row['is_last_in_section'],
+                    ],
+                    key('liturgy-element-'.$row['element']->id)
+                )
+            @endforeach
+        @endif
+    </div>
 
     <flux:modal variant="flyout" name="edit-element">
     <form wire:submit="updateElement" class="space-y-6">
