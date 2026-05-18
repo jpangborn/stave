@@ -35,7 +35,7 @@ it('filters readings by reading_type when element has reading_type specified', f
     ]);
 
     $readings = Livewire::test('elements.reading', ['element' => $readingElement])
-        ->set('search', 'Reading')
+        ->set('contentSearch', 'Reading')
         ->get('readings');
 
     expect($readings)->toHaveCount(1);
@@ -57,7 +57,7 @@ it('returns all readings matching search when element has no reading_type specif
     ]);
 
     $readings = Livewire::test('elements.reading', ['element' => $readingElement])
-        ->set('search', 'Reading')
+        ->set('contentSearch', 'Reading')
         ->get('readings');
 
     expect($readings)->toHaveCount(3);

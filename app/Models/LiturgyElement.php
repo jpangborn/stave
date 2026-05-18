@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\LiturgyElementType;
 use App\Enums\ReadingType;
 use App\Observers\LiturgyElementObserver;
+use App\Support\SectionTone;
 use Database\Factories\LiturgyElementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 /**
  * @property LiturgyElementType $type
  * @property ReadingType|null $reading_type
+ * @property string|null $section_color
  */
 #[ObservedBy([LiturgyElementObserver::class])]
 #[Fillable([
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'name',
     'assignee_id',
     'description',
+    'section_color',
     'content_type',
     'content_id',
 ])]
@@ -85,6 +88,30 @@ class LiturgyElement extends Model
     public function hasContent(): bool
     {
         return $this->content_type && $this->content_id;
+    }
+
+    /**
+     * Whether this element type would normally have library content
+     * (song / reading). Sermon uses an inline title, not library content,
+     * and prayer/supper/baptism/section have no content.
+     */
+    public function requiresContent(): bool
+    {
+        return in_array($this->type, [
+            LiturgyElementType::SONG,
+            LiturgyElementType::READING,
+        ], true);
+    }
+
+    /**
+     * Tailwind classes for the section's tonal color. Pass through for
+     * non-section rows by looking up the parent section's color upstream.
+     *
+     * @return array{stripe:string, dot:string, swatch:string, soft:string}
+     */
+    public function sectionToneClasses(): array
+    {
+        return SectionTone::classesFor($this->section_color);
     }
 
     /**

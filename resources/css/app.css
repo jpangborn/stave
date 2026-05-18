@@ -7,6 +7,11 @@
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
+/* Section tone classes are composed dynamically in PHP (see App\Support\SectionTone).
+   Safelist the eight Flexoki-mapped hues at the stops we use. */
+@source inline("{bg,text}-{red,orange,yellow,green,cyan,blue,purple,pink}-{50,100,300,400,500,700,900}");
+@source inline("dark:{bg,text}-{red,orange,yellow,green,cyan,blue,purple,pink}-{50,100,300,400,500,700,900}");
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
