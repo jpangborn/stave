@@ -9,7 +9,7 @@
         ? trim(html_entity_decode(strip_tags((string) $latestComment->text), ENT_QUOTES | ENT_HTML5, 'UTF-8'))
         : null;
     $membersCount = $group->members_count ?? $group->members()->count();
-    $previewMembers = $group->relationLoaded('members') ? $group->members : $group->members()->limit(4)->get();
+    $previewMembers = $group->relationLoaded('members') ? $group->members->take(4) : $group->members()->limit(4)->get();
     $extraMembers = max(0, $membersCount - $previewMembers->count());
 @endphp
 
@@ -59,7 +59,7 @@
             <div class="flex items-center gap-2 min-w-0">
                 @if ($previewMembers->isNotEmpty())
                     <flux:avatar.group class="dark:**:ring-zinc-800">
-                        @foreach ($previewMembers->take(4) as $member)
+                        @foreach ($previewMembers as $member)
                             <flux:avatar
                                 size="xs"
                                 :name="$member->name"
