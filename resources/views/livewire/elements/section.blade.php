@@ -78,90 +78,92 @@ new class extends Component {
 @php
     $tone = SectionTone::classesFor($sectionColor);
     $countLabel = $sectionElementCount === 1 ? '1 element' : ($sectionElementCount ?? 0).' elements';
+    $indexLabel = str_pad((string) ($sectionIndex ?? 0), 2, '0', STR_PAD_LEFT);
 @endphp
 
 <div :x-sort:item="$element->id" wire:key="section-{{ $element->id }}"
-     class="group mt-6 grid grid-cols-[4px_1fr_auto] items-stretch gap-4">
+     class="group relative mt-6 mb-2 overflow-hidden rounded-lg pl-[22px] pr-[18px] pt-4 pb-4 {{ $tone['soft'] }}">
 
-    <div class="rounded-sm {{ $tone['stripe'] }}"></div>
+    <div class="absolute inset-y-0 left-0 w-1 {{ $tone['stripe'] }}"></div>
 
-    <div class="min-w-0 py-0.5">
-        <div class="flex items-baseline gap-3">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] tabular-nums {{ $tone['dot'] }}">
-                {{ str_pad((string) ($sectionIndex ?? 0), 2, '0', STR_PAD_LEFT) }}
-            </div>
+    <div class="flex items-start gap-4">
+        <div class="min-w-[28px] shrink-0 pt-1 text-[22px] font-bold leading-none tracking-tight tabular-nums {{ $tone['dot'] }}">
+            {{ $indexLabel }}
+        </div>
 
-            <h2 class="m-0 min-w-0 flex-1 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <div class="min-w-0 flex-1">
+            <h2 class="m-0 text-xl font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-100">
                 <x-service.inline-text
                     wire-model="name"
                     :value="$name"
                     placeholder="Untitled section"
-                    class="text-2xl font-bold tracking-tight"
+                    class="text-xl font-bold tracking-tight"
                 />
             </h2>
 
-            <div class="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                {{ $countLabel }}
+            <div class="mt-1 max-w-[720px] text-[12.5px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+                <x-service.inline-text
+                    wire-model="description"
+                    :value="$description"
+                    placeholder="Add a section description…"
+                    class="text-[12.5px] leading-relaxed"
+                />
             </div>
         </div>
 
-        <div class="mt-1 max-w-[680px] text-[12.5px] leading-relaxed text-zinc-600 dark:text-zinc-400">
-            <x-service.inline-text
-                wire-model="description"
-                :value="$description"
-                placeholder="Add a section description…"
-                class="text-[12.5px] leading-relaxed"
-            />
+        <div class="flex shrink-0 items-center gap-1.5 pt-0.5">
+            <div class="rounded-full border border-black/5 bg-white/70 px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-wider text-zinc-500 dark:border-white/5 dark:bg-zinc-900/40 dark:text-zinc-400">
+                {{ $countLabel }}
+            </div>
+
+            <div class="relative" x-data>
+                <button type="button" wire:click="$set('addOpen', true)"
+                        class="flex size-7 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                        title="Add element to this section">
+                    <flux:icon name="plus" class="size-3.5" />
+                </button>
+
+                @if ($addOpen)
+                    <div wire:click="$set('addOpen', false)" class="fixed inset-0 z-40 bg-black/5"></div>
+                    <div class="absolute right-0 top-[calc(100%+4px)] z-50 w-48 overflow-hidden rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                         x-data @keydown.escape.window="$wire.set('addOpen', false)">
+                        <div class="px-2 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                            Add element
+                        </div>
+                        @foreach (LiturgyElementType::cases() as $case)
+                            @continue($case === LiturgyElementType::SECTION)
+                            <button type="button" wire:click="addElement('{{ $case->value }}')"
+                                    class="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                <span class="flex size-6 shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                    <flux:icon name="{{ $case->icon() }}" class="size-3.5" />
+                                </span>
+                                {{ $case->label() }}
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            <flux:dropdown align="end" offset="-15">
+                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
+                <flux:menu class="min-w-44">
+                    <flux:menu.submenu heading="Change color" icon="swatch">
+                        @foreach (SectionTone::PALETTE as $color)
+                            <flux:menu.item wire:click="recolor('{{ $color }}')">
+                                <span class="flex items-center gap-2">
+                                    <span class="size-3 rounded-full {{ SectionTone::classesFor($color)['stripe'] }}"></span>
+                                    <span class="capitalize">{{ $color }}</span>
+                                    @if ($color === $sectionColor)
+                                        <flux:icon name="check" class="ml-auto size-3 text-emerald-600" />
+                                    @endif
+                                </span>
+                            </flux:menu.item>
+                        @endforeach
+                    </flux:menu.submenu>
+                    <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
         </div>
-    </div>
-
-    <div class="flex items-start gap-1 pt-0.5">
-        <div x-sort-handle class="hidden cursor-grab items-center text-zinc-300 group-hover:flex dark:text-zinc-600" title="Drag to reorder">
-            <flux:icon name="bars-2" class="size-4" />
-        </div>
-
-        <div class="relative" x-data>
-            <button type="button" wire:click="$set('addOpen', true)"
-                    class="flex size-7 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                    title="Add element to this section">
-                <flux:icon name="plus" class="size-3.5" />
-            </button>
-
-            @if ($addOpen)
-                <div wire:click="$set('addOpen', false)" class="fixed inset-0 z-40 bg-black/5"></div>
-                <div class="absolute right-0 top-[calc(100%+4px)] z-50 w-44 overflow-hidden rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-                     x-data @keydown.escape.window="$wire.set('addOpen', false)">
-                    @foreach (LiturgyElementType::cases() as $case)
-                        @continue($case === LiturgyElementType::SECTION)
-                        <button type="button" wire:click="addElement('{{ $case->value }}')"
-                                class="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                            <flux:icon name="{{ $case->icon() }}" class="size-3.5 text-zinc-500" />
-                            {{ $case->label() }}
-                        </button>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-
-        <flux:dropdown align="end" offset="-15">
-            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
-            <flux:menu class="min-w-44">
-                <flux:menu.submenu heading="Change color" icon="swatch">
-                    @foreach (SectionTone::PALETTE as $color)
-                        <flux:menu.item wire:click="recolor('{{ $color }}')">
-                            <span class="flex items-center gap-2">
-                                <span class="size-3 rounded-full {{ SectionTone::classesFor($color)['stripe'] }}"></span>
-                                <span class="capitalize">{{ $color }}</span>
-                                @if ($color === $sectionColor)
-                                    <flux:icon name="check" class="ml-auto size-3 text-emerald-600" />
-                                @endif
-                            </span>
-                        </flux:menu.item>
-                    @endforeach
-                </flux:menu.submenu>
-                <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
-            </flux:menu>
-        </flux:dropdown>
     </div>
 
     <flux:modal name="delete-element" class="min-w-[22rem]">

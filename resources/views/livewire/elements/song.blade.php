@@ -39,10 +39,20 @@ new class extends Component {
 
     public string $contentSearch = '';
 
+    public ?int $hoverContentId = null;
+
     public function mount(?Collection $users = null): void
     {
         $this->users = $users ?? collect();
         $this->name = $this->element->name;
+    }
+
+    public function openContent(): void
+    {
+        $this->contentOpen = true;
+        $this->contentSearch = '';
+        $this->hoverContentId = $this->element->content_id
+            ?? $this->songs->first()?->id;
     }
 
     public function updatedName(string $value): void
@@ -102,77 +112,82 @@ new class extends Component {
     #[Computed]
     public function songs(): Collection
     {
-        if ($this->contentSearch === '') {
-            return collect();
+        $query = Song::query()->withLastUsedDate();
+
+        if ($this->contentSearch !== '') {
+            $query->where('name', 'like', '%'.$this->contentSearch.'%');
         }
 
-        return Song::query()
-            ->where('name', 'like', '%'.$this->contentSearch.'%')
+        return $query
+            ->orderByDesc('last_used_date')
             ->orderBy('name')
             ->limit(50)
             ->get();
+    }
+
+    #[Computed]
+    public function previewSong(): ?Song
+    {
+        if ($this->hoverContentId === null) {
+            return null;
+        }
+
+        return Song::query()
+            ->withLastUsedDate()
+            ->find($this->hoverContentId);
     }
 };
 ?>
 
 @php
     $tone = SectionTone::classesFor($sectionColor);
-    $showStripe = $sectionColor !== null;
 @endphp
 
-<div :x-sort:item="$element->id" wire:key="song-{{ $element->id }}"
-     class="group relative grid items-center gap-3 border-b border-zinc-100 px-2 py-2 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900
-            {{ $showStripe ? 'grid-cols-[4px_18px_36px_minmax(140px,1fr)_minmax(140px,200px)_minmax(160px,240px)_32px]' : 'grid-cols-[18px_36px_minmax(140px,1fr)_minmax(140px,200px)_minmax(160px,240px)_32px]' }}">
+<div>
+    <x-service.element-row
+        :element="$element"
+        :tone="$tone"
+        :section-color="$sectionColor"
+        :is-first-in-section="$isFirstInSection"
+        :is-last-in-section="$isLastInSection"
+        :name="$name"
+        placeholder="Song"
+        type-label="Song"
+        icon="musical-note"
+        wire-key-prefix="song"
+    >
+        <x-slot:assignee>
+            @include('livewire.elements._partials.assignee-chip', [
+                'element' => $element,
+                'users' => $users,
+                'recentIds' => $recentAssigneeIds,
+                'open' => $assigneeOpen,
+                'search' => $assigneeSearch,
+            ])
+        </x-slot:assignee>
 
-    @if ($showStripe)
-        <div class="-my-2 self-stretch rounded-sm opacity-60 {{ $tone['stripe'] }}"></div>
-    @endif
+        <x-slot:content>
+            @include('livewire.elements._partials.content-chip', [
+                'element' => $element,
+                'items' => $this->songs,
+                'variant' => 'song',
+                'open' => $contentOpen,
+                'search' => $contentSearch,
+                'hoverId' => $hoverContentId,
+                'previewItem' => $this->previewSong,
+            ])
+        </x-slot:content>
 
-    <div x-sort-handle class="flex h-6 cursor-grab items-center justify-center text-zinc-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-zinc-600" title="Drag to reorder">
-        <flux:icon name="bars-2" class="size-3.5" />
-    </div>
-
-    <div class="flex size-9 items-center justify-center rounded-lg {{ $tone['swatch'] }}">
-        <flux:icon name="musical-note" class="size-4" />
-    </div>
-
-    <div class="min-w-0">
-        <div class="text-[13.5px] font-semibold text-zinc-900 dark:text-zinc-100">
-            <x-service.inline-text
-                wire-model="name"
-                :value="$name"
-                placeholder="Song"
-                class="text-[13.5px] font-semibold"
-            />
-        </div>
-        <div class="text-[10.5px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Song
-        </div>
-    </div>
-
-    @include('livewire.elements._partials.assignee-chip', [
-        'element' => $element,
-        'users' => $users,
-        'recentIds' => $recentAssigneeIds,
-        'open' => $assigneeOpen,
-        'search' => $assigneeSearch,
-    ])
-
-    @include('livewire.elements._partials.content-chip', [
-        'element' => $element,
-        'items' => $this->songs,
-        'variant' => 'song',
-        'open' => $contentOpen,
-        'search' => $contentSearch,
-    ])
-
-    <flux:dropdown align="end" offset="-15">
-        <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
-        <flux:menu class="min-w-36">
-            <flux:menu.item wire:click="duplicate" icon="document-duplicate">Duplicate</flux:menu.item>
-            <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
-        </flux:menu>
-    </flux:dropdown>
+        <x-slot:actions>
+            <flux:dropdown align="end" offset="-15">
+                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
+                <flux:menu class="min-w-36">
+                    <flux:menu.item wire:click="duplicate" icon="document-duplicate">Duplicate</flux:menu.item>
+                    <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
+                </flux:menu>
+            </flux:dropdown>
+        </x-slot:actions>
+    </x-service.element-row>
 
     <flux:modal name="delete-element" class="min-w-[22rem]">
         <form wire:submit="$parent.delete({{ $element->id }})" class="space-y-6">

@@ -21,10 +21,10 @@
             wire:click="$set('assigneeOpen', true)"
             class="flex h-8 w-full items-center gap-2 rounded-full px-2.5 text-left text-[12.5px] transition hover:bg-zinc-100 dark:hover:bg-zinc-800 {{ $open ? 'bg-zinc-100 dark:bg-zinc-800' : '' }}">
         @if ($assignee)
-            <flux:avatar :name="$assignee->name" size="xs" />
+            <x-service.squircle-avatar :name="$assignee->name" :size="24" />
             <span class="min-w-0 flex-1 truncate font-medium text-zinc-900 dark:text-zinc-100">{{ $assignee->name }}</span>
         @else
-            <span class="flex size-6 shrink-0 items-center justify-center rounded-full border border-dashed border-zinc-300 text-zinc-400 dark:border-zinc-600 dark:text-zinc-500">
+            <span class="flex size-6 shrink-0 items-center justify-center rounded-md border border-dashed border-zinc-300 text-zinc-400 dark:border-zinc-600 dark:text-zinc-500">
                 <flux:icon name="user" class="size-3" />
             </span>
             <span class="flex-1 italic text-zinc-500 dark:text-zinc-400">Unassigned</span>
@@ -55,11 +55,11 @@
                 @endif
 
                 @if ($recents->isNotEmpty())
-                    <div class="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Recent in this service</div>
+                    <div class="px-2 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">In this service</div>
                     @foreach ($recents as $user)
                         <button type="button" wire:key="recent-{{ $user->id }}" wire:click="setAssignee({{ $user->id }})"
                                 class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-[12.5px] hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                            <flux:avatar :name="$user->name" size="xs" />
+                            <x-service.squircle-avatar :name="$user->name" :size="24" />
                             <span class="truncate text-zinc-900 dark:text-zinc-100">{{ $user->name }}</span>
                         </button>
                     @endforeach
@@ -75,7 +75,7 @@
                     @foreach ($rest as $user)
                         <button type="button" wire:key="all-{{ $user->id }}" wire:click="setAssignee({{ $user->id }})"
                                 class="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-[12.5px] hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                            <flux:avatar :name="$user->name" size="xs" />
+                            <x-service.squircle-avatar :name="$user->name" :size="24" />
                             <span class="truncate text-zinc-900 dark:text-zinc-100">{{ $user->name }}</span>
                         </button>
                     @endforeach

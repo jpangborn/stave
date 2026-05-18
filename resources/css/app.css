@@ -240,3 +240,19 @@ a.mention:hover {
 .tippy-box[data-theme~='mentions'] .tippy-content {
     @apply p-0;
 }
+
+/* ----------------------------------------------------------
+   Service detail page — scoped accent override.
+   The app-wide accent is Flexoki purple, but the service
+   show page uses emerald for active tab + save status to
+   match the Stave service-planning design system.
+   ---------------------------------------------------------- */
+[data-service-show] [data-flux-tab][data-selected] {
+    color: var(--color-emerald-700);
+    border-color: var(--color-emerald-600);
+}
+
+.dark [data-service-show] [data-flux-tab][data-selected] {
+    color: var(--color-emerald-300);
+    border-color: var(--color-emerald-400);
+}

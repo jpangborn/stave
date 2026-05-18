@@ -51,7 +51,7 @@ it('limits song results to 50', function (): void {
     expect($songs)->toHaveCount(50);
 });
 
-it('does not preload songs when no search term is entered', function (): void {
+it('preloads recent songs when no search term is entered', function (): void {
     Song::factory()->count(10)->create();
 
     $service = Service::factory()->create();
@@ -63,7 +63,7 @@ it('does not preload songs when no search term is entered', function (): void {
 
     $songs = Livewire::test('elements.song', ['element' => $element])->get('songs');
 
-    expect($songs)->toBeEmpty();
+    expect($songs)->toHaveCount(10);
 });
 
 it('filters readings by search term', function (): void {
@@ -116,7 +116,7 @@ it('combines reading_type filter with search term', function (): void {
     expect($readings->first()->id)->toBe($match->id);
 });
 
-it('does not preload readings when no search term is entered', function (): void {
+it('preloads recent readings when no search term is entered', function (): void {
     Reading::factory()->count(10)->create();
 
     $service = Service::factory()->create();
@@ -128,5 +128,5 @@ it('does not preload readings when no search term is entered', function (): void
 
     $readings = Livewire::test('elements.reading', ['element' => $element])->get('readings');
 
-    expect($readings)->toBeEmpty();
+    expect($readings)->toHaveCount(10);
 });
