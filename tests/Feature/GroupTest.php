@@ -483,6 +483,23 @@ test('my groups card shows "No messages yet" when group has no comments', functi
         ->assertSee('No messages yet.');
 });
 
+/** @group groups-index-redesign */
+test('my groups card renders a flux avatar group with a +N overflow for groups with more than four members', function (): void {
+    $user = User::factory()->create();
+    $group = Group::factory()->create(['name' => 'Big Crew', 'visibility' => GroupVisibility::PUBLIC]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+
+    foreach (User::factory()->count(6)->create() as $member) {
+        $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    }
+
+    $component = Livewire::actingAs($user)
+        ->test('pages::groups.index');
+
+    $component->assertSee($user->name);
+    expect($component->html())->toContain('+3');
+});
+
 test('discover search matches description as well as name', function (): void {
     $user = User::factory()->create();
     Group::factory()->create([

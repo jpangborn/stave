@@ -3,6 +3,7 @@
     'height' => '88px',
     'rounded' => 'none',
     'initialSize' => '36%',
+    'showInitial' => true,
 ])
 
 @php
@@ -40,7 +41,7 @@
                 );
             "
             aria-hidden="true"
-        >{{ $group->first_letter }}</div>
+        >@if ($showInitial){{ $group->first_letter }}@endif</div>
     @endif
 
     {{ $slot }}
