@@ -36,7 +36,17 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const targetUrl = event.notification.data?.url ?? '/dashboard';
+
+    const defaultPath = '/dashboard';
+    let targetUrl = defaultPath;
+    try {
+        const parsed = new URL(event.notification.data?.url ?? defaultPath, self.location.origin);
+        if (parsed.origin === self.location.origin) {
+            targetUrl = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+        }
+    } catch {
+        targetUrl = defaultPath;
+    }
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

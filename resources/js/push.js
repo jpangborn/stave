@@ -14,7 +14,7 @@ export async function getPermissionState() {
 }
 
 export async function subscribeToPush(vapidPublicKey) {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
         throw new Error('Push messaging is not supported in this browser.');
     }
 
@@ -47,7 +47,10 @@ export async function unsubscribeFromPush() {
         return null;
     }
     const endpoint = subscription.endpoint;
-    await subscription.unsubscribe();
+    const unsubscribed = await subscription.unsubscribe();
+    if (!unsubscribed) {
+        throw new Error('Failed to unsubscribe from push notifications.');
+    }
     return endpoint;
 }
 

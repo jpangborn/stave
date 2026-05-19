@@ -89,8 +89,9 @@ new class extends Component {
         async disable() {
             const endpoint = await window.StavePush.unsubscribeFromPush();
             if (endpoint) {
-                $wire.removeSubscription(endpoint);
+                await $wire.removeSubscription(endpoint);
             }
+            this.permission = 'default';
         },
     }"
 >
