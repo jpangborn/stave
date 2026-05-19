@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Channels\DigestChannel;
 use App\Listeners\DispatchCommentNotifications;
+use App\Listeners\TouchPushSubscriptionLastUsed;
+use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
@@ -43,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Event::listen(CommentApprovedEvent::class, DispatchCommentNotifications::class);
+        Event::listen(NotificationSent::class, TouchPushSubscriptionLastUsed::class);
 
         Notification::extend('webpush', fn ($app) => $app->make(WebPushChannel::class));
         Notification::extend('digest', fn ($app) => $app->make(DigestChannel::class));
