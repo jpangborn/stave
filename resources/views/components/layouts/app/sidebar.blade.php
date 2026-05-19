@@ -127,6 +127,8 @@
 
         {{ $slot }}
 
+        <x-ios-a2hs-banner />
+
         @persist('toast')
             <flux:toast.group>
                 <flux:toast />
