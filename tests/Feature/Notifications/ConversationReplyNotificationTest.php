@@ -25,13 +25,13 @@ function makeReplyFixture(): array
     return [$conversation, $comment, $author];
 }
 
-test('conversation-reply notification routes through all four channels', function (): void {
+test('conversation-reply notification routes mail through digest for new users by default', function (): void {
     [$conversation, $comment, $author] = makeReplyFixture();
     $recipient = User::factory()->create();
 
     $channels = (new ConversationReplyNotification($conversation, $comment, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });
 
 test('conversation-reply broadcast payload includes title, body preview, and anchored url', function (): void {

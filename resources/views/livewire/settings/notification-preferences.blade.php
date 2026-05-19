@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DigestFrequency;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationEventType;
 use App\Services\NotificationPreferenceService;
@@ -16,6 +17,8 @@ new class extends Component {
 
     public ?string $timezone = null;
 
+    public string $digestFrequency = 'daily';
+
     public function mount(NotificationPreferenceService $preferences): void
     {
         $user = Auth::user();
@@ -23,6 +26,7 @@ new class extends Component {
         $this->quietHoursStart = $this->normalizeTime($user->quiet_hours_start);
         $this->quietHoursEnd = $this->normalizeTime($user->quiet_hours_end);
         $this->timezone = $user->timezone ?: config('app.timezone');
+        $this->digestFrequency = ($user->digest_frequency ?? DigestFrequency::DAILY)->value;
 
         $valueMatrix = $preferences->matrixFor($user);
 
@@ -90,6 +94,25 @@ new class extends Component {
         ])->save();
 
         $this->dispatch('quiet-hours-saved');
+    }
+
+    public function updatedDigestFrequency(string $value): void
+    {
+        $frequency = DigestFrequency::tryFrom($value);
+
+        if (! $frequency) {
+            return;
+        }
+
+        Auth::user()->forceFill(['digest_frequency' => $frequency->value])->save();
+
+        $this->dispatch('digest-frequency-saved');
+    }
+
+    /** @return array<int, DigestFrequency> */
+    public function getDigestFrequenciesProperty(): array
+    {
+        return DigestFrequency::cases();
     }
 
     /**
@@ -209,5 +232,32 @@ new class extends Component {
                 </x-action-message>
             </div>
         </form>
+
+        <flux:separator />
+
+        <div class="space-y-4">
+            <div>
+                <flux:heading>{{ __('Email digest') }}</flux:heading>
+                <flux:subheading>
+                    {{ __('Roll up email notifications instead of sending one per event. @mentions always send instantly. Daily sends at 07:00, weekly on Mondays at 07:00.') }}
+                </flux:subheading>
+            </div>
+
+            <div class="max-w-xs">
+                <flux:select
+                    wire:model.live="digestFrequency"
+                    :label="__('Digest frequency')"
+                    data-test="digest-frequency"
+                >
+                    @foreach ($this->digestFrequencies as $frequency)
+                        <flux:select.option :value="$frequency->value">{{ $frequency->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+
+            <x-action-message class="text-zinc-500 dark:text-zinc-400" on="digest-frequency-saved">
+                {{ __('Saved.') }}
+            </x-action-message>
+        </div>
     </div>
 </section>

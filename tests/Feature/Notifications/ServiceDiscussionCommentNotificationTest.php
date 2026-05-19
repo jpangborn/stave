@@ -23,13 +23,13 @@ function makeDiscussionFixture(): array
     return [$service, $comment, $author];
 }
 
-test('service-discussion notification routes through all four channels', function (): void {
+test('service-discussion notification routes mail through digest for new users by default', function (): void {
     [$service, $comment, $author] = makeDiscussionFixture();
     $recipient = User::factory()->create();
 
     $channels = (new ServiceDiscussionCommentNotification($service, $comment, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });
 
 test('service-discussion broadcast payload includes service title and discussion anchor', function (): void {

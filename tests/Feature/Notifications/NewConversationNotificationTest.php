@@ -25,13 +25,13 @@ function makeConversationFixture(): array
     return [$conversation, $author];
 }
 
-test('new-conversation notification routes through all four channels', function (): void {
+test('new-conversation notification routes mail through digest for new users by default', function (): void {
     [$conversation, $author] = makeConversationFixture();
     $recipient = User::factory()->create();
 
     $channels = (new NewConversationNotification($conversation, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });
 
 test('new-conversation notification builds a broadcast payload', function (): void {

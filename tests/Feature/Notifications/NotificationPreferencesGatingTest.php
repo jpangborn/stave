@@ -29,16 +29,16 @@ function makeConversationReplyFixture(): array
     return [$conversation, $comment, $author];
 }
 
-test('with no preferences all four channels are returned for conversation reply', function (): void {
+test('with no preferences non-mention events route mail to digest by default', function (): void {
     [$conversation, $comment, $author] = makeConversationReplyFixture();
     $recipient = User::factory()->create();
 
     $channels = (new ConversationReplyNotification($conversation, $comment, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });
 
-test('with no preferences all four channels are returned for mention', function (): void {
+test('with no preferences mention events keep instant mail', function (): void {
     [, $comment, $author] = makeConversationReplyFixture();
     $recipient = User::factory()->create();
 
@@ -47,7 +47,7 @@ test('with no preferences all four channels are returned for mention', function 
     expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
 });
 
-test('with no preferences all four channels are returned for service discussion', function (): void {
+test('with no preferences service discussion routes mail to digest by default', function (): void {
     $author = User::factory()->create();
     $service = Service::factory()->create();
     $service->comment('<p>Hi</p>', $author);
@@ -57,10 +57,10 @@ test('with no preferences all four channels are returned for service discussion'
 
     $channels = (new ServiceDiscussionCommentNotification($service, $comment, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });
 
-test('with no preferences all four channels are returned for new conversation', function (): void {
+test('with no preferences new conversation routes mail to digest by default', function (): void {
     $author = User::factory()->create();
     $group = Group::factory()->create();
     $conversation = Conversation::factory()->for($group)->create(['user_id' => $author->id]);
@@ -68,10 +68,10 @@ test('with no preferences all four channels are returned for new conversation', 
 
     $channels = (new NewConversationNotification($conversation, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });
 
-test('disabling mail on conversation reply removes mail from the channel list', function (): void {
+test('disabling mail on conversation reply removes mail and digest from the channel list', function (): void {
     [$conversation, $comment, $author] = makeConversationReplyFixture();
     $recipient = User::factory()->create();
 
@@ -130,5 +130,5 @@ test('a disabled channel on one event does not affect a different event', functi
 
     $channels = (new ConversationReplyNotification($conversation, $comment, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });
