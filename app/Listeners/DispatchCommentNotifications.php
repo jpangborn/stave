@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\Service;
 use App\Models\User;
@@ -28,6 +29,11 @@ class DispatchCommentNotifications implements ShouldQueue
     public function handle(CommentApprovedEvent $event): void
     {
         $comment = $event->comment;
+
+        if (! $comment instanceof Comment) {
+            return;
+        }
+
         $author = $comment->commentator;
 
         if (! $author instanceof User) {
