@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Models\Comment;
 use App\Models\Conversation;
+use App\Models\MutedCommentable;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\CommentMentionNotification;
@@ -57,6 +58,8 @@ class DispatchCommentNotifications implements ShouldQueue
         $primary = $primary->reject(
             fn (User $user): bool => $mentionedIds->contains($user->id),
         )->values();
+
+        $primary = MutedCommentable::filterMuted($primary, $commentable);
 
         if ($mentioned->isNotEmpty()) {
             Notification::send($mentioned, new CommentMentionNotification($comment, $author));

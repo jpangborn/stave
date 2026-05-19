@@ -2,6 +2,7 @@
 
 use App\Models\Conversation;
 use App\Models\Group;
+use App\Models\MutedCommentable;
 use App\Notifications\NewConversationNotification;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
@@ -96,6 +97,12 @@ new class extends Component {
         $recipients = $this->group->members()
             ->where('users.id', '!=', Auth::id())
             ->get();
+
+        $recipients = MutedCommentable::filterMuted($recipients, $conversation);
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
 
         Notification::send($recipients, new NewConversationNotification($conversation, Auth::user()));
     }

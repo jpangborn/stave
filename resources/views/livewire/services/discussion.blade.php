@@ -545,9 +545,16 @@ new class extends Component {
             class="hidden w-64 shrink-0 flex-col overflow-hidden border-l border-zinc-200 lg:flex dark:border-zinc-700"
             data-test="discussion-participants"
         >
-            <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
-                <flux:heading size="sm">In this discussion</flux:heading>
-                <flux:subheading size="sm">{{ $this->participants->count() }} {{ Str::plural('person', $this->participants->count()) }}</flux:subheading>
+            <div class="flex items-start justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                <div>
+                    <flux:heading size="sm">In this discussion</flux:heading>
+                    <flux:subheading size="sm">{{ $this->participants->count() }} {{ Str::plural('person', $this->participants->count()) }}</flux:subheading>
+                </div>
+                <livewire:mute-toggle
+                    :commentable="$this->service"
+                    noun="discussion"
+                    :key="'mute-toggle-service-'.$this->service->id"
+                />
             </div>
 
             <div class="min-h-0 flex-1 overflow-auto px-2 py-2">

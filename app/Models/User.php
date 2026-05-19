@@ -10,6 +10,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -89,5 +90,19 @@ class User extends Authenticatable implements CanComment
     public function pendingDigestItems(): HasMany
     {
         return $this->emailDigestItems()->whereNull('sent_at');
+    }
+
+    /** @return HasMany<MutedCommentable, $this> */
+    public function mutedCommentables(): HasMany
+    {
+        return $this->hasMany(MutedCommentable::class);
+    }
+
+    public function hasMuted(Model $commentable): bool
+    {
+        return $this->mutedCommentables()
+            ->where('commentable_type', $commentable->getMorphClass())
+            ->where('commentable_id', $commentable->getKey())
+            ->exists();
     }
 }
