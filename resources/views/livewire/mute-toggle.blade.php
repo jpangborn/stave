@@ -48,7 +48,7 @@ new class extends Component {
 
         $attributes = [
             'user_id' => $user->id,
-            'commentable_type' => $this->commentable::class,
+            'commentable_type' => $this->commentable->getMorphClass(),
             'commentable_id' => $this->commentable->getKey(),
         ];
 

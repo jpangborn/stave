@@ -101,7 +101,7 @@ class User extends Authenticatable implements CanComment
     public function hasMuted(Model $commentable): bool
     {
         return $this->mutedCommentables()
-            ->where('commentable_type', $commentable::class)
+            ->where('commentable_type', $commentable->getMorphClass())
             ->where('commentable_id', $commentable->getKey())
             ->exists();
     }

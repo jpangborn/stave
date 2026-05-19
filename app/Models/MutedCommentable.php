@@ -43,7 +43,7 @@ class MutedCommentable extends Model
         }
 
         $mutedUserIds = static::query()
-            ->where('commentable_type', $commentable::class)
+            ->where('commentable_type', $commentable->getMorphClass())
             ->where('commentable_id', $commentable->getKey())
             ->whereIn('user_id', $users->pluck('id'))
             ->pluck('user_id');
