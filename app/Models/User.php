@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -18,7 +19,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Comments\Models\Concerns\InteractsWithComments;
 use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
-#[Fillable(['name', 'email', 'password', 'person_id'])]
+#[Fillable(['name', 'email', 'password', 'person_id', 'quiet_hours_start', 'quiet_hours_end', 'timezone'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements CanComment
 {
@@ -62,5 +63,11 @@ class User extends Authenticatable implements CanComment
             ->withPivot('role', 'status')
             ->withTimestamps()
             ->wherePivot('status', MembershipStatus::ACTIVE);
+    }
+
+    /** @return HasMany<NotificationPreference, $this> */
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
     }
 }

@@ -101,7 +101,12 @@ new class extends Component {
         :heading="__('Notifications')"
         :subheading="__('Manage how Stave reaches you on this device.')"
     >
-        <div class="space-y-8">
+        <div class="space-y-10">
+            <livewire:settings.notification-preferences />
+
+            <flux:separator />
+
+            <div class="space-y-8">
             <div>
                 <flux:heading>{{ __('Push notifications') }}</flux:heading>
                 <flux:subheading>{{ __('Receive a banner when teammates message you, even when Stave is closed.') }}</flux:subheading>
@@ -159,6 +164,7 @@ new class extends Component {
                     </ul>
                 </div>
             @endif
+            </div>
         </div>
     </x-settings.layout>
 </section>

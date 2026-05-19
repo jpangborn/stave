@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Enums\NotificationEventType;
 use App\Models\Conversation;
 use App\Models\User;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -15,17 +17,16 @@ use NotificationChannels\WebPush\WebPushMessage;
 
 class NewConversationNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, RespectsNotificationPreferences;
 
     public function __construct(
         public Conversation $conversation,
         public User $author,
     ) {}
 
-    /** @return array<int, string> */
-    public function via(object $notifiable): array
+    public function eventType(): NotificationEventType
     {
-        return ['mail', 'broadcast', 'webpush', 'database'];
+        return NotificationEventType::CONVERSATION_CREATED;
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -60,7 +61,7 @@ class NewConversationNotification extends Notification implements ShouldQueue
     {
         return [
             ...$this->payload(),
-            'type' => 'conversation.created',
+            'type' => $this->eventType()->value,
             'conversation_id' => $this->conversation->id,
             'conversation_title' => $this->conversation->title,
             'group_id' => $this->conversation->group_id,

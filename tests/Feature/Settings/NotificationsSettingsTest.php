@@ -19,6 +19,16 @@ test('notifications settings page renders for an authenticated user', function (
         ->assertSeeText(__('Push notifications'));
 });
 
+test('notifications settings page mounts the preferences sub-component', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $this->get(route('settings.notifications'))
+        ->assertSuccessful()
+        ->assertSeeText(__('What to notify me about'))
+        ->assertSeeText(__('Quiet hours'));
+});
+
 test('storing a subscription persists a push subscription for the user', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);
