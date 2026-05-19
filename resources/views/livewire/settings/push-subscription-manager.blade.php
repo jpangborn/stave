@@ -39,6 +39,9 @@ new class extends Component {
         }
 
         $user = Auth::user();
+        if ($user === null) {
+            return;
+        }
 
         $user->updatePushSubscription(
             $endpoint,
@@ -59,14 +62,24 @@ new class extends Component {
 
     public function removeSubscription(string $endpoint): void
     {
-        Auth::user()->deletePushSubscription($endpoint);
+        $user = Auth::user();
+        if ($user === null) {
+            return;
+        }
+
+        $user->deletePushSubscription($endpoint);
 
         $this->refreshSubscriptions();
     }
 
     public function sendTest(): void
     {
-        Auth::user()->notify(new TestNotification);
+        $user = Auth::user();
+        if ($user === null) {
+            return;
+        }
+
+        $user->notify(new TestNotification);
     }
 
     private function refreshSubscriptions(): void
