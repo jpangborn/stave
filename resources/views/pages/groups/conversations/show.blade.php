@@ -993,6 +993,12 @@ new class extends Component {
                         <flux:button variant="ghost" size="sm" icon="magnifying-glass" square disabled />
                     </flux:tooltip>
 
+                    <livewire:mute-toggle
+                        :commentable="$conversation"
+                        noun="conversation"
+                        :key="'mute-toggle-conversation-'.$conversation->id"
+                    />
+
                     @can('delete', $conversation)
                         <flux:dropdown align="end">
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" square />
