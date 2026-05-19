@@ -107,7 +107,8 @@ it('force-shows the banner via the show-a2hs-coachmark event regardless of platf
     $page = visit(route('dashboard'));
 
     $page->script(<<<'JS'
-        try { localStorage.setItem('stave_ios_a2hs_dismissed', String(Date.now())); } catch (e) {}
+        try { localStorage.removeItem('stave_ios_a2hs_dismissed'); } catch (e) {}
+        localStorage.setItem('stave_ios_a2hs_dismissed', String(Date.now()));
         window.dispatchEvent(new CustomEvent('show-a2hs-coachmark'));
     JS);
 
@@ -117,4 +118,8 @@ it('force-shows the banner via the show-a2hs-coachmark event regardless of platf
         '(() => JSON.stringify(localStorage.getItem("stave_ios_a2hs_dismissed")))()'
     );
     expect($flagAfterForceShow)->toBe('null');
+
+    // Defensive cleanup: ensure the key is cleared regardless of whether the
+    // force-show handler ran, so this test cannot leak state to others.
+    $page->script("try { localStorage.removeItem('stave_ios_a2hs_dismissed'); } catch (e) {}");
 });

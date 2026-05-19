@@ -6,9 +6,9 @@
 --}}
 <div
     id="ios-a2hs-banner"
-    role="dialog"
+    role="region"
     aria-labelledby="ios-a2hs-banner-heading"
-    aria-describedby="ios-a2hs-banner-body"
+    aria-live="polite"
     hidden
     class="fixed inset-x-0 bottom-0 z-50 px-3 pb-[env(safe-area-inset-bottom)]"
 >
