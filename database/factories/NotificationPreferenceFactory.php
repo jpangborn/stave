@@ -22,8 +22,8 @@ class NotificationPreferenceFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'event_type' => $this->faker->randomElement(NotificationEventType::cases()),
-            'channel' => $this->faker->randomElement(NotificationChannel::cases()),
+            'event_type' => NotificationEventType::CONVERSATION_REPLY,
+            'channel' => NotificationChannel::WEBPUSH,
             'enabled' => true,
         ];
     }

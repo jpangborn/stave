@@ -48,6 +48,10 @@ new class extends Component {
             return;
         }
 
+        if (! in_array($event, NotificationEventType::userConfigurable(), true)) {
+            return;
+        }
+
         app(NotificationPreferenceService::class)->setChannel(
             Auth::user(),
             $event,

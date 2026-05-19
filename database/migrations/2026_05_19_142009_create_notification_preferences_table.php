@@ -17,7 +17,6 @@ return new class() extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'event_type', 'channel']);
-            $table->index(['user_id', 'event_type']);
         });
     }
 
