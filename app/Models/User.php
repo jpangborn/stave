@@ -20,6 +20,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Comments\Models\Concerns\InteractsWithComments;
 use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
+/** @property DigestFrequency $digest_frequency */
 #[Fillable(['name', 'email', 'password', 'person_id', 'quiet_hours_start', 'quiet_hours_end', 'timezone', 'digest_frequency'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements CanComment
