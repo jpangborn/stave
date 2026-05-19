@@ -1,26 +1,33 @@
 <?php
 
+use App\Models\Conversation;
 use App\Models\MutedCommentable;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component {
     public Model $commentable;
 
-    public string $noun = 'conversation';
+    public string $noun = '';
 
-    public function mount(Model $commentable, string $noun = 'conversation'): void
+    public function mount(Model $commentable, ?string $noun = null): void
     {
         $this->commentable = $commentable;
-        $this->noun = $noun;
+        $this->noun = $noun ?? Str::lower(class_basename($commentable));
     }
 
     #[Computed]
     public function isMuted(): bool
     {
+        if (! ($this->commentable instanceof Conversation || $this->commentable instanceof Service)) {
+            return false;
+        }
+
         /** @var User|null $user */
         $user = Auth::user();
 
@@ -37,6 +44,10 @@ new class extends Component {
         $user = Auth::user();
 
         if ($user === null) {
+            return;
+        }
+
+        if (! ($this->commentable instanceof Conversation || $this->commentable instanceof Service)) {
             return;
         }
 

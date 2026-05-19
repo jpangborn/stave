@@ -231,6 +231,26 @@ test('mute toggle Livewire component creates and deletes the mute row', function
     ])->exists())->toBeFalse();
 });
 
+test('mute toggle ignores disallowed commentable types', function (): void {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test('mute-toggle', [
+        'commentable' => $other,
+        'noun' => 'user',
+    ])->call('toggle');
+
+    expect(MutedCommentable::query()->where([
+        'user_id' => $user->id,
+        'commentable_type' => User::class,
+        'commentable_id' => $other->id,
+    ])->exists())->toBeFalse();
+
+    expect(MutedCommentable::query()->count())->toBe(0);
+});
+
 test('User::hasMuted reflects mute state for a commentable', function (): void {
     $user = User::factory()->create();
     $conversation = Conversation::factory()->create();
