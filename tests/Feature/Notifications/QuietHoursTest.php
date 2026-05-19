@@ -50,16 +50,16 @@ test('webpush and broadcast are suppressed during quiet hours for a conversation
 
     $channels = (new ConversationReplyNotification($conversation, $comment, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'database']);
+    expect($channels)->toBe(['digest', 'database']);
 });
 
-test('mail is not suppressed during quiet hours', function (): void {
+test('mail-routed-to-digest is not suppressed during quiet hours', function (): void {
     [$conversation, $comment, $author] = makeQuietHoursFixture();
     $recipient = makeRecipientInDnd();
 
     $channels = (new ConversationReplyNotification($conversation, $comment, $author))->via($recipient);
 
-    expect($channels)->toContain('mail');
+    expect($channels)->toContain('digest');
 });
 
 test('database always remains during quiet hours', function (): void {
@@ -105,5 +105,5 @@ test('outside the quiet hours window all default channels return', function (): 
 
     $channels = (new ConversationReplyNotification($conversation, $comment, $author))->via($recipient);
 
-    expect($channels)->toBe(['mail', 'broadcast', 'webpush', 'database']);
+    expect($channels)->toBe(['digest', 'broadcast', 'webpush', 'database']);
 });

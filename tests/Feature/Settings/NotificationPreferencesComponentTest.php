@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\DigestFrequency;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationEventType;
 use App\Models\NotificationPreference;
@@ -161,4 +162,25 @@ test('component renders all four event labels and four channel headers', functio
         ->assertSeeText('In-app')
         ->assertSeeText('Push')
         ->assertSeeText('Inbox');
+});
+
+test('digest frequency defaults to Daily and persists to the user when changed', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::test('settings.notification-preferences')
+        ->assertSet('digestFrequency', 'daily')
+        ->set('digestFrequency', 'weekly');
+
+    expect($user->refresh()->digest_frequency)->toBe(DigestFrequency::WEEKLY);
+});
+
+test('digest frequency can be turned Off', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::test('settings.notification-preferences')
+        ->set('digestFrequency', 'off');
+
+    expect($user->refresh()->digest_frequency)->toBe(DigestFrequency::OFF);
 });

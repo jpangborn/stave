@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\DigestFrequency;
 use App\Enums\MembershipStatus;
 use App\Models\Traits\HasGravatar;
 use Database\Factories\UserFactory;
@@ -19,12 +20,17 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Comments\Models\Concerns\InteractsWithComments;
 use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
-#[Fillable(['name', 'email', 'password', 'person_id', 'quiet_hours_start', 'quiet_hours_end', 'timezone'])]
+#[Fillable(['name', 'email', 'password', 'person_id', 'quiet_hours_start', 'quiet_hours_end', 'timezone', 'digest_frequency'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements CanComment
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasGravatar, HasPushSubscriptions, InteractsWithComments, Notifiable;
+
+    /** @var array<string, mixed> */
+    protected $attributes = [
+        'digest_frequency' => 'daily',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -36,6 +42,7 @@ class User extends Authenticatable implements CanComment
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'digest_frequency' => DigestFrequency::class,
         ];
     }
 
@@ -69,5 +76,17 @@ class User extends Authenticatable implements CanComment
     public function notificationPreferences(): HasMany
     {
         return $this->hasMany(NotificationPreference::class);
+    }
+
+    /** @return HasMany<EmailDigestItem, $this> */
+    public function emailDigestItems(): HasMany
+    {
+        return $this->hasMany(EmailDigestItem::class);
+    }
+
+    /** @return HasMany<EmailDigestItem, $this> */
+    public function pendingDigestItems(): HasMany
+    {
+        return $this->emailDigestItems()->whereNull('sent_at');
     }
 }

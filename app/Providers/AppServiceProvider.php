@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Channels\DigestChannel;
 use App\Listeners\DispatchCommentNotifications;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -44,5 +45,6 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CommentApprovedEvent::class, DispatchCommentNotifications::class);
 
         Notification::extend('webpush', fn ($app) => $app->make(WebPushChannel::class));
+        Notification::extend('digest', fn ($app) => $app->make(DigestChannel::class));
     }
 }
