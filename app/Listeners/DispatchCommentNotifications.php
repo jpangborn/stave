@@ -16,8 +16,6 @@ use App\Recipients\ResolveConversationReplyRecipients;
 use App\Recipients\ResolveMentionRecipients;
 use App\Recipients\ResolveServiceDiscussionRecipients;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Comments\Events\CommentApprovedEvent;
 
@@ -61,7 +59,7 @@ class DispatchCommentNotifications implements ShouldQueue
             fn (User $user): bool => $mentionedIds->contains($user->id),
         )->values();
 
-        $primary = $this->rejectMuted($primary, $commentable);
+        $primary = MutedCommentable::filterMuted($primary, $commentable);
 
         if ($mentioned->isNotEmpty()) {
             Notification::send($mentioned, new CommentMentionNotification($comment, $author));
@@ -74,33 +72,5 @@ class DispatchCommentNotifications implements ShouldQueue
 
             Notification::send($primary, $primaryNotification);
         }
-    }
-
-    /**
-     * Remove users who have muted the given commentable.
-     *
-     * @param  Collection<int, User>  $users
-     * @return Collection<int, User>
-     */
-    private function rejectMuted(Collection $users, Model $commentable): Collection
-    {
-        if ($users->isEmpty()) {
-            return $users;
-        }
-
-        $mutedUserIds = MutedCommentable::query()
-            ->where('commentable_type', $commentable::class)
-            ->where('commentable_id', $commentable->getKey())
-            ->whereIn('user_id', $users->pluck('id')->all())
-            ->pluck('user_id')
-            ->all();
-
-        if ($mutedUserIds === []) {
-            return $users;
-        }
-
-        return $users
-            ->reject(fn (User $user): bool => in_array($user->id, $mutedUserIds, true))
-            ->values();
     }
 }

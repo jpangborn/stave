@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\GroupMessaging;
 use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
@@ -157,47 +158,42 @@ test('muting suppresses NewConversationNotification at create time', function ()
     $creator = User::factory()->create();
     $muter = User::factory()->create();
     $other = User::factory()->create();
-    $group = Group::factory()->create();
+    $group = Group::factory()->create([
+        'messaging' => GroupMessaging::ALL_MEMBERS,
+    ]);
     activateGroupMember($group, $creator);
     activateGroupMember($group, $muter);
     activateGroupMember($group, $other);
 
-    /** @var Conversation $conversation */
-    $conversation = Conversation::factory()->for($group)->create([
-        'user_id' => $creator->id,
-        'title' => 'Pre-muted',
-    ]);
+    // Pre-register a mute pointing at the Conversation row the Volt component is
+    // about to create. With RefreshDatabase, the next Conversation::id is
+    // predictable as max(id) + 1, so this exercises the real notifyMembers()
+    // path with an active mute when the conversation is created.
+    $predictedConversationId = (int) (Conversation::max('id') ?? 0) + 1;
 
     MutedCommentable::create([
         'user_id' => $muter->id,
         'commentable_type' => Conversation::class,
-        'commentable_id' => $conversation->id,
+        'commentable_id' => $predictedConversationId,
     ]);
 
     Notification::fake();
 
     $this->actingAs($creator);
 
-    $recipients = $group->members()
-        ->where('users.id', '!=', $creator->id)
-        ->get();
+    Livewire::test('pages::groups.conversations.create', ['group' => $group])
+        ->set('title', 'Heads up')
+        ->set('body', '<p>Welcome!</p>')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect();
 
-    // Mirror the notifyMembers() path in conversations/create.blade.php.
-    $mutedUserIds = MutedCommentable::query()
-        ->where('commentable_type', Conversation::class)
-        ->where('commentable_id', $conversation->id)
-        ->whereIn('user_id', $recipients->pluck('id')->all())
-        ->pluck('user_id')
-        ->all();
-
-    $filtered = $recipients
-        ->reject(fn (User $user): bool => in_array($user->id, $mutedUserIds, true))
-        ->values();
-
-    Notification::send($filtered, new NewConversationNotification($conversation, $creator));
+    $conversation = Conversation::where('group_id', $group->id)->firstOrFail();
+    expect($conversation->id)->toBe($predictedConversationId);
 
     Notification::assertNotSentTo($muter, NewConversationNotification::class);
     Notification::assertSentTo($other, NewConversationNotification::class);
+    Notification::assertNotSentTo($creator, NewConversationNotification::class);
 });
 
 test('mute toggle Livewire component creates and deletes the mute row', function (): void {
