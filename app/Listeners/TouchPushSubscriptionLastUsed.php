@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Events\NotificationSent;
 use NotificationChannels\WebPush\PushSubscription;
 use NotificationChannels\WebPush\WebPushChannel;
@@ -25,13 +26,13 @@ class TouchPushSubscriptionLastUsed
 
         $notifiable = $event->notifiable;
 
-        if (! is_object($notifiable) || ! isset($notifiable->id)) {
+        if (! $notifiable instanceof Model) {
             return;
         }
 
         PushSubscription::query()
             ->where('subscribable_type', $notifiable::class)
-            ->where('subscribable_id', $notifiable->id)
+            ->where('subscribable_id', $notifiable->getKey())
             ->update(['last_used_at' => now()]);
     }
 }

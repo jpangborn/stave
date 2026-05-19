@@ -15,6 +15,9 @@ new class extends Component {
 
     public string $noun = '';
 
+    /** @var list<class-string> */
+    private const ALLOWED_TYPES = [Conversation::class, Service::class];
+
     public function mount(Model $commentable, ?string $noun = null): void
     {
         $this->commentable = $commentable;
@@ -24,18 +27,14 @@ new class extends Component {
     #[Computed]
     public function isMuted(): bool
     {
-        if (! ($this->commentable instanceof Conversation || $this->commentable instanceof Service)) {
+        if (! $this->isSupportedCommentable()) {
             return false;
         }
 
         /** @var User|null $user */
         $user = Auth::user();
 
-        if ($user === null) {
-            return false;
-        }
-
-        return $user->hasMuted($this->commentable);
+        return $user !== null && $user->hasMuted($this->commentable);
     }
 
     public function toggle(): void
@@ -43,11 +42,7 @@ new class extends Component {
         /** @var User|null $user */
         $user = Auth::user();
 
-        if ($user === null) {
-            return;
-        }
-
-        if (! ($this->commentable instanceof Conversation || $this->commentable instanceof Service)) {
+        if ($user === null || ! $this->isSupportedCommentable()) {
             return;
         }
 
@@ -57,15 +52,18 @@ new class extends Component {
             'commentable_id' => $this->commentable->getKey(),
         ];
 
-        $existing = MutedCommentable::query()->where($attributes)->first();
+        $deleted = MutedCommentable::query()->where($attributes)->delete();
 
-        if ($existing !== null) {
-            $existing->delete();
-        } else {
+        if ($deleted === 0) {
             MutedCommentable::query()->create($attributes);
         }
 
         unset($this->isMuted);
+    }
+
+    private function isSupportedCommentable(): bool
+    {
+        return in_array($this->commentable::class, self::ALLOWED_TYPES, true);
     }
 }; ?>
 

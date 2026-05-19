@@ -45,16 +45,15 @@ class MutedCommentable extends Model
         $mutedUserIds = static::query()
             ->where('commentable_type', $commentable::class)
             ->where('commentable_id', $commentable->getKey())
-            ->whereIn('user_id', $users->pluck('id')->all())
-            ->pluck('user_id')
-            ->all();
+            ->whereIn('user_id', $users->pluck('id'))
+            ->pluck('user_id');
 
-        if ($mutedUserIds === []) {
+        if ($mutedUserIds->isEmpty()) {
             return $users;
         }
 
         return $users
-            ->reject(fn (User $user): bool => in_array($user->id, $mutedUserIds, true))
+            ->reject(fn (User $user): bool => $mutedUserIds->contains($user->id))
             ->values();
     }
 }
