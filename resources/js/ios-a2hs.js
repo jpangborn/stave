@@ -55,8 +55,12 @@ export function maybeShowCoachmark(overrides = {}) {
     if (!isIOS || isStandalone) {
         return;
     }
-    if (localStorage.getItem(DISMISSED_KEY)) {
-        return;
+    try {
+        if (localStorage.getItem(DISMISSED_KEY)) {
+            return;
+        }
+    } catch (error) {
+        // storage unavailable; show banner as if not dismissed
     }
     showBanner();
 }

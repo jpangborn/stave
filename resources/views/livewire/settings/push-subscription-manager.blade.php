@@ -84,8 +84,12 @@ new class extends Component {
 
     private function refreshSubscriptions(): void
     {
-        /** @var User $user */
         $user = Auth::user();
+        if (! $user instanceof User) {
+            $this->subscriptions = [];
+
+            return;
+        }
 
         $this->subscriptions = $user
             ->pushSubscriptions()
