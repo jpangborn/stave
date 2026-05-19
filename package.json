@@ -21,8 +21,10 @@
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
+        "laravel-echo": "^2.3.4",
         "laravel-vite-plugin": "^3.0",
         "playwright": "^1.55.0",
+        "pusher-js": "^8.5.0",
         "tailwindcss": "^4.0.7",
         "tippy.js": "^6.3.7",
         "vite": "^8.0"

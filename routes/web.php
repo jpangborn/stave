@@ -17,6 +17,7 @@ Route::middleware(['auth'])->group(function (): void {
             Route::livewire('profile', 'pages::settings.profile')->name('profile');
             Route::livewire('password', 'pages::settings.password')->name('password');
             Route::livewire('appearance', 'pages::settings.appearance')->name('appearance');
+            Route::livewire('notifications', 'pages::settings.notifications')->name('notifications');
         });
 
     Route::name('songs.')

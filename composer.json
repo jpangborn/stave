@@ -10,8 +10,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
+        "laravel-notification-channels/webpush": "^10.5",
         "laravel/framework": "^13.0",
         "laravel/nightwatch": "^1.7",
+        "laravel/reverb": "^1.0",
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.0",
         "livewire/blaze": "^1.0",
