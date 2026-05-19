@@ -17,7 +17,7 @@ new class extends Component {
     /**
      * Persist a Web Push subscription supplied by the browser.
      *
-     * @param  array{endpoint: string, keys?: array{p256dh?: string, auth?: string}, contentEncoding?: string}  $subscription
+     * @param  array{endpoint?: string, keys?: array{p256dh?: string, auth?: string}, contentEncoding?: string}  $subscription
      */
     public function storeSubscription(array $subscription): void
     {
@@ -61,6 +61,7 @@ new class extends Component {
             ->get(['endpoint', 'created_at'])
             ->map(fn ($subscription) => [
                 'endpoint' => (string) $subscription->endpoint,
+                // @phpstan-ignore-next-line property.notFound (timestamps exist on push_subscriptions table)
                 'created_at' => $subscription->created_at?->toDateTimeString(),
             ])
             ->all();
