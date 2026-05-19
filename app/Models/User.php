@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Comments\Models\Concerns\InteractsWithComments;
 use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 
@@ -22,7 +23,7 @@ use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
 class User extends Authenticatable implements CanComment
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasGravatar, InteractsWithComments, Notifiable;
+    use HasFactory, HasGravatar, HasPushSubscriptions, InteractsWithComments, Notifiable;
 
     /**
      * Get the attributes that should be cast.
