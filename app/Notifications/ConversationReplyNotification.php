@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Enums\NotificationEventType;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\User;
 use App\Notifications\Concerns\HasCommentPreview;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -17,7 +19,7 @@ use NotificationChannels\WebPush\WebPushMessage;
 
 class ConversationReplyNotification extends Notification implements ShouldQueue
 {
-    use HasCommentPreview, Queueable;
+    use HasCommentPreview, Queueable, RespectsNotificationPreferences;
 
     public function __construct(
         public Conversation $conversation,
@@ -25,10 +27,9 @@ class ConversationReplyNotification extends Notification implements ShouldQueue
         public User $author,
     ) {}
 
-    /** @return array<int, string> */
-    public function via(object $notifiable): array
+    public function eventType(): NotificationEventType
     {
-        return ['mail', 'broadcast', 'webpush', 'database'];
+        return NotificationEventType::CONVERSATION_REPLY;
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -64,7 +65,7 @@ class ConversationReplyNotification extends Notification implements ShouldQueue
     {
         return [
             ...$this->payload(),
-            'type' => 'conversation.reply',
+            'type' => $this->eventType()->value,
             'conversation_id' => $this->conversation->id,
             'conversation_title' => $this->conversation->title,
             'group_id' => $this->conversation->group_id,

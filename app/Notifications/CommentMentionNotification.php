@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Enums\NotificationEventType;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\Concerns\HasCommentPreview;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -19,17 +21,16 @@ use RuntimeException;
 
 class CommentMentionNotification extends Notification implements ShouldQueue
 {
-    use HasCommentPreview, Queueable;
+    use HasCommentPreview, Queueable, RespectsNotificationPreferences;
 
     public function __construct(
         public Comment $comment,
         public User $author,
     ) {}
 
-    /** @return array<int, string> */
-    public function via(object $notifiable): array
+    public function eventType(): NotificationEventType
     {
-        return ['mail', 'broadcast', 'webpush', 'database'];
+        return NotificationEventType::COMMENT_MENTION;
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -67,7 +68,7 @@ class CommentMentionNotification extends Notification implements ShouldQueue
     {
         return [
             ...$this->payload(),
-            'type' => 'comment.mention',
+            'type' => $this->eventType()->value,
             'comment_id' => $this->comment->id,
             'commentable_type' => $this->comment->commentable_type,
             'commentable_id' => $this->comment->commentable_id,

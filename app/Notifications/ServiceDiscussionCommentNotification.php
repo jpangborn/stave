@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Enums\NotificationEventType;
 use App\Models\Comment;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\Concerns\HasCommentPreview;
+use App\Notifications\Concerns\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -17,7 +19,7 @@ use NotificationChannels\WebPush\WebPushMessage;
 
 class ServiceDiscussionCommentNotification extends Notification implements ShouldQueue
 {
-    use HasCommentPreview, Queueable;
+    use HasCommentPreview, Queueable, RespectsNotificationPreferences;
 
     public function __construct(
         public Service $service,
@@ -25,10 +27,9 @@ class ServiceDiscussionCommentNotification extends Notification implements Shoul
         public User $author,
     ) {}
 
-    /** @return array<int, string> */
-    public function via(object $notifiable): array
+    public function eventType(): NotificationEventType
     {
-        return ['mail', 'broadcast', 'webpush', 'database'];
+        return NotificationEventType::SERVICE_DISCUSSION_COMMENT;
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -64,7 +65,7 @@ class ServiceDiscussionCommentNotification extends Notification implements Shoul
     {
         return [
             ...$this->payload(),
-            'type' => 'service.discussion.comment',
+            'type' => $this->eventType()->value,
             'service_id' => $this->service->id,
             'service_title' => $this->service->title,
             'comment_id' => $this->comment->id,
