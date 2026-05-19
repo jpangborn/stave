@@ -30,6 +30,8 @@
 
             <flux:spacer />
 
+            <livewire:notification-bell />
+
             <!-- Desktop User Menu -->
             <flux:dropdown position="bottom" align="start">
                 <flux:profile

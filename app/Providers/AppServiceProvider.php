@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Listeners\DispatchCommentNotifications;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Blaze\Blaze;
+use NotificationChannels\WebPush\WebPushChannel;
+use Spatie\Comments\Events\CommentApprovedEvent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (config('app.env') !== 'local') {
+        if (! app()->isLocal()) {
             URL::forceScheme('https');
         }
 
@@ -35,5 +40,9 @@ class AppServiceProvider extends ServiceProvider
         if (app()->isLocal()) {
             Blaze::debug();
         }
+
+        Event::listen(CommentApprovedEvent::class, DispatchCommentNotifications::class);
+
+        Notification::extend('webpush', fn ($app) => $app->make(WebPushChannel::class));
     }
 }

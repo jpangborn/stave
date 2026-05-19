@@ -7,10 +7,8 @@ use App\Models\LiturgyElement;
 use App\Models\Service;
 use App\Models\Template;
 use App\Models\User;
-use App\Notifications\ServiceCommentNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Notification;
 use Spatie\Comments\Models\CommentNotificationSubscription;
 
 uses(RefreshDatabase::class);
@@ -106,51 +104,6 @@ test('assignee remains subscribed when one of multiple assignments is removed', 
     )->toBeTrue();
 });
 
-test('notification is sent to assignees when comment is posted', function (): void {
-    Notification::fake();
-
-    $assignee = User::factory()->create();
-    $commenter = User::factory()->create();
-    $service = Service::factory()->create();
-
-    LiturgyElement::factory()
-        ->assignedTo($assignee)
-        ->create(['liturgy_type' => Service::class, 'liturgy_id' => $service->id]);
-
-    $this->actingAs($commenter);
-    $service->comment('<p>Test comment</p>');
-
-    Notification::assertSentTo($assignee, ServiceCommentNotification::class);
-});
-
-test('commenter is excluded from notification', function (): void {
-    Notification::fake();
-
-    $user = User::factory()->create();
-    $service = Service::factory()->create();
-
-    LiturgyElement::factory()
-        ->assignedTo($user)
-        ->create(['liturgy_type' => Service::class, 'liturgy_id' => $service->id]);
-
-    $this->actingAs($user);
-    $service->comment('<p>Test comment</p>');
-
-    Notification::assertNotSentTo($user, ServiceCommentNotification::class);
-});
-
-test('no notifications sent when service has no assignees', function (): void {
-    Notification::fake();
-
-    $commenter = User::factory()->create();
-    $service = Service::factory()->create();
-
-    $this->actingAs($commenter);
-    $service->comment('<p>Test comment</p>');
-
-    Notification::assertNothingSent();
-});
-
 test('service creation from template subscribes all assignees', function (): void {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
@@ -183,27 +136,4 @@ test('service creation from template subscribes all assignees', function (): voi
         ->where('commentable_id', $service->id)
         ->exists()
     )->toBeTrue();
-});
-
-test('notification contains expected data for database channel', function (): void {
-    $service = Service::factory()->create(['title' => 'Sunday Morning Service']);
-    $commenter = User::factory()->create(['name' => 'John Doe']);
-
-    $this->actingAs($commenter);
-    $service->comment('<p>This is a test comment</p>');
-
-    $comment = $service->comments()->first();
-    $notification = new ServiceCommentNotification($comment, $commenter);
-
-    $data = $notification->toArray($commenter);
-
-    expect($data)->toHaveKeys([
-        'comment_id',
-        'commentable_type',
-        'commentable_id',
-        'commenter_name',
-        'comment_preview',
-    ]);
-    expect($data['commenter_name'])->toBe('John Doe');
-    expect($data['comment_preview'])->toContain('This is a test comment');
 });

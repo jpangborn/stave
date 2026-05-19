@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
-use App\Models\Conversation;
+use App\Models\Comment;
+use App\Models\Service;
 use App\Models\User;
+use App\Notifications\Concerns\HasCommentPreview;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -13,12 +15,13 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushMessage;
 
-class NewConversationNotification extends Notification implements ShouldQueue
+class ServiceDiscussionCommentNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use HasCommentPreview, Queueable;
 
     public function __construct(
-        public Conversation $conversation,
+        public Service $service,
+        public Comment $comment,
         public User $author,
     ) {}
 
@@ -34,8 +37,9 @@ class NewConversationNotification extends Notification implements ShouldQueue
 
         return (new MailMessage())
             ->subject($payload['title'])
-            ->line("{$this->author->name} started a new conversation: {$this->conversation->title}")
-            ->action('View Conversation', $payload['url']);
+            ->line("{$this->author->name} posted in the discussion for \"{$this->service->title}\":")
+            ->line($this->commentPreview($this->comment->text, 400))
+            ->action('View Discussion', $payload['url']);
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
@@ -60,11 +64,10 @@ class NewConversationNotification extends Notification implements ShouldQueue
     {
         return [
             ...$this->payload(),
-            'type' => 'conversation.created',
-            'conversation_id' => $this->conversation->id,
-            'conversation_title' => $this->conversation->title,
-            'group_id' => $this->conversation->group_id,
-            'group_name' => $this->conversation->group->name,
+            'type' => 'service.discussion.comment',
+            'service_id' => $this->service->id,
+            'service_title' => $this->service->title,
+            'comment_id' => $this->comment->id,
             'author_id' => $this->author->id,
             'author_name' => $this->author->name,
         ];
@@ -74,9 +77,9 @@ class NewConversationNotification extends Notification implements ShouldQueue
     private function payload(): array
     {
         return [
-            'title' => "New conversation in {$this->conversation->group->name}",
-            'body' => "{$this->author->name}: {$this->conversation->title}",
-            'url' => $this->conversation->commentUrl(),
+            'title' => "Service discussion: {$this->service->title}",
+            'body' => "{$this->author->name}: ".$this->commentPreview($this->comment->text),
+            'url' => route('services.show', $this->service).'#discussion',
         ];
     }
 }

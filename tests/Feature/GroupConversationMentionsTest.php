@@ -8,7 +8,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
-use App\Notifications\ServiceCommentNotification;
+use App\Notifications\CommentMentionNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
@@ -141,7 +141,7 @@ test('posting a reply with a mention notifies the mentioned member', function ()
         ->call('postReply')
         ->assertHasNoErrors();
 
-    Notification::assertSentTo($mentionee, ServiceCommentNotification::class);
+    Notification::assertSentTo($mentionee, CommentMentionNotification::class);
 });
 
 test('the MentionsTransformer rewrites data-mention spans into the rendered mention markup', function (): void {
@@ -173,7 +173,7 @@ test('posting a reply strips mentions targeting users outside the group', functi
         ->call('postReply')
         ->assertHasNoErrors();
 
-    Notification::assertNotSentTo($outsider, ServiceCommentNotification::class);
+    Notification::assertNotSentTo($outsider, CommentMentionNotification::class);
 
     $comment = $conversation->fresh()->comments()->first();
     expect($comment->original_text)->not->toContain('data-mention="'.$outsider->id.'"');

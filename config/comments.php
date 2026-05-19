@@ -4,7 +4,6 @@ use App\Actions\Comments\ResolveGroupMentionsAutocompleteAction;
 use App\CommentTransformers\RawHtmlMentionsTransformer;
 use App\Models\Comment;
 use App\Models\User;
-use App\Notifications\ServiceCommentNotification;
 use App\Support\CommentBodySanitizer;
 use Spatie\Comments\Actions\ApproveCommentAction;
 use Spatie\Comments\Actions\ProcessCommentAction;
@@ -96,14 +95,14 @@ return [
 
     'notifications' => [
         /*
-         * When somebody creates a comment, a notification will be sent to other persons
-         * that commented on the same thing.
+         * Disabled because Stave owns the comment-notification delivery pipeline.
+         * The DispatchCommentNotifications listener resolves recipients per
+         * commentable type and dispatches our own notification classes.
          */
-        'enabled' => true,
+        'enabled' => false,
 
         'notifications' => [
             'pending_comment' => PendingCommentNotification::class,
-            'approved_comment' => ServiceCommentNotification::class,
         ],
 
         /*
