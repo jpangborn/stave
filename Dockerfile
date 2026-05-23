@@ -21,6 +21,16 @@ RUN composer dump-autoload --optimize
 FROM node:22 AS assets
 WORKDIR /app
 
+# Vite reads VITE_* from process.env at build time and inlines them into the bundle
+ARG VITE_REVERB_APP_KEY
+ARG VITE_REVERB_HOST
+ARG VITE_REVERB_PORT
+ARG VITE_REVERB_SCHEME
+ENV VITE_REVERB_APP_KEY=${VITE_REVERB_APP_KEY} \
+    VITE_REVERB_HOST=${VITE_REVERB_HOST} \
+    VITE_REVERB_PORT=${VITE_REVERB_PORT} \
+    VITE_REVERB_SCHEME=${VITE_REVERB_SCHEME}
+
 # Copy composer vendor so assets build can see CSS/JS from PHP packages
 COPY --from=composer /app/vendor ./vendor
 
