@@ -13,7 +13,7 @@ new class extends Component
 
     public string $search = '';
 
-    public ?string $filter = null;
+    public string $filter = 'all';
 
     #[Session('people.layout')]
     public string $layout = 'table';
@@ -29,9 +29,8 @@ new class extends Component
         $this->dispatch('open-person-drawer', personId: $id);
     }
 
-    public function setFilter(?string $filter): void
+    public function updatedFilter(): void
     {
-        $this->filter = $filter === 'all' ? null : $filter;
         $this->resetPage();
     }
 
@@ -73,7 +72,7 @@ new class extends Component
         return Person::query()
             ->with(['offices', 'user'])
             ->searchedBy($this->search)
-            ->when($this->filter, fn ($q) => $q->where('membership_status', $this->filter))
+            ->when($this->filter !== 'all', fn ($q) => $q->where('membership_status', $this->filter))
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->paginate($this->layout === 'cards' ? 24 : 12);
@@ -97,7 +96,23 @@ new class extends Component
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        @include('livewire.people.partials.filter-chips', ['counts' => $this->counts, 'current' => $filter])
+        <flux:radio.group variant="segmented" size="sm" wire:model.live="filter">
+            <flux:radio value="all" icon="users">
+                All <flux:badge size="sm" class="ms-1">{{ $this->counts['all'] ?? 0 }}</flux:badge>
+            </flux:radio>
+            <flux:radio value="member" icon="home-modern">
+                Members <flux:badge size="sm" class="ms-1">{{ $this->counts['member'] ?? 0 }}</flux:badge>
+            </flux:radio>
+            <flux:radio value="catechumen" icon="book-open">
+                Catechumens <flux:badge size="sm" class="ms-1">{{ $this->counts['catechumen'] ?? 0 }}</flux:badge>
+            </flux:radio>
+            <flux:radio value="adherent" icon="user-group">
+                Adherents <flux:badge size="sm" class="ms-1">{{ $this->counts['adherent'] ?? 0 }}</flux:badge>
+            </flux:radio>
+            <flux:radio value="visitor" icon="face-smile">
+                Visitors <flux:badge size="sm" class="ms-1">{{ $this->counts['visitor'] ?? 0 }}</flux:badge>
+            </flux:radio>
+        </flux:radio.group>
 
         <div class="flex items-center gap-2">
             <flux:input
@@ -142,7 +157,7 @@ new class extends Component
     </div>
 
     @if ($this->people->isEmpty())
-        @if ($search || $filter)
+        @if ($search || $filter !== 'all')
             @include('livewire.people.partials.no-match')
         @else
             @include('livewire.people.partials.empty-state')

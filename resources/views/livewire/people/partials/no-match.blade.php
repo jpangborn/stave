@@ -4,6 +4,6 @@
     </div>
     <flux:heading>No people match those filters</flux:heading>
     <flux:subheading class="mt-1">
-        Try clearing the search or switching to <button type="button" wire:click="setFilter('all')" class="font-semibold underline">All</button>.
+        Try clearing the search or switching to <button type="button" x-on:click="$wire.set('filter', 'all')" class="font-semibold underline">All</button>.
     </flux:subheading>
 </div>
