@@ -4,7 +4,6 @@ use App\Enums\AccessRole;
 use App\Enums\Gender;
 use App\Enums\MembershipStatus;
 use App\Enums\Office;
-use App\Enums\TerminationReason;
 use App\Livewire\Forms\PersonForm;
 use App\Models\Person;
 use App\Models\PersonOffice;
@@ -235,28 +234,23 @@ new class extends Component
                 {{-- Membership --}}
                 <section>
                     <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Membership</flux:heading>
-                    <flux:select wire:model.live="form.membership_status" variant="listbox">
+                    <flux:radio.group wire:model.live="form.membership_status" variant="cards" :indicator="false" class="flex-col sm:grid sm:grid-cols-2">
                         @foreach (MembershipStatus::cases() as $status)
-                            <flux:select.option :value="$status->value">{{ $status->label() }}</flux:select.option>
+                            @if ($status !== MembershipStatus::TERMINATED)
+                                <flux:radio
+                                    :value="$status->value"
+                                    :icon="$status->icon()"
+                                    :label="$status->label()"
+                                    :description="$status->description()"
+                                />
+                            @endif
                         @endforeach
-                    </flux:select>
-                    <p class="mt-1 text-xs text-zinc-500">{{ MembershipStatus::from($form->membership_status)->description() }}</p>
+                    </flux:radio.group>
 
-                    @if ($form->membership_status === MembershipStatus::TERMINATED->value)
-                        <flux:field class="mt-3">
-                            <flux:label>Termination reason <span class="text-zinc-400">(optional)</span></flux:label>
-                            <flux:select wire:model="form.termination_reason" variant="listbox" placeholder="Select a reason…">
-                                @foreach (TerminationReason::cases() as $reason)
-                                    <flux:select.option :value="$reason->value">{{ $reason->label() }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </flux:field>
-                    @else
-                        <flux:field class="mt-3">
-                            <flux:label>Member since</flux:label>
-                            <flux:input wire:model="form.membership_since" type="date" />
-                        </flux:field>
-                    @endif
+                    <flux:field class="mt-3">
+                        <flux:label>Member since</flux:label>
+                        <flux:input wire:model="form.membership_since" type="date" />
+                    </flux:field>
                 </section>
 
                 {{-- Office --}}
