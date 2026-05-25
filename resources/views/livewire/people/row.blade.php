@@ -3,63 +3,64 @@
 use App\Models\Person;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Person $person;
 
-    public function delete()
+    public string $density = 'spacious';
+
+    public function open(): void
     {
-        $this->modal("delete-person")->show();
+        $this->dispatch('open-person-drawer', personId: $this->person->id)->to('people.drawer');
     }
-};
-?>
+}; ?>
 
-<flux:table.row>
+<flux:table.row
+    class="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+    wire:click="open"
+    tabindex="0"
+    role="button"
+    wire:keydown.enter="open"
+    wire:keydown.space.prevent="open"
+>
     <flux:table.cell>
-        <flux:link variant="subtle" href="{{ route('people.show', ['person' => $person]) }}">
-            <div class="flex w-max items-center gap-2">
-                <flux:avatar name="{{ $person->name }}" src="{{ $person->gravatar }}" />
-                <div class="flex flex-col">
-                    <span>{{ $person->fullName }}</span>
-                    <span>{{ $person->email }}</span>
-                </div>
+        <div class="flex items-center gap-3">
+            <x-person-avatar :person="$person" :size="$density === 'compact' ? 'xs' : 'sm'" />
+            <div class="min-w-0">
+                <div class="font-medium text-zinc-900 dark:text-white truncate">{{ $person->full_name }}</div>
+                @if ($person->email)
+                    <div class="text-xs text-zinc-500 truncate">{{ $person->email }}</div>
+                @endif
             </div>
-        </flux:link>
+        </div>
     </flux:table.cell>
+
     <flux:table.cell>
-        <flux:badge size="sm" inset="top bottom" :color="$person->gender?->color()">{{ $person->gender?->label() }}</flux:badge>
+        <x-membership-badge :status="$person->membership_status" :reason="$person->termination_reason" />
     </flux:table.cell>
-    <flux:table.cell class="whitespace-nowrap">{{ $person->created_at->toFormattedDayDateString() }}</flux:table.cell>
+
+    <flux:table.cell>
+        @if ($person->offices->isEmpty())
+            <span class="text-zinc-400 text-xs">—</span>
+        @else
+            <div class="inline-flex gap-1">
+                @foreach ($person->offices as $office)
+                    <flux:badge
+                        size="sm"
+                        :color="$office->kind->color()"
+                        :icon="$office->kind->icon()"
+                        :title="$office->kind->label() . ' · since ' . $office->started_on->format('M Y')"
+                    />
+                @endforeach
+            </div>
+        @endif
+    </flux:table.cell>
+
+    <flux:table.cell class="text-zinc-500 text-sm whitespace-nowrap">
+        {{ $person->created_at->toFormattedDayDateString() }}
+    </flux:table.cell>
+
     <flux:table.cell align="end">
-        <flux:dropdown align="end" offset="-15">
-            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="bottom" />
-
-            <flux:menu class="min-w-32">
-                <flux:menu.item href="{{ route('people.edit', ['person' => $person]) }}" icon="pencil-square">Edit</flux:menu.item>
-                <flux:menu.item wire:click="delete" icon="trash" variant="danger">Delete</flux:menu.item>
-            </flux:menu>
-        </flux:dropdown>
-
-        <flux:modal name="delete-person" class="min-w-[22rem]">
-            <form wire:submit="$parent.delete({{ $person->id }})" class="space-y-6">
-                <div>
-                    <flux:heading size="lg">Delete person?</flux:heading>
-
-                    <flux:subheading>
-                        <p>This will permanently delete the person.</p>
-                        <p>It cannot be undone.</p>
-                    </flux:subheading>
-                </div>
-
-                <div class="flex gap-2">
-                    <flux:spacer />
-
-                    <flux:modal.close>
-                        <flux:button variant="ghost">Cancel</flux:button>
-                    </flux:modal.close>
-
-                    <flux:button type="submit" variant="danger">Delete person</flux:button>
-                </div>
-            </form>
-        </flux:modal>
+        <flux:icon name="chevron-right" class="size-4 text-zinc-400" />
     </flux:table.cell>
 </flux:table.row>

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupRole;
-use App\Enums\MembershipStatus;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -26,13 +26,13 @@ class GroupSeeder extends Seeder
 
             $group->allUsers()->attach($members->first()->id, [
                 'role' => GroupRole::LEADER,
-                'status' => MembershipStatus::ACTIVE,
+                'status' => GroupMembershipStatus::ACTIVE,
             ]);
 
             $members->skip(1)->each(function (User $user) use ($group) {
                 $group->allUsers()->attach($user->id, [
                     'role' => fake()->randomElement(GroupRole::cases()),
-                    'status' => fake()->randomElement(MembershipStatus::cases()),
+                    'status' => fake()->randomElement(GroupMembershipStatus::cases()),
                 ]);
             });
         });

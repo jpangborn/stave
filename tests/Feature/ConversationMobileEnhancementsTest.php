@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
@@ -20,7 +20,7 @@ function buildMobileScenario(): array
         'messaging' => GroupMessaging::ALL_MEMBERS,
         'name' => 'Elders',
     ]);
-    $group->allUsers()->attach($viewer, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($viewer, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create([
         'group_id' => $group->id,
@@ -169,8 +169,8 @@ test('the mobile composer pill is hidden for users who cannot comment', function
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ONLY_LEADERS,
     ]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($reader, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($reader, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create(['group_id' => $group->id, 'user_id' => $leader->id]);
 

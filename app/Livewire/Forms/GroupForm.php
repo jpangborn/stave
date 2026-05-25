@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Group;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -54,7 +54,7 @@ class GroupForm extends Form
 
             $group->allUsers()->attach(Auth::id(), [
                 'role' => GroupRole::LEADER,
-                'status' => MembershipStatus::ACTIVE,
+                'status' => GroupMembershipStatus::ACTIVE,
             ]);
         });
     }

@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Group;
 use App\Models\User;
 use App\Notifications\GroupJoinRequestNotification;
@@ -47,7 +47,7 @@ test('non-members cannot view a private group show page', function (): void {
 test('active members can view a private group show page', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PRIVATE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user)
         ->get("/groups/{$group->id}")
@@ -62,7 +62,7 @@ test('user can request to join a public group', function (): void {
     $leader = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -74,7 +74,7 @@ test('user can request to join a public group', function (): void {
         'group_id' => $group->id,
         'user_id' => $user->id,
         'role' => GroupRole::MEMBER->value,
-        'status' => MembershipStatus::PENDING->value,
+        'status' => GroupMembershipStatus::PENDING->value,
     ]);
 
     Notification::assertSentTo($leader, GroupJoinRequestNotification::class);
@@ -93,7 +93,7 @@ test('user cannot join a private group', function (): void {
 test('user cannot join if already pending', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($user);
 
@@ -105,7 +105,7 @@ test('user cannot join if already pending', function (): void {
 test('user cannot join if already active member', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -120,8 +120,8 @@ test('rejected user can re-request to join', function (): void {
     $leader = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::REJECTED]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::REJECTED]);
 
     $this->actingAs($user);
 
@@ -132,14 +132,14 @@ test('rejected user can re-request to join', function (): void {
     $this->assertDatabaseHas('group_user', [
         'group_id' => $group->id,
         'user_id' => $user->id,
-        'status' => MembershipStatus::PENDING->value,
+        'status' => GroupMembershipStatus::PENDING->value,
     ]);
 });
 
 test('user can cancel a pending join request', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($user);
 
@@ -160,8 +160,8 @@ test('leader can approve a pending request', function (): void {
     $leader = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($leader);
 
@@ -172,7 +172,7 @@ test('leader can approve a pending request', function (): void {
     $this->assertDatabaseHas('group_user', [
         'group_id' => $group->id,
         'user_id' => $user->id,
-        'status' => MembershipStatus::ACTIVE->value,
+        'status' => GroupMembershipStatus::ACTIVE->value,
     ]);
 
     Notification::assertSentTo($user, GroupMembershipResponseNotification::class, function ($notification) {
@@ -186,8 +186,8 @@ test('leader can reject a pending request', function (): void {
     $leader = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($leader);
 
@@ -198,7 +198,7 @@ test('leader can reject a pending request', function (): void {
     $this->assertDatabaseHas('group_user', [
         'group_id' => $group->id,
         'user_id' => $user->id,
-        'status' => MembershipStatus::REJECTED->value,
+        'status' => GroupMembershipStatus::REJECTED->value,
     ]);
 
     Notification::assertSentTo($user, GroupMembershipResponseNotification::class, function ($notification) {
@@ -210,8 +210,8 @@ test('non-leader cannot approve a pending request', function (): void {
     $member = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($member);
 
@@ -228,7 +228,7 @@ test('leader can directly add a member', function (): void {
     $leader = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($leader);
 
@@ -240,7 +240,7 @@ test('leader can directly add a member', function (): void {
         'group_id' => $group->id,
         'user_id' => $user->id,
         'role' => GroupRole::MEMBER->value,
-        'status' => MembershipStatus::ACTIVE->value,
+        'status' => GroupMembershipStatus::ACTIVE->value,
     ]);
 
     Notification::assertSentTo($user, GroupMemberAddedNotification::class);
@@ -250,7 +250,7 @@ test('non-leader cannot add a member', function (): void {
     $member = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($member);
 
@@ -265,8 +265,8 @@ test('active member can leave a group', function (): void {
     $user = User::factory()->create();
     $leader = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -283,7 +283,7 @@ test('active member can leave a group', function (): void {
 test('sole leader cannot leave the group', function (): void {
     $leader = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($leader);
 
@@ -298,8 +298,8 @@ test('leader can remove a member', function (): void {
     $leader = User::factory()->create();
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($leader);
 
@@ -316,7 +316,7 @@ test('leader can remove a member', function (): void {
 test('cannot remove the sole leader', function (): void {
     $leader = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($leader);
 
@@ -335,8 +335,8 @@ test('members tab is visible to leaders', function (): void {
     $leader = User::factory()->create();
     $member = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($leader);
 
@@ -351,9 +351,9 @@ test('members tab is visible to regular members', function (): void {
     $user = User::factory()->create();
     $pending = User::factory()->create(['name' => 'Pending Person']);
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($user);
 
@@ -369,7 +369,7 @@ test('members tab is not visible to non-members', function (): void {
     $leader = User::factory()->create(['name' => 'Group Leader']);
     $user = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -397,7 +397,7 @@ test('conversations tab is visible to members when messaging is enabled', functi
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ALL_MEMBERS,
     ]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -432,7 +432,7 @@ test('group description is sanitized of malicious HTML', function (): void {
 test('leader sees edit button on show page', function (): void {
     $leader = User::factory()->create();
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($leader);
 
@@ -444,8 +444,8 @@ test('leader sees pending requests on members tab', function (): void {
     $leader = User::factory()->create();
     $pending = User::factory()->create(['name' => 'Pending Person']);
     $group = Group::factory()->create(['visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($leader);
 
@@ -460,10 +460,10 @@ test('leader sees pending requests on members tab', function (): void {
 test('my groups section shows active groups', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['name' => 'My Active Group', 'visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $pendingGroup = Group::factory()->create(['name' => 'Pending Group', 'visibility' => GroupVisibility::PRIVATE]);
-    $pendingGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $pendingGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     $this->actingAs($user);
 

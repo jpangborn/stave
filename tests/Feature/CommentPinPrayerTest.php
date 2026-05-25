@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\Group;
@@ -20,7 +20,7 @@ function makeGroupConversation(GroupRole $authorRole = GroupRole::MEMBER): array
     ]);
 
     $author = User::factory()->create();
-    $group->allUsers()->attach($author, ['role' => $authorRole, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($author, ['role' => $authorRole, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create(['group_id' => $group->id, 'user_id' => $author->id]);
     $comment = $conversation->postComment('Hello group', $author);
@@ -101,7 +101,7 @@ test('group leader can pin any comment in the conversation', function (): void {
     [$group, $conversation, $comment] = makeGroupConversation();
 
     $leader = User::factory()->create();
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     expect($leader->can('pin', $comment))->toBeTrue()
         ->and($leader->can('unpin', $comment))->toBeTrue();
@@ -111,7 +111,7 @@ test('a non-leader member who did not author the comment cannot pin it', functio
     [$group, $conversation, $comment] = makeGroupConversation();
 
     $otherMember = User::factory()->create();
-    $group->allUsers()->attach($otherMember, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($otherMember, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     expect($otherMember->can('pin', $comment))->toBeFalse()
         ->and($otherMember->can('unpin', $comment))->toBeFalse();
@@ -132,7 +132,7 @@ test('any active group member can mark prayer on any comment', function (): void
     [$group, $conversation, $comment] = makeGroupConversation();
 
     $otherMember = User::factory()->create();
-    $group->allUsers()->attach($otherMember, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($otherMember, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     expect($otherMember->can('markPrayer', $comment))->toBeTrue();
 });
@@ -149,7 +149,7 @@ test('a pending member cannot mark prayer', function (): void {
     [$group, $conversation, $comment] = makeGroupConversation();
 
     $pending = User::factory()->create();
-    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     expect($pending->can('markPrayer', $comment))->toBeFalse();
 });
@@ -166,7 +166,7 @@ test('group leader can delete any comment in the conversation', function (): voi
     [$group, $conversation, $comment] = makeGroupConversation();
 
     $leader = User::factory()->create();
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     expect($leader->can('delete', $comment))->toBeTrue();
 });
@@ -175,7 +175,7 @@ test('a non-leader member who did not author the comment cannot delete it', func
     [$group, $conversation, $comment] = makeGroupConversation();
 
     $otherMember = User::factory()->create();
-    $group->allUsers()->attach($otherMember, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($otherMember, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     expect($otherMember->can('delete', $comment))->toBeFalse();
 });

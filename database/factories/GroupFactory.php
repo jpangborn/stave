@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
@@ -39,7 +39,7 @@ class GroupFactory extends Factory
         return $this->state(['visibility' => GroupVisibility::PRIVATE]);
     }
 
-    public function withMembers(int $count = 3, MembershipStatus $status = MembershipStatus::ACTIVE, GroupRole $role = GroupRole::MEMBER): self
+    public function withMembers(int $count = 3, GroupMembershipStatus $status = GroupMembershipStatus::ACTIVE, GroupRole $role = GroupRole::MEMBER): self
     {
         return $this->afterCreating(function (Group $group) use ($count, $status, $role): void {
             User::factory()->count($count)->create()->each(function (User $user) use ($group, $status, $role): void {

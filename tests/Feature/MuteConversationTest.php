@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\MutedCommentable;
@@ -21,7 +21,7 @@ function activateGroupMember(Group $group, User $user): void
 {
     $group->allUsers()->attach($user, [
         'role' => 'member',
-        'status' => MembershipStatus::ACTIVE,
+        'status' => GroupMembershipStatus::ACTIVE,
     ]);
 }
 

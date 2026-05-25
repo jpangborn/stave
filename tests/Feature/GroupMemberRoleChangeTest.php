@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,7 +23,7 @@ function attachRole(Group $group, User $user, GroupRole $role = GroupRole::MEMBE
 {
     $group->allUsers()->attach($user, [
         'role' => $role,
-        'status' => MembershipStatus::ACTIVE,
+        'status' => GroupMembershipStatus::ACTIVE,
     ]);
 }
 

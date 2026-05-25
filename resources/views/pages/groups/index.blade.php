@@ -3,7 +3,7 @@
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
+use App\Enums\GroupMembershipStatus;
 use App\Models\Group;
 use Flux\Flux;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -72,7 +72,7 @@ new class extends Component {
             ->where('visibility', GroupVisibility::PUBLIC)
             ->whereDoesntHave('allUsers', fn ($q) => $q
                 ->where('users.id', Auth::id())
-                ->whereIn('status', [MembershipStatus::ACTIVE->value, MembershipStatus::PENDING->value])
+                ->whereIn('status', [GroupMembershipStatus::ACTIVE->value, GroupMembershipStatus::PENDING->value])
             )
             ->withCount('members')
             ->when($this->search !== '', fn ($q) =>
@@ -95,7 +95,7 @@ new class extends Component {
             ->where('visibility', GroupVisibility::PUBLIC)
             ->whereDoesntHave('allUsers', fn ($q) => $q
                 ->where('users.id', Auth::id())
-                ->whereIn('status', [MembershipStatus::ACTIVE->value, MembershipStatus::PENDING->value])
+                ->whereIn('status', [GroupMembershipStatus::ACTIVE->value, GroupMembershipStatus::PENDING->value])
             );
 
         $byMessaging = (clone $base)
@@ -120,12 +120,12 @@ new class extends Component {
 
         if ($existing) {
             $group->allUsers()->updateExistingPivot(Auth::id(), [
-                'status' => MembershipStatus::PENDING,
+                'status' => GroupMembershipStatus::PENDING,
             ]);
         } else {
             $group->allUsers()->attach(Auth::id(), [
                 'role' => GroupRole::MEMBER,
-                'status' => MembershipStatus::PENDING,
+                'status' => GroupMembershipStatus::PENDING,
             ]);
         }
 
