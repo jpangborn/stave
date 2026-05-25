@@ -100,7 +100,7 @@ new class extends Component
             <flux:input
                 wire:model.live.debounce.250ms="search"
                 size="sm"
-                placeholder="Search by name, email, phone…"
+                placeholder="Search…"
                 icon="magnifying-glass"
                 class="w-72"
                 clearable
