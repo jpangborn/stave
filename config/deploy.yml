@@ -11,6 +11,11 @@ deploy_timeout: 60
 
 builder:
   arch: amd64
+  args:
+    VITE_REVERB_APP_KEY: <%= ENV['REVERB_APP_KEY'] %>
+    VITE_REVERB_HOST: reverb.stave.pangborn.cloud
+    VITE_REVERB_PORT: "443"
+    VITE_REVERB_SCHEME: https
   secrets:
     - COMPOSER_AUTH_JSON_BASE64
 
@@ -25,6 +30,17 @@ servers:
     cmd: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
     options:
       health-cmd: "healthcheck-queue"
+      health-interval: "10s"
+  reverb:
+    hosts:
+      - 129.212.180.73
+    cmd: php artisan reverb:start --host=0.0.0.0 --port=8080 --hostname=reverb.stave.pangborn.cloud
+    proxy:
+      ssl: true
+      host: reverb.stave.pangborn.cloud
+      app_port: 8080
+    options:
+      health-cmd: "healthcheck-reverb"
       health-interval: "10s"
 
 # Credentials for your image host.
