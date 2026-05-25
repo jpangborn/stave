@@ -29,7 +29,7 @@ test('counts each membership status', function (): void {
     Person::factory()->visitor()->count(4)->create();
 
     Livewire::test('pages::people.index')
-        ->assertSet('filter', null)
+        ->assertSet('filter', 'all')
         ->tap(function ($t): void {
             $counts = $t->instance()->counts;
             expect($counts)->toMatchArray([
@@ -47,20 +47,20 @@ test('filters by membership status', function (): void {
     Person::factory()->visitor()->count(3)->create();
 
     Livewire::test('pages::people.index')
-        ->call('setFilter', 'member')
+        ->set('filter', 'member')
         ->assertSet('filter', 'member')
         ->tap(function ($t): void {
             expect($t->instance()->people->total())->toBe(2);
         });
 });
 
-test('setFilter(all) clears the filter', function (): void {
+test('selecting all clears the filter', function (): void {
     Person::factory()->visitor()->create();
 
     Livewire::test('pages::people.index')
-        ->call('setFilter', 'member')
-        ->call('setFilter', 'all')
-        ->assertSet('filter', null);
+        ->set('filter', 'member')
+        ->set('filter', 'all')
+        ->assertSet('filter', 'all');
 });
 
 test('searches by name', function (): void {
