@@ -3,7 +3,6 @@
 use App\Enums\MembershipStatus;
 use App\Models\Person;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Session;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,12 +13,6 @@ new class extends Component
     public string $search = '';
 
     public ?string $filter = null;
-
-    #[Session('people.layout')]
-    public string $layout = 'table';
-
-    #[Session('people.density')]
-    public string $density = 'spacious';
 
     public ?int $openPersonId = null;
 
@@ -33,17 +26,6 @@ new class extends Component
     {
         $this->filter = $filter === 'all' ? null : $filter;
         $this->resetPage();
-    }
-
-    public function setLayout(string $layout): void
-    {
-        $this->layout = in_array($layout, ['table', 'cards'], true) ? $layout : 'table';
-        $this->resetPage();
-    }
-
-    public function setDensity(string $density): void
-    {
-        $this->density = in_array($density, ['spacious', 'compact'], true) ? $density : 'spacious';
     }
 
     /** @return array<string, int> */
@@ -76,7 +58,7 @@ new class extends Component
             ->when($this->filter, fn ($q) => $q->where('membership_status', $this->filter))
             ->orderBy('last_name')
             ->orderBy('first_name')
-            ->paginate($this->layout === 'cards' ? 24 : 12);
+            ->paginate(12);
     }
 
     public function updatedSearch(): void
@@ -108,36 +90,6 @@ new class extends Component
                 class="w-72"
                 clearable
             />
-
-            <flux:button.group size="sm">
-                <flux:button
-                    icon="bars-3"
-                    :variant="$layout === 'table' ? 'filled' : 'outline'"
-                    wire:click="setLayout('table')"
-                    title="Table view"
-                />
-                <flux:button
-                    icon="squares-2x2"
-                    :variant="$layout === 'cards' ? 'filled' : 'outline'"
-                    wire:click="setLayout('cards')"
-                    title="Card view"
-                />
-            </flux:button.group>
-
-            <flux:button.group size="sm">
-                <flux:button
-                    icon="arrows-up-down"
-                    :variant="$density === 'spacious' ? 'filled' : 'outline'"
-                    wire:click="setDensity('spacious')"
-                    title="Spacious"
-                />
-                <flux:button
-                    icon="bars-2"
-                    :variant="$density === 'compact' ? 'filled' : 'outline'"
-                    wire:click="setDensity('compact')"
-                    title="Compact"
-                />
-            </flux:button.group>
         </div>
     </div>
 
@@ -147,20 +99,6 @@ new class extends Component
         @else
             @include('livewire.people.partials.empty-state')
         @endif
-    @elseif ($layout === 'cards')
-        <div @class([
-            'grid gap-3' => true,
-            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' => $density === 'spacious',
-            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5' => $density === 'compact',
-        ])>
-            @foreach ($this->people as $person)
-                <livewire:people.card :$person :density="$density" :key="'card-'.$person->id" />
-            @endforeach
-        </div>
-
-        <div class="mt-4">
-            {{ $this->people->links() }}
-        </div>
     @else
         <flux:table :paginate="$this->people">
             <flux:table.columns>
@@ -173,7 +111,7 @@ new class extends Component
 
             <flux:table.rows>
                 @foreach ($this->people as $person)
-                    <livewire:people.row :$person :density="$density" :key="'row-'.$person->id" />
+                    <livewire:people.row :$person :key="'row-'.$person->id" />
                 @endforeach
             </flux:table.rows>
         </flux:table>
