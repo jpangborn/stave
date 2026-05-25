@@ -108,7 +108,8 @@ class Person extends Model
      */
     public function scopeSearchedBy(Builder $query, ?string $term): void
     {
-        if (! $term) {
+        $term = trim((string) $term);
+        if ($term === '') {
             return;
         }
 

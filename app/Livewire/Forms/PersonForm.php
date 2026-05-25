@@ -53,6 +53,7 @@ class PersonForm extends Form
         return [
             'gender' => ['nullable', Rule::enum(Gender::class)],
             'membership_status' => ['required', Rule::enum(MembershipStatus::class)],
+            'membership_since' => ['nullable', 'date'],
             'termination_reason' => ['nullable', Rule::enum(TerminationReason::class)],
             'pastoral_care_elder_id' => ['nullable', 'integer', Rule::exists('people', 'id')],
         ];

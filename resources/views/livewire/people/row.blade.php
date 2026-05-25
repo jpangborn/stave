@@ -15,7 +15,14 @@ new class extends Component
     }
 }; ?>
 
-<flux:table.row class="cursor-pointer" wire:click="open">
+<flux:table.row
+    class="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+    wire:click="open"
+    tabindex="0"
+    role="button"
+    wire:keydown.enter="open"
+    wire:keydown.space.prevent="open"
+>
     <flux:table.cell>
         <div class="flex items-center gap-3">
             <x-person-avatar :person="$person" :size="$density === 'compact' ? 'xs' : 'sm'" />

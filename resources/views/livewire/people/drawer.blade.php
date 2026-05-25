@@ -99,6 +99,10 @@ new class extends Component
 
     public function addOffice(): void
     {
+        if (! $this->person) {
+            return;
+        }
+
         $this->validate([
             'newOffice' => ['required', Rule::enum(Office::class)],
             'newOfficeStartedOn' => ['required', 'date'],
@@ -120,6 +124,10 @@ new class extends Component
 
     public function endOffice(int $officeId, ?string $reason = null): void
     {
+        if (! $this->person) {
+            return;
+        }
+
         $office = PersonOffice::where('person_id', $this->person->id)->findOrFail($officeId);
         $office->update([
             'ended_on' => now()->toDateString(),
@@ -138,7 +146,10 @@ new class extends Component
         }
 
         $user = $this->person->user;
-        $accessRole = AccessRole::from($role);
+        $accessRole = AccessRole::tryFrom($role);
+        if (! $accessRole) {
+            return;
+        }
 
         $user->hasAccessRole($accessRole)
             ? $user->revokeAccessRole($accessRole)

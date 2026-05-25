@@ -26,13 +26,14 @@ it('filters by membership status', function (): void {
     $user->person->delete();
     Person::query()->delete();
 
-    Person::factory()->member()->count(3)->create();
-    Person::factory()->visitor()->count(2)->create();
+    Person::factory()->member()->create(['first_name' => 'Member', 'last_name' => 'One']);
+    Person::factory()->visitor()->create(['first_name' => 'Visitor', 'last_name' => 'One']);
 
     $this->actingAs($user);
 
     visit(route('people.index'))
-        ->assertSee('Members')
-        ->assertSee('Visitors')
+        ->click('Members')
+        ->assertSee('Member One')
+        ->assertDontSee('Visitor One')
         ->assertNoSmoke();
 });

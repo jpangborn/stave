@@ -38,6 +38,7 @@ new class extends Component
     public function setLayout(string $layout): void
     {
         $this->layout = in_array($layout, ['table', 'cards'], true) ? $layout : 'table';
+        $this->resetPage();
     }
 
     public function setDensity(string $density): void

@@ -80,6 +80,10 @@ test('layout and density persist via session', function (): void {
         ->assertSet('layout', 'cards')
         ->call('setDensity', 'compact')
         ->assertSet('density', 'compact');
+
+    Livewire::test('pages::people.index')
+        ->assertSet('layout', 'cards')
+        ->assertSet('density', 'compact');
 });
 
 test('openPerson dispatches drawer event', function (): void {

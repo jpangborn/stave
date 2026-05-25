@@ -68,7 +68,8 @@ class User extends Authenticatable implements CanComment
         return DB::table('user_access_roles')
             ->where('user_id', $this->id)
             ->pluck('role')
-            ->map(fn (string $value) => AccessRole::from($value));
+            ->map(fn (string $value) => AccessRole::tryFrom($value))
+            ->filter();
     }
 
     public function hasAccessRole(AccessRole $role): bool
