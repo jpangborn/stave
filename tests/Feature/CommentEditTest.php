@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\ConversationFile;
 use App\Models\Group;
@@ -25,9 +25,9 @@ function makeEditScenario(): array
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ALL_MEMBERS,
     ]);
-    $group->allUsers()->attach($author, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($author, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create([
         'group_id' => $group->id,

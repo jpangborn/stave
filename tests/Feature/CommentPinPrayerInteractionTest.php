@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\ConversationFile;
 use App\Models\Group;
@@ -22,7 +22,7 @@ function buildInteractionScenario(): array
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ALL_MEMBERS,
     ]);
-    $group->allUsers()->attach($author, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($author, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create([
         'group_id' => $group->id,
@@ -63,7 +63,7 @@ test('pinning re-opens the pinned strip even if the user previously dismissed it
 test('a non-author non-leader member cannot pin a comment', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $other = User::factory()->create();
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $comment = $conversation->postComment('not yours', $author);
 
@@ -93,7 +93,7 @@ test('an authorized user can unpin a pinned comment', function (): void {
 test('a non-author non-leader member cannot unpin a comment', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $other = User::factory()->create();
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $comment = $conversation->postComment('not yours', $author);
     $comment->fresh()->pin($author);
@@ -111,7 +111,7 @@ test('a non-author non-leader member cannot unpin a comment', function (): void 
 test('any active group member can mark a comment as prayer', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $member = User::factory()->create();
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $comment = $conversation->postComment('pray for this', $author);
 
@@ -171,7 +171,7 @@ test('the unpin toggle is rendered for a pinned comment', function (): void {
 test('the pin toggle is hidden for a member who cannot pin', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $other = User::factory()->create();
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
     $conversation->postComment('hi', $author);
 
     Livewire::actingAs($other)
@@ -183,7 +183,7 @@ test('the pin toggle is hidden for a member who cannot pin', function (): void {
 test('the prayer toggle button is rendered for active group members', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $member = User::factory()->create();
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
     $conversation->postComment('hi', $author);
 
     Livewire::actingAs($member)
@@ -219,7 +219,7 @@ test('an author can delete their own comment via deleteComment', function (): vo
 test('a group leader can delete any comment', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $member = User::factory()->create();
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $comment = $conversation->postComment('member message', $member);
 
@@ -234,7 +234,7 @@ test('a group leader can delete any comment', function (): void {
 test('a non-author non-leader member cannot delete a comment', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $other = User::factory()->create();
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $comment = $conversation->postComment('not yours', $author);
 
@@ -310,7 +310,7 @@ test('the delete toggle is rendered for the comment author', function (): void {
 test('the delete toggle is hidden for a member who cannot delete', function (): void {
     [$group, $conversation, $author] = buildInteractionScenario();
     $other = User::factory()->create();
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
     $conversation->postComment('not yours', $author);
 
     Livewire::actingAs($other)

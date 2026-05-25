@@ -3,8 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\AccessRole;
 use App\Enums\DigestFrequency;
-use App\Enums\MembershipStatus;
+use App\Enums\GroupMembershipStatus;
 use App\Models\Traits\HasGravatar;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Comments\Models\Concerns\InteractsWithComments;
@@ -59,6 +62,40 @@ class User extends Authenticatable implements CanComment
             ->implode('');
     }
 
+    /** @return Collection<int, AccessRole> */
+    public function accessRoles(): Collection
+    {
+        return DB::table('user_access_roles')
+            ->where('user_id', $this->id)
+            ->pluck('role')
+            ->map(fn (string $value) => AccessRole::from($value));
+    }
+
+    public function hasAccessRole(AccessRole $role): bool
+    {
+        return DB::table('user_access_roles')
+            ->where('user_id', $this->id)
+            ->where('role', $role->value)
+            ->exists();
+    }
+
+    public function grantAccessRole(AccessRole $role): void
+    {
+        DB::table('user_access_roles')->insertOrIgnore([
+            'user_id' => $this->id,
+            'role' => $role->value,
+            'created_at' => now(),
+        ]);
+    }
+
+    public function revokeAccessRole(AccessRole $role): void
+    {
+        DB::table('user_access_roles')
+            ->where('user_id', $this->id)
+            ->where('role', $role->value)
+            ->delete();
+    }
+
     /** @return BelongsTo<Person, $this> */
     public function person(): BelongsTo
     {
@@ -71,7 +108,7 @@ class User extends Authenticatable implements CanComment
         return $this->belongsToMany(Group::class)
             ->withPivot('role', 'status')
             ->withTimestamps()
-            ->wherePivot('status', MembershipStatus::ACTIVE);
+            ->wherePivot('status', GroupMembershipStatus::ACTIVE);
     }
 
     /** @return HasMany<NotificationPreference, $this> */

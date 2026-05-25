@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -136,7 +136,7 @@ test('groups index search filters by name', function (): void {
 test('leaders can delete a group from the index page', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['name' => 'Old Group', 'visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -190,7 +190,7 @@ test('group creator is automatically assigned as leader', function (): void {
         'group_id' => $group->id,
         'user_id' => $user->id,
         'role' => GroupRole::LEADER->value,
-        'status' => MembershipStatus::ACTIVE->value,
+        'status' => GroupMembershipStatus::ACTIVE->value,
     ]);
 });
 
@@ -199,8 +199,8 @@ test('members relationship returns only active users', function (): void {
     $active = User::factory()->create();
     $pending = User::factory()->create();
 
-    $group->allUsers()->attach($active, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($active, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     expect($group->members)->toHaveCount(1);
     expect($group->members->first()->id)->toBe($active->id);
@@ -212,9 +212,9 @@ test('leaders relationship returns only active leaders', function (): void {
     $member = User::factory()->create();
     $pendingLeader = User::factory()->create();
 
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($pendingLeader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::PENDING]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pendingLeader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::PENDING]);
 
     expect($group->leaders)->toHaveCount(1);
     expect($group->leaders->first()->id)->toBe($leader->id);
@@ -225,8 +225,8 @@ test('pending requests returns only pending users', function (): void {
     $pending = User::factory()->create();
     $active = User::factory()->create();
 
-    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
-    $group->allUsers()->attach($active, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($pending, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
+    $group->allUsers()->attach($active, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     expect($group->pendingRequests)->toHaveCount(1);
     expect($group->pendingRequests->first()->id)->toBe($pending->id);
@@ -236,9 +236,9 @@ test('all users returns every membership regardless of status', function (): voi
     $group = Group::factory()->create();
     $users = User::factory()->count(3)->create();
 
-    $group->allUsers()->attach($users[0], ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($users[1], ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
-    $group->allUsers()->attach($users[2], ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::REJECTED]);
+    $group->allUsers()->attach($users[0], ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($users[1], ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
+    $group->allUsers()->attach($users[2], ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::REJECTED]);
 
     expect($group->allUsers)->toHaveCount(3);
 });
@@ -248,8 +248,8 @@ test('user groups relationship returns only active memberships', function (): vo
     $activeGroup = Group::factory()->create();
     $pendingGroup = Group::factory()->create();
 
-    $activeGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
-    $pendingGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::PENDING]);
+    $activeGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $pendingGroup->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::PENDING]);
 
     expect($user->groups)->toHaveCount(1);
     expect($user->groups->first()->id)->toBe($activeGroup->id);
@@ -259,9 +259,9 @@ test('duplicate group membership is prevented', function (): void {
     $group = Group::factory()->create();
     $user = User::factory()->create();
 
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
-    expect(fn () => $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]))
+    expect(fn () => $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]))
         ->toThrow(UniqueConstraintViolationException::class);
 });
 
@@ -269,7 +269,7 @@ test('deleting a group removes its memberships', function (): void {
     $group = Group::factory()->create();
     $user = User::factory()->create();
 
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $group->delete();
 
@@ -287,7 +287,7 @@ test('guests are redirected from the groups edit page', function (): void {
 test('leaders can view the groups edit page', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create();
-    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user)
         ->get(route('groups.edit', $group))
@@ -298,7 +298,7 @@ test('leaders can view the groups edit page', function (): void {
 test('non-leaders cannot view the groups edit page', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create();
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user)
         ->get(route('groups.edit', $group))
@@ -308,7 +308,7 @@ test('non-leaders cannot view the groups edit page', function (): void {
 test('leaders can update a group', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['name' => 'Old Name', 'visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -334,7 +334,7 @@ test('leaders can update a group with a new image', function (): void {
 
     $user = User::factory()->create();
     $group = Group::factory()->create();
-    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -358,7 +358,7 @@ test('leaders can remove an existing group image', function (): void {
 
     $user = User::factory()->create();
     $group = Group::factory()->create(['image' => 'groups/old-image.jpg']);
-    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -377,7 +377,7 @@ test('leaders can remove an existing group image', function (): void {
 test('leaders can delete a group from the edit page', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create();
-    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $this->actingAs($user);
 
@@ -396,7 +396,7 @@ test('leaders can add multiple members in one batch', function (): void {
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ALL_MEMBERS,
     ]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     Livewire::actingAs($leader)
         ->test('pages::groups.show', ['group' => $group])
@@ -419,8 +419,8 @@ test('regular members cannot add members via addMembers', function (): void {
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ALL_MEMBERS,
     ]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     Livewire::actingAs($member)
         ->test('pages::groups.show', ['group' => $group])
@@ -437,7 +437,7 @@ test('addMembers picks up users via the popover pickUser flow', function (): voi
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ALL_MEMBERS,
     ]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     Livewire::actingAs($leader)
         ->test('pages::groups.show', ['group' => $group])
@@ -456,8 +456,8 @@ test('my groups card shows latest message preview when a comment exists', functi
     $user = User::factory()->create();
     $author = User::factory()->create(['name' => 'Alice Author']);
     $group = Group::factory()->create(['name' => 'Worship Team', 'visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($author, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($author, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = $group->conversations()->create([
         'user_id' => $author->id,
@@ -475,7 +475,7 @@ test('my groups card shows latest message preview when a comment exists', functi
 test('my groups card shows "No messages yet" when group has no comments', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['name' => 'Quiet Group', 'visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     Livewire::actingAs($user)
         ->test('pages::groups.index')
@@ -487,10 +487,10 @@ test('my groups card shows "No messages yet" when group has no comments', functi
 test('my groups card renders a flux avatar group with a +N overflow for groups with more than four members', function (): void {
     $user = User::factory()->create();
     $group = Group::factory()->create(['name' => 'Big Crew', 'visibility' => GroupVisibility::PUBLIC]);
-    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     foreach (User::factory()->count(6)->create() as $member) {
-        $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+        $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
     }
 
     $component = Livewire::actingAs($user)
@@ -559,7 +559,7 @@ test('discover filter chips restrict by messaging and combine with search', func
 test('discover excludes groups the current user is already a member of', function (): void {
     $user = User::factory()->create();
     $joined = Group::factory()->create(['name' => 'My Group', 'visibility' => GroupVisibility::PUBLIC]);
-    $joined->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $joined->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
     Group::factory()->create(['name' => 'Other Group', 'visibility' => GroupVisibility::PUBLIC]);
 
     $this->actingAs($user);
@@ -583,7 +583,7 @@ test('discover join action sends a join request and removes the group from disco
     $this->assertDatabaseHas('group_user', [
         'group_id' => $group->id,
         'user_id' => $user->id,
-        'status' => MembershipStatus::PENDING->value,
+        'status' => GroupMembershipStatus::PENDING->value,
     ]);
 
     expect($component->get('discover')->pluck('name')->all())->toBe([]);

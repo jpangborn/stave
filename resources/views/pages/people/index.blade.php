@@ -1,79 +1,183 @@
 <?php
 
+use App\Enums\MembershipStatus;
 use App\Models\Person;
-use Flux\Flux;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Session;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\Attributes\Computed;
 
-new class extends Component {
+new class extends Component
+{
     use WithPagination;
 
-    public $sortBy = "last_name";
-    public $sortDirection = "asc";
-    public $search = "";
+    public string $search = '';
 
-    public function sort($column)
+    public ?string $filter = null;
+
+    #[Session('people.layout')]
+    public string $layout = 'table';
+
+    #[Session('people.density')]
+    public string $density = 'spacious';
+
+    public ?int $openPersonId = null;
+
+    public function openPerson(int $id): void
     {
-        if ($this->sortBy === $column) {
-            $this->sortDirection =
-                $this->sortDirection === "asc" ? "desc" : "asc";
-        } else {
-            $this->sortBy = $column;
-            $this->sortDirection = "asc";
-        }
+        $this->openPersonId = $id;
+        $this->dispatch('open-person-drawer', personId: $id);
+    }
+
+    public function setFilter(?string $filter): void
+    {
+        $this->filter = $filter === 'all' ? null : $filter;
+        $this->resetPage();
+    }
+
+    public function setLayout(string $layout): void
+    {
+        $this->layout = in_array($layout, ['table', 'cards'], true) ? $layout : 'table';
+    }
+
+    public function setDensity(string $density): void
+    {
+        $this->density = in_array($density, ['spacious', 'compact'], true) ? $density : 'spacious';
+    }
+
+    /** @return array<string, int> */
+    #[Computed]
+    public function counts(): array
+    {
+        $base = Person::query()->searchedBy($this->search);
+
+        $byStatus = (clone $base)
+            ->selectRaw('membership_status, count(*) as total')
+            ->groupBy('membership_status')
+            ->pluck('total', 'membership_status')
+            ->all();
+
+        return [
+            'all' => (clone $base)->count(),
+            'member' => (int) ($byStatus[MembershipStatus::MEMBER->value] ?? 0),
+            'catechumen' => (int) ($byStatus[MembershipStatus::CATECHUMEN->value] ?? 0),
+            'adherent' => (int) ($byStatus[MembershipStatus::ADHERENT->value] ?? 0),
+            'visitor' => (int) ($byStatus[MembershipStatus::VISITOR->value] ?? 0),
+        ];
     }
 
     #[Computed]
     public function people()
     {
         return Person::query()
-            ->when($this->search, function ($query): void {
-                $query->whereAny(
-                    ["first_name", "last_name", "email"],
-                    "like",
-                    "%{$this->search}%",
-                );
-            })
-            ->tap(
-                fn($query) => $this->sortBy
-                    ? $query->orderBy($this->sortBy, $this->sortDirection)
-                    : $query,
-            )
-            ->paginate(12);
+            ->with(['offices', 'user'])
+            ->searchedBy($this->search)
+            ->when($this->filter, fn ($q) => $q->where('membership_status', $this->filter))
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->paginate($this->layout === 'cards' ? 24 : 12);
     }
 
-    public function delete($id)
+    public function updatedSearch(): void
     {
-        Person::findOrFail($id)->delete();
-        Flux::modal("delete-person")->close();
-        Flux::toast(variant: "danger", text: "Person deleted.");
+        $this->resetPage();
     }
-};
-?>
+}; ?>
 
 <section class="w-full">
-    <flux:heading size="xl" level="1">People</flux:heading>
-    <flux:subheading size="lg" class="mb-6">Manage your members and visitors.</flux:subheading>
-
-    <div class="flex space-x-4 items-center">
-        <flux:input wire:model.live="search" size="sm" placeholder="Search..." icon="magnifying-glass" class="max-w-96" clearable/>
-        <flux:spacer/>
-        <flux:button :href="route('people.create')" size="sm" variant="primary" icon="plus">Add Person</flux:button>
+    <div class="flex items-end justify-between gap-4 mb-4">
+        <div>
+            <flux:heading size="xl" level="1">People</flux:heading>
+            <flux:subheading size="lg">Manage your members and visitors.</flux:subheading>
+        </div>
+        <flux:modal.trigger name="add-person">
+            <flux:button size="sm" variant="primary" icon="plus">Add Person</flux:button>
+        </flux:modal.trigger>
     </div>
 
-    <flux:table :paginate="$this->people" class="mt-2">
-        <flux:table.columns>
-            <flux:table.column sortable :sorted="$sortBy === 'last_name'" :direction="$sortDirection" wire:click="sort('last_name')">Person</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'gender'" :direction="$sortDirection" wire:click="sort('gender')">Gender</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')">Added</flux:table.column>
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        @include('livewire.people.partials.filter-chips', ['counts' => $this->counts, 'current' => $filter])
 
-        <flux:table.rows>
+        <div class="flex items-center gap-2">
+            <flux:input
+                wire:model.live.debounce.250ms="search"
+                size="sm"
+                placeholder="Search by name, email, phone…"
+                icon="magnifying-glass"
+                class="w-72"
+                clearable
+            />
+
+            <flux:button.group size="sm">
+                <flux:button
+                    icon="bars-3"
+                    :variant="$layout === 'table' ? 'filled' : 'outline'"
+                    wire:click="setLayout('table')"
+                    title="Table view"
+                />
+                <flux:button
+                    icon="squares-2x2"
+                    :variant="$layout === 'cards' ? 'filled' : 'outline'"
+                    wire:click="setLayout('cards')"
+                    title="Card view"
+                />
+            </flux:button.group>
+
+            <flux:button.group size="sm">
+                <flux:button
+                    icon="arrows-up-down"
+                    :variant="$density === 'spacious' ? 'filled' : 'outline'"
+                    wire:click="setDensity('spacious')"
+                    title="Spacious"
+                />
+                <flux:button
+                    icon="bars-2"
+                    :variant="$density === 'compact' ? 'filled' : 'outline'"
+                    wire:click="setDensity('compact')"
+                    title="Compact"
+                />
+            </flux:button.group>
+        </div>
+    </div>
+
+    @if ($this->people->isEmpty())
+        @if ($search || $filter)
+            @include('livewire.people.partials.no-match')
+        @else
+            @include('livewire.people.partials.empty-state')
+        @endif
+    @elseif ($layout === 'cards')
+        <div @class([
+            'grid gap-3' => true,
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' => $density === 'spacious',
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5' => $density === 'compact',
+        ])>
             @foreach ($this->people as $person)
-                <livewire:people.row :$person :key="$person->id" />
+                <livewire:people.card :$person :density="$density" :key="'card-'.$person->id" />
             @endforeach
-        </flux:table.rows>
-    </flux:table>
+        </div>
+
+        <div class="mt-4">
+            {{ $this->people->links() }}
+        </div>
+    @else
+        <flux:table :paginate="$this->people">
+            <flux:table.columns>
+                <flux:table.column>Person</flux:table.column>
+                <flux:table.column>Membership</flux:table.column>
+                <flux:table.column>Office</flux:table.column>
+                <flux:table.column>Added</flux:table.column>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @foreach ($this->people as $person)
+                    <livewire:people.row :$person :density="$density" :key="'row-'.$person->id" />
+                @endforeach
+            </flux:table.rows>
+        </flux:table>
+    @endif
+
+    <livewire:people.drawer :person-id="$openPersonId" />
+    <livewire:people.add-modal />
 </section>

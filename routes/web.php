@@ -81,14 +81,7 @@ Route::middleware(['auth'])->group(function (): void {
                 });
         });
 
-    Route::name('people.')
-        ->prefix('people')
-        ->group(function (): void {
-            Route::livewire('/', 'pages::people.index')->name('index');
-            Route::livewire('/create', 'pages::people.create')->name('create');
-            Route::livewire('/{person}', 'pages::people.show')->name('show');
-            Route::livewire('/{person}/edit', 'pages::people.edit')->name('edit');
-        });
+    Route::livewire('/people', 'pages::people.index')->name('people.index');
 });
 
 require __DIR__.'/auth.php';

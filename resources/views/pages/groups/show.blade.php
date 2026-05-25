@@ -3,7 +3,7 @@
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
+use App\Enums\GroupMembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\GroupUser;
@@ -64,7 +64,7 @@ new class extends Component {
     #[Computed]
     public function isMember(): bool
     {
-        return $this->membership?->status === MembershipStatus::ACTIVE;
+        return $this->membership?->status === GroupMembershipStatus::ACTIVE;
     }
 
     #[Computed]
@@ -163,7 +163,7 @@ new class extends Component {
         }
 
         $existingUserIds = $this->group->allUsers()
-            ->whereIn('group_user.status', [MembershipStatus::ACTIVE, MembershipStatus::PENDING])
+            ->whereIn('group_user.status', [GroupMembershipStatus::ACTIVE, GroupMembershipStatus::PENDING])
             ->pluck('users.id');
 
         return User::query()
@@ -235,12 +235,12 @@ new class extends Component {
 
         if ($existing) {
             $this->group->allUsers()->updateExistingPivot(Auth::id(), [
-                'status' => MembershipStatus::PENDING,
+                'status' => GroupMembershipStatus::PENDING,
             ]);
         } else {
             $this->group->allUsers()->attach(Auth::id(), [
                 'role' => GroupRole::MEMBER,
-                'status' => MembershipStatus::PENDING,
+                'status' => GroupMembershipStatus::PENDING,
             ]);
         }
 
@@ -255,7 +255,7 @@ new class extends Component {
         /** @var ?GroupUser $membership */
         $membership = $this->group->allUsers()->where('user_id', Auth::id())->first()?->pivot;
 
-        if ($membership?->status !== MembershipStatus::PENDING) {
+        if ($membership?->status !== GroupMembershipStatus::PENDING) {
             return;
         }
 
@@ -308,7 +308,7 @@ new class extends Component {
             }
 
             $this->group->allUsers()->updateExistingPivot($user->id, [
-                'status' => MembershipStatus::ACTIVE,
+                'status' => GroupMembershipStatus::ACTIVE,
             ]);
 
             return $user;
@@ -339,7 +339,7 @@ new class extends Component {
             }
 
             $this->group->allUsers()->updateExistingPivot($user->id, [
-                'status' => MembershipStatus::REJECTED,
+                'status' => GroupMembershipStatus::REJECTED,
             ]);
 
             return $user;
@@ -377,12 +377,12 @@ new class extends Component {
             foreach ($users as $user) {
                 if (in_array($user->id, $existingIds, true)) {
                     $this->group->allUsers()->updateExistingPivot($user->id, [
-                        'status' => MembershipStatus::ACTIVE,
+                        'status' => GroupMembershipStatus::ACTIVE,
                     ]);
                 } else {
                     $this->group->allUsers()->attach($user->id, [
                         'role' => GroupRole::MEMBER,
-                        'status' => MembershipStatus::ACTIVE,
+                        'status' => GroupMembershipStatus::ACTIVE,
                     ]);
                 }
             }
@@ -577,15 +577,15 @@ new class extends Component {
 
             @if ($this->membership === null && $group->visibility === GroupVisibility::PUBLIC)
                 <flux:button wire:click="join" variant="primary" icon="user-plus">Request to Join</flux:button>
-            @elseif ($this->membership?->status === MembershipStatus::PENDING)
+            @elseif ($this->membership?->status === GroupMembershipStatus::PENDING)
                 <div class="flex items-center gap-2">
                     <flux:badge color="amber">Request Pending</flux:badge>
                     <flux:button wire:click="cancelRequest" variant="ghost" size="sm">Cancel</flux:button>
                 </div>
-            @elseif ($this->membership?->status === MembershipStatus::ACTIVE && ! $this->isLeader)
+            @elseif ($this->membership?->status === GroupMembershipStatus::ACTIVE && ! $this->isLeader)
                 <flux:button wire:click="leave" variant="danger" icon="arrow-right-start-on-rectangle"
                     wire:confirm="Are you sure you want to leave this group?">Leave Group</flux:button>
-            @elseif ($this->membership?->status === MembershipStatus::REJECTED)
+            @elseif ($this->membership?->status === GroupMembershipStatus::REJECTED)
                 <flux:button wire:click="join" variant="primary" icon="user-plus">Request to Join</flux:button>
             @endif
         </div>

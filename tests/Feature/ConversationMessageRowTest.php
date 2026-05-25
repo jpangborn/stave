@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
@@ -20,7 +20,7 @@ function buildRowScenario(): array
         'messaging' => GroupMessaging::ALL_MEMBERS,
         'name' => 'Elders',
     ]);
-    $group->allUsers()->attach($viewer, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($viewer, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create([
         'group_id' => $group->id,
@@ -87,7 +87,7 @@ test('own messages render with the accent left border and a "(you)" suffix', fun
 test('other peoples messages do not get the mine attribute', function (): void {
     [$group, $conversation, $viewer] = buildRowScenario();
     $other = User::factory()->create(['name' => 'Other Owen']);
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
     $conversation->postComment('theirs', $other);
 
     $html = Livewire::actingAs($viewer)
@@ -156,7 +156,7 @@ test('a reaction chip the viewer added carries the mine flag', function (): void
 test('a reaction chip the viewer did not add does not carry the mine flag', function (): void {
     [$group, $conversation, $viewer] = buildRowScenario();
     $other = User::factory()->create();
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $comment = $conversation->postComment('react to me', $other);
     $comment->fresh()->react('👍', $other);
@@ -186,7 +186,7 @@ test('clicking a reaction the viewer already gave removes it', function (): void
 test('hovering a reaction chip shows the reactors names in a tooltip', function (): void {
     [$group, $conversation, $viewer] = buildRowScenario();
     $other = User::factory()->create(['name' => 'Sarah Reactor']);
-    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($other, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $comment = $conversation->postComment('react to me', $other);
     $comment->fresh()->react('👍', $other);
@@ -233,8 +233,8 @@ test('the hover toolbar does not render for read-only viewers (leaders-only grou
         'visibility' => GroupVisibility::PUBLIC,
         'messaging' => GroupMessaging::ONLY_LEADERS,
     ]);
-    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => MembershipStatus::ACTIVE]);
-    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($leader, ['role' => GroupRole::LEADER, 'status' => GroupMembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($member, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create([
         'group_id' => $group->id,

@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Group;
 use App\Models\User;
 
@@ -34,7 +34,7 @@ class GroupPolicy
 
         return ! $group->allUsers()
             ->where('user_id', $user->id)
-            ->where('status', '!=', MembershipStatus::REJECTED)
+            ->where('status', '!=', GroupMembershipStatus::REJECTED)
             ->exists();
     }
 

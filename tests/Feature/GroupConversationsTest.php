@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
@@ -19,7 +19,7 @@ function attachMember(Group $group, User $user, GroupRole $role = GroupRole::MEM
 {
     $group->allUsers()->attach($user, [
         'role' => $role,
-        'status' => MembershipStatus::ACTIVE,
+        'status' => GroupMembershipStatus::ACTIVE,
     ]);
 }
 

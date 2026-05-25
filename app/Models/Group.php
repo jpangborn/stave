@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -51,7 +51,7 @@ class Group extends Model
     public function members(): BelongsToMany
     {
         return $this->allUsers()
-            ->wherePivot('status', MembershipStatus::ACTIVE);
+            ->wherePivot('status', GroupMembershipStatus::ACTIVE);
     }
 
     /** @return BelongsToMany<User, $this, GroupUser> */
@@ -59,14 +59,14 @@ class Group extends Model
     {
         return $this->allUsers()
             ->wherePivot('role', GroupRole::LEADER)
-            ->wherePivot('status', MembershipStatus::ACTIVE);
+            ->wherePivot('status', GroupMembershipStatus::ACTIVE);
     }
 
     /** @return BelongsToMany<User, $this, GroupUser> */
     public function pendingRequests(): BelongsToMany
     {
         return $this->allUsers()
-            ->wherePivot('status', MembershipStatus::PENDING);
+            ->wherePivot('status', GroupMembershipStatus::PENDING);
     }
 
     /** @return BelongsToMany<User, $this, GroupUser> */

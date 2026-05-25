@@ -1,10 +1,10 @@
 <?php
 
 use App\Actions\Comments\ResolveGroupMentionsAutocompleteAction;
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
-use App\Enums\MembershipStatus;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
@@ -24,14 +24,14 @@ function buildMentionScenario(): array
     ]);
 
     $caller = User::factory()->create();
-    $group->allUsers()->attach($caller, ['role' => GroupRole::MEMBER, 'status' => MembershipStatus::ACTIVE]);
+    $group->allUsers()->attach($caller, ['role' => GroupRole::MEMBER, 'status' => GroupMembershipStatus::ACTIVE]);
 
     $conversation = Conversation::factory()->create(['group_id' => $group->id, 'user_id' => $caller->id]);
 
     return [$group, $conversation, $caller];
 }
 
-function attachMentionMember(Group $group, User $user, MembershipStatus $status = MembershipStatus::ACTIVE): void
+function attachMentionMember(Group $group, User $user, GroupMembershipStatus $status = GroupMembershipStatus::ACTIVE): void
 {
     $group->allUsers()->attach($user, ['role' => GroupRole::MEMBER, 'status' => $status]);
 }
@@ -82,7 +82,7 @@ test('mentionCandidates excludes inactive (pending) group members', function ():
     [$group, $conversation, $caller] = buildMentionScenario();
 
     $pending = User::factory()->create(['name' => 'Patty Pending']);
-    attachMentionMember($group, $pending, MembershipStatus::PENDING);
+    attachMentionMember($group, $pending, GroupMembershipStatus::PENDING);
 
     Livewire::actingAs($caller)
         ->test('pages::groups.conversations.show', ['group' => $group, 'conversation' => $conversation])

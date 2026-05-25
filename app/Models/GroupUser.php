@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupRole;
-use App\Enums\MembershipStatus;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * @property GroupRole $role
- * @property MembershipStatus $status
+ * @property GroupMembershipStatus $status
  */
 #[Table(name: 'group_user')]
 class GroupUser extends Pivot
@@ -19,7 +19,7 @@ class GroupUser extends Pivot
     {
         return [
             'role' => GroupRole::class,
-            'status' => MembershipStatus::class,
+            'status' => GroupMembershipStatus::class,
         ];
     }
 }
