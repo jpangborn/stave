@@ -25,7 +25,7 @@ new class extends Component
 }; ?>
 
 <div>
-    <flux:modal name="add-person" class="w-[28rem]">
+    <flux:modal name="add-person" class="w-148">
         <form wire:submit="save" class="space-y-6">
             <div class="flex items-start gap-3">
                 <div class="grid size-10 place-items-center rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-100 dark:ring-emerald-900 shrink-0">
