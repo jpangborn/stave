@@ -7,8 +7,6 @@ new class extends Component
 {
     public Person $person;
 
-    public string $density = 'spacious';
-
     public function open(): void
     {
         $this->dispatch('open-person-drawer', personId: $this->person->id)->to('people.drawer');
@@ -25,7 +23,7 @@ new class extends Component
 >
     <flux:table.cell>
         <div class="flex items-center gap-3">
-            <x-person-avatar :person="$person" :size="$density === 'compact' ? 'xs' : 'sm'" />
+            <x-person-avatar :person="$person" size="sm" />
             <div class="min-w-0">
                 <div class="font-medium text-zinc-900 dark:text-white truncate">{{ $person->full_name }}</div>
                 @if ($person->email)

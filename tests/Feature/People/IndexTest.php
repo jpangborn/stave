@@ -74,18 +74,6 @@ test('searches by name', function (): void {
         });
 });
 
-test('layout and density persist via session', function (): void {
-    Livewire::test('pages::people.index')
-        ->call('setLayout', 'cards')
-        ->assertSet('layout', 'cards')
-        ->call('setDensity', 'compact')
-        ->assertSet('density', 'compact');
-
-    Livewire::test('pages::people.index')
-        ->assertSet('layout', 'cards')
-        ->assertSet('density', 'compact');
-});
-
 test('openPerson dispatches drawer event', function (): void {
     $person = Person::factory()->create();
 
