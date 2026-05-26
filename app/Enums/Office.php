@@ -26,6 +26,15 @@ enum Office: string
         };
     }
 
+    public function textColorClass(): string
+    {
+        return match ($this) {
+            self::ELDER => 'text-amber-500',
+            self::DEACON => 'text-indigo-500',
+            self::STAFF => 'text-zinc-500',
+        };
+    }
+
     public function icon(): string
     {
         return match ($this) {
