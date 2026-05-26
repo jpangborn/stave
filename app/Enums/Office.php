@@ -38,9 +38,9 @@ enum Office: string
     public function icon(): string
     {
         return match ($this) {
-            self::ELDER => 'star',
-            self::DEACON => 'hand-raised',
-            self::STAFF => 'briefcase',
+            self::ELDER => 'shield-ellipsis',
+            self::DEACON => 'hand-platter',
+            self::STAFF => 'briefcase-business',
         };
     }
 
