@@ -37,11 +37,34 @@ it('creates a service from a template with liturgy elements', function () {
             'type' => $templateElement->type,
             'reading_type' => $templateElement->reading_type,
             'order' => $templateElement->order,
+            'section_color' => $templateElement->section_color,
             'assignee_id' => $templateElement->assignee_id,
             'content_id' => $templateElement->content_id,
             'content_type' => $templateElement->content_type,
         ]);
     }
+});
+
+it('copies section_color from template to service elements', function () {
+    $template = Template::factory()->create();
+
+    LiturgyElement::factory()->create([
+        'liturgy_type' => Template::class,
+        'liturgy_id' => $template->id,
+        'type' => LiturgyElementType::SECTION,
+        'section_color' => 'sky',
+    ]);
+
+    app(CreateServiceFromTemplate::class)($template, Carbon::tomorrow());
+
+    $service = Service::first();
+
+    $this->assertDatabaseHas('liturgy_elements', [
+        'liturgy_type' => Service::class,
+        'liturgy_id' => $service->id,
+        'type' => LiturgyElementType::SECTION->value,
+        'section_color' => 'sky',
+    ]);
 });
 
 it('copies reading_type from template to service elements', function () {
