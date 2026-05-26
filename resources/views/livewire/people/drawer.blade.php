@@ -341,7 +341,7 @@ new class extends Component
                 {{-- Pastoral Care --}}
                 <section>
                     <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Pastoral care</flux:heading>
-                    <flux:card class="!p-3 bg-white space-y-6">
+                    <flux:card class="!p-3 bg-white dark:bg-zinc-800 space-y-6">
                         {{-- Assigned elder --}}
                         @php($elder = $person->pastoralCareElder)
                         <div class="flex items-center gap-3">
@@ -490,27 +490,29 @@ new class extends Component
                 </div>
             </form>
 
-            <flux:modal name="pastoral-care-congregants" class="w-md">
-                <div class="space-y-4">
-                    <div>
-                        <flux:heading size="lg">Congregants assigned to {{ $person->first_name }}</flux:heading>
-                        <flux:subheading>Pastoral care responsibilities</flux:subheading>
+            @if ($this->isElder)
+                <flux:modal name="pastoral-care-congregants" class="w-md">
+                    <div class="space-y-4">
+                        <div>
+                            <flux:heading size="lg">Congregants assigned to {{ $person->first_name }}</flux:heading>
+                            <flux:subheading>Pastoral care responsibilities</flux:subheading>
+                        </div>
+                        <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            @foreach ($person->assignedCongregants as $congregant)
+                                <li class="flex items-center gap-3 py-2">
+                                    <x-person-avatar :person="$congregant" size="sm" />
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium">{{ $congregant->full_name }}</p>
+                                        @if ($congregant->email)
+                                            <p class="text-xs text-zinc-500 truncate">{{ $congregant->email }}</p>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
                     </div>
-                    <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                        @foreach ($person->assignedCongregants as $congregant)
-                            <li class="flex items-center gap-3 py-2">
-                                <x-person-avatar :person="$congregant" size="sm" />
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium">{{ $congregant->full_name }}</p>
-                                    @if ($congregant->email)
-                                        <p class="text-xs text-zinc-500 truncate">{{ $congregant->email }}</p>
-                                    @endif
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </flux:modal>
+                </flux:modal>
+            @endif
         @endif
     </flux:modal>
 </div>
