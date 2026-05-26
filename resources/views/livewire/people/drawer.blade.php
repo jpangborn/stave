@@ -83,6 +83,9 @@ new class extends Component
         Flux::modal('person-drawer')->close();
 
         $this->personId = null;
+        $this->form->person = null;
+        unset($this->person);
+
         $this->dispatch('person-deleted', personId: $id);
     }
 
@@ -97,7 +100,7 @@ new class extends Component
             return;
         }
 
-        if ($this->person->offices->contains(fn ($o) => $o->kind === $office)) {
+        if ($this->person->offices->contains(fn (PersonOffice $o) => $o->kind === $office)) {
             return;
         }
 
