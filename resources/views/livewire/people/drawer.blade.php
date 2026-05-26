@@ -248,14 +248,16 @@ new class extends Component
 
                     <flux:callout variant="secondary" inline class="mt-2">
                         <div class="flex items-center gap-x-2">
-                            <flux:badge size="sm" icon="{{ $form->person->membership_status->icon() }}" color="{{ $form->person->membership_status->color() }}">{{ $form->person->membership_status->label() }}</flux:badge>
+                            <flux:badge rounded size="sm" icon="{{ $form->person->membership_status->icon() }}" color="{{ $form->person->membership_status->color() }}">{{ $form->person->membership_status->label() }}</flux:badge>
                             @if($form->membership_since)
                             <flux:text inline size="sm">Since {{ $form->membership_since }}</flux:text>
                             @endif
                         </div>
 
                         <x-slot name="actions">
+                            @if($form->membership_status === MembershipStatus::MEMBER)
                             <flux:button variant="ghost">Terminate...</flux:button>
+                            @endif
                             <flux:date-picker wire:model="form.membership_since">
                                 <x-slot name="trigger">
                                     <flux:button icon="calendar">Set Date</flux:button>
