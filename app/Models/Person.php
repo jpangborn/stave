@@ -92,6 +92,12 @@ class Person extends Model
         return $this->belongsTo(Person::class, 'pastoral_care_elder_id');
     }
 
+    /** @return HasMany<Person, $this> People who have this person assigned as their pastoral care elder. */
+    public function assignedCongregants(): HasMany
+    {
+        return $this->hasMany(Person::class, 'pastoral_care_elder_id');
+    }
+
     /** @return Attribute<string, never> */
     protected function fullName(): Attribute
     {

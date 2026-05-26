@@ -135,6 +135,59 @@ test('assigns a pastoral care elder', function (): void {
     expect($person->refresh()->pastoral_care_elder_id)->toBe($elder->id);
 });
 
+test('shows empty state when no pastoral care elder is assigned', function (): void {
+    $person = Person::factory()->visitor()->create(['pastoral_care_elder_id' => null]);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->assertSee('No elder assigned');
+});
+
+test('shows the assigned elder name', function (): void {
+    $elder = Person::factory()->member()->create(['first_name' => 'Joshua', 'last_name' => 'Pangborn']);
+    PersonOffice::factory()->elder()->create(['person_id' => $elder->id]);
+
+    $person = Person::factory()->visitor()->create(['pastoral_care_elder_id' => $elder->id]);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->assertSee('Joshua Pangborn')
+        ->assertDontSee('No elder assigned');
+});
+
+test('hides the congregants card for people without the elder office', function (): void {
+    $person = Person::factory()->member()->create();
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->assertSet('isElder', false)
+        ->assertDontSee('congregants assigned to');
+});
+
+test('shows the congregants card with count for an elder', function (): void {
+    $elder = Person::factory()->member()->create(['first_name' => 'Joshua']);
+    PersonOffice::factory()->elder()->create(['person_id' => $elder->id]);
+
+    Person::factory()->count(3)->create(['pastoral_care_elder_id' => $elder->id]);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $elder->id)
+        ->assertSet('isElder', true)
+        ->assertSee('3 congregants assigned to Joshua');
+});
+
+test('toggles the elder picker', function (): void {
+    $person = Person::factory()->visitor()->create();
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->assertSet('showElderPicker', false)
+        ->call('toggleElderPicker')
+        ->assertSet('showElderPicker', true)
+        ->call('toggleElderPicker')
+        ->assertSet('showElderPicker', false);
+});
+
 test('deletes a person', function (): void {
     $person = Person::factory()->visitor()->create();
 

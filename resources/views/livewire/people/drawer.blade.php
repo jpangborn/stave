@@ -16,6 +16,8 @@ new class extends Component
 {
     public ?int $personId = null;
 
+    public bool $showElderPicker = false;
+
     public PersonForm $form;
 
     #[Computed]
@@ -25,7 +27,13 @@ new class extends Component
             return null;
         }
 
-        return Person::with(['allOffices', 'user', 'pastoralCareElder'])->find($this->personId);
+        return Person::with(['allOffices', 'user', 'pastoralCareElder', 'assignedCongregants'])->find($this->personId);
+    }
+
+    #[Computed]
+    public function isElder(): bool
+    {
+        return (bool) $this->person?->allOffices->contains(fn (PersonOffice $o) => $o->kind === Office::ELDER && $o->ended_on === null);
     }
 
     /** @return \Illuminate\Support\Collection<int, Person> */
@@ -43,8 +51,14 @@ new class extends Component
     public function openPerson(int $personId): void
     {
         $this->personId = $personId;
+        $this->showElderPicker = false;
         $this->loadForm();
         Flux::modal('person-drawer')->show();
+    }
+
+    public function toggleElderPicker(): void
+    {
+        $this->showElderPicker = ! $this->showElderPicker;
     }
 
     private function loadForm(): void
@@ -327,12 +341,90 @@ new class extends Component
                 {{-- Pastoral Care --}}
                 <section>
                     <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Pastoral care</flux:heading>
-                    <flux:select wire:model="form.pastoral_care_elder_id" variant="listbox" placeholder="Unassigned">
-                        <flux:select.option :value="null">Unassigned</flux:select.option>
-                        @foreach ($this->elderCandidates as $elder)
-                            <flux:select.option :value="$elder->id">{{ $elder->full_name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
+                    <flux:card class="!p-3 bg-white space-y-6">
+                        {{-- Assigned elder --}}
+                        @php($elder = $person->pastoralCareElder)
+                        <div class="flex items-center gap-3">
+                            @if ($elder)
+                                <x-person-avatar :person="$elder" size="sm" />
+                            @else
+                                <div class="grid size-8 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 shrink-0">
+                                    <flux:icon icon="user" class="size-4" />
+                                </div>
+                            @endif
+                            <div class="flex flex-col gap-1 min-w-0">
+                                <flux:heading class="!text-sm truncate">
+                                    {{ $elder?->full_name ?? 'No elder assigned' }}
+                                </flux:heading>
+                                @if ($elder && $elder->email)
+                                    <p class="text-xs text-zinc-500 truncate">{{ $elder->email }}</p>
+                                @else
+                                    <p class="text-xs text-zinc-500">Pastoral care provided by an elder</p>
+                                @endif
+                            </div>
+                            <flux:spacer />
+                            @if ($elder)
+                                <flux:button size="sm" variant="ghost" wire:click="toggleElderPicker">
+                                    Change
+                                </flux:button>
+                            @else
+                                <flux:button size="sm" variant="ghost" icon="plus" wire:click="toggleElderPicker">
+                                    Assign
+                                </flux:button>
+                            @endif
+                        </div>
+
+                        @if ($showElderPicker)
+                            <flux:select
+                                variant="listbox"
+                                searchable
+                                wire:model.live="form.pastoral_care_elder_id"
+                                placeholder="Search elders..."
+                                clearable
+                            >
+                                @foreach ($this->elderCandidates as $candidate)
+                                    <flux:select.option :value="$candidate->id">
+                                        {{ $candidate->full_name }}
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        @endif
+
+                        {{-- Congregants (only when this person is an elder) --}}
+                        @if ($this->isElder)
+                            @php($congregants = $person->assignedCongregants)
+                            @php($count = $congregants->count())
+                            <div class="flex items-center gap-3">
+                                <div class="grid size-8 place-items-center rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300 shrink-0">
+                                    <flux:icon icon="users" class="size-4" />
+                                </div>
+                                <div class="flex flex-col gap-1 min-w-0">
+                                    <flux:heading class="!text-sm">
+                                        @if ($count === 0)
+                                            No congregants assigned
+                                        @else
+                                            {{ $count }} {{ Str::plural('congregant', $count) }} assigned to {{ $person->first_name }}
+                                        @endif
+                                    </flux:heading>
+                                    @if ($count > 0)
+                                        <div class="flex -space-x-1.5">
+                                            @foreach ($congregants->take(5) as $congregant)
+                                                <x-person-avatar :person="$congregant" size="xs" circle class="ring-2 ring-white dark:ring-zinc-900" />
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <p class="text-xs text-zinc-500">Members under this elder's care will appear here</p>
+                                    @endif
+                                </div>
+                                <flux:spacer />
+                                @if ($count > 0)
+                                    <flux:modal.trigger name="pastoral-care-congregants">
+                                        <flux:button size="sm" variant="ghost">View all</flux:button>
+                                    </flux:modal.trigger>
+                                @endif
+                            </div>
+                        @endif
+                    </flux:card>
                 </section>
 
                 {{-- Access --}}
@@ -397,6 +489,28 @@ new class extends Component
                     </div>
                 </div>
             </form>
+
+            <flux:modal name="pastoral-care-congregants" class="w-md">
+                <div class="space-y-4">
+                    <div>
+                        <flux:heading size="lg">Congregants assigned to {{ $person->first_name }}</flux:heading>
+                        <flux:subheading>Pastoral care responsibilities</flux:subheading>
+                    </div>
+                    <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        @foreach ($person->assignedCongregants as $congregant)
+                            <li class="flex items-center gap-3 py-2">
+                                <x-person-avatar :person="$congregant" size="sm" />
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium">{{ $congregant->full_name }}</p>
+                                    @if ($congregant->email)
+                                        <p class="text-xs text-zinc-500 truncate">{{ $congregant->email }}</p>
+                                    @endif
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </flux:modal>
         @endif
     </flux:modal>
 </div>

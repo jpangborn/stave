@@ -40,6 +40,14 @@ test('pastoralCareElder relationship', function (): void {
     expect($person->refresh()->pastoralCareElder->id)->toBe($elder->id);
 });
 
+test('assignedCongregants returns people pointing back to this elder', function (): void {
+    $elder = Person::factory()->create();
+    Person::factory()->count(2)->create(['pastoral_care_elder_id' => $elder->id]);
+    Person::factory()->create(['pastoral_care_elder_id' => null]);
+
+    expect($elder->refresh()->assignedCongregants)->toHaveCount(2);
+});
+
 test('searchedBy scope matches first/last/email/phone', function (): void {
     Person::factory()->create(['first_name' => 'Joshua', 'last_name' => 'Pangborn', 'email' => 'josh@example.com', 'phone' => '555-0142']);
     Person::factory()->create(['first_name' => 'Andrew', 'last_name' => 'Burnette', 'email' => 'andrew@example.com', 'phone' => '555-0317']);
