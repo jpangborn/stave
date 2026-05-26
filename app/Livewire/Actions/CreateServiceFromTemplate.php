@@ -34,6 +34,7 @@ class CreateServiceFromTemplate
                         'order' => $element->order,
                         'name' => $element->name,
                         'description' => $element->description,
+                        'section_color' => $element->section_color,
                         'assignee_id' => $element->assignee_id,
                         'content_type' => $element->content_type,
                         'content_id' => $element->content_id,
