@@ -6,7 +6,7 @@
 
 <flux:avatar
     :name="$person->full_name"
-    :src="$person->gravatar"
+    :src="$person->gravatarUrl()"
     :size="$size"
     :circle="$circle"
     color="auto"
