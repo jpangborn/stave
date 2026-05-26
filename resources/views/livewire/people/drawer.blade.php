@@ -275,69 +275,6 @@ new class extends Component
                     </flux:callout>
                 </section>
 
-                {{-- Office --}}
-                <section>
-                    <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Office</flux:heading>
-                    <flux:card class="!p-3 bg-zinc-50 space-y-6">
-                        @foreach (Office::cases() as $kind)
-                            @php($held = $person->offices->firstWhere('kind', $kind))
-                            <div class="flex items-center gap-3">
-                                <flux:icon :icon="$kind->icon()" class="size-5 shrink-0 mt-0.5 {{ $kind->textColorClass() }}" />
-                                <div class="flex flex-col gap-1">
-                                    <div class="flex items-center gap-2">
-                                        <flux:heading class="!text-sm">{{ $kind->label() }}</flux:heading>
-                                        @if ($held)
-                                            <flux:badge size="sm" color="zinc">Held</flux:badge>
-                                        @endif
-                                    </div>
-                                    @if ($held)
-                                        <p class="text-xs text-zinc-500">Since {{ $held->started_on->format('M Y') }}</p>
-                                    @else
-                                        <p class="text-xs text-zinc-500">{{ $kind->description() }}</p>
-                                    @endif
-                                </div>
-                                <flux:spacer />
-                                @if ($held)
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        wire:click="endOffice({{ $held->id }})"
-                                        wire:confirm="End {{ $kind->label() }} office?"
-                                    >
-                                        Step down
-                                    </flux:button>
-                                @else
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        icon="plus"
-                                        wire:click="addOffice('{{ $kind->value }}')"
-                                    >
-                                        Assign
-                                    </flux:button>
-                                @endif
-                            </div>
-                        @endforeach
-                    </flux:card>
-
-                    @if ($person->formerOffices->isNotEmpty())
-                        <div class="mt-3">
-                            <flux:subheading class="!text-xs">Former</flux:subheading>
-                            <ul class="space-y-1 mt-1">
-                                @foreach ($person->formerOffices as $office)
-                                    <li class="flex items-center gap-2 text-xs text-zinc-500">
-                                        <x-office-chip :kind="$office->kind" size="sm" />
-                                        <span>{{ $office->started_on->format('Y') }} – {{ $office->ended_on->format('Y') }}</span>
-                                        @if ($office->end_reason)
-                                            <span class="text-zinc-400">· {{ $office->end_reason }}</span>
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </section>
-
                 {{-- Pastoral Care --}}
                 <section>
                     <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Pastoral care</flux:heading>
@@ -425,6 +362,69 @@ new class extends Component
                             </div>
                         @endif
                     </flux:card>
+                </section>
+
+                {{-- Office --}}
+                <section>
+                    <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Office</flux:heading>
+                    <flux:card class="!p-3 bg-zinc-50 space-y-6">
+                        @foreach (Office::cases() as $kind)
+                            @php($held = $person->offices->firstWhere('kind', $kind))
+                            <div class="flex items-center gap-3">
+                                <flux:icon :icon="$kind->icon()" class="size-5 shrink-0 mt-0.5 {{ $kind->textColorClass() }}" />
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center gap-2">
+                                        <flux:heading class="!text-sm">{{ $kind->label() }}</flux:heading>
+                                        @if ($held)
+                                            <flux:badge size="sm" color="zinc">Held</flux:badge>
+                                        @endif
+                                    </div>
+                                    @if ($held)
+                                        <p class="text-xs text-zinc-500">Since {{ $held->started_on->format('M Y') }}</p>
+                                    @else
+                                        <p class="text-xs text-zinc-500">{{ $kind->description() }}</p>
+                                    @endif
+                                </div>
+                                <flux:spacer />
+                                @if ($held)
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        wire:click="endOffice({{ $held->id }})"
+                                        wire:confirm="End {{ $kind->label() }} office?"
+                                    >
+                                        Step down
+                                    </flux:button>
+                                @else
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="plus"
+                                        wire:click="addOffice('{{ $kind->value }}')"
+                                    >
+                                        Assign
+                                    </flux:button>
+                                @endif
+                            </div>
+                        @endforeach
+                    </flux:card>
+
+                    @if ($person->formerOffices->isNotEmpty())
+                        <div class="mt-3">
+                            <flux:subheading class="!text-xs">Former</flux:subheading>
+                            <ul class="space-y-1 mt-1">
+                                @foreach ($person->formerOffices as $office)
+                                    <li class="flex items-center gap-2 text-xs text-zinc-500">
+                                        <x-office-chip :kind="$office->kind" size="sm" />
+                                        <span>{{ $office->started_on->format('Y') }} – {{ $office->ended_on->format('Y') }}</span>
+                                        @if ($office->end_reason)
+                                            <span class="text-zinc-400">· {{ $office->end_reason }}</span>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </section>
 
                 {{-- Access --}}
