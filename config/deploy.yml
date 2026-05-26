@@ -31,17 +31,17 @@ servers:
     options:
       health-cmd: "healthcheck-queue"
       health-interval: "10s"
-  reverb:
-    hosts:
-      - 129.212.180.73
-    cmd: php artisan reverb:start --host=0.0.0.0 --port=8080 --hostname=reverb.stave.pangborn.cloud
-    proxy:
-      ssl: true
-      host: reverb.stave.pangborn.cloud
-      app_port: 8080
-    options:
-      health-cmd: "healthcheck-reverb"
-      health-interval: "10s"
+#  reverb:
+#    hosts:
+#      - 129.212.180.73
+#    cmd: php artisan reverb:start --host=0.0.0.0 --port=8080 --hostname=reverb.stave.pangborn.cloud
+#   proxy:
+#      ssl: true
+#      host: reverb.stave.pangborn.cloud
+#      app_port: 8080
+#    options:
+#      health-cmd: "healthcheck-reverb"
+#      health-interval: "10s"
 
 # Credentials for your image host.
 registry:
