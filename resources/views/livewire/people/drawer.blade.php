@@ -161,7 +161,7 @@ new class extends Component
 }; ?>
 
 <div>
-    <flux:modal variant="flyout" name="person-drawer" class="!w-[36rem] max-w-[96vw]">
+    <flux:modal variant="flyout" name="person-drawer" class="w-2/5">
         @if ($this->person)
             @php($person = $this->person)
 
@@ -234,23 +234,35 @@ new class extends Component
                 {{-- Membership --}}
                 <section>
                     <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Membership</flux:heading>
-                    <flux:radio.group wire:model.live="form.membership_status" variant="cards" :indicator="false" class="flex-col sm:grid sm:grid-cols-2">
+                    <flux:radio.group wire:model.live="form.membership_status" variant="buttons" class="flex-col sm:grid sm:grid-cols-4">
                         @foreach (MembershipStatus::cases() as $status)
                             @if ($status !== MembershipStatus::TERMINATED)
                                 <flux:radio
                                     :value="$status->value"
                                     :icon="$status->icon()"
                                     :label="$status->label()"
-                                    :description="$status->description()"
                                 />
                             @endif
                         @endforeach
                     </flux:radio.group>
 
-                    <flux:field class="mt-3">
-                        <flux:label>Member since</flux:label>
-                        <flux:input wire:model="form.membership_since" type="date" />
-                    </flux:field>
+                    <flux:callout variant="secondary" inline class="mt-2">
+                        <div class="flex items-center gap-x-2">
+                            <flux:badge size="sm" icon="{{ $form->person->membership_status->icon() }}" color="{{ $form->person->membership_status->color() }}">{{ $form->person->membership_status->label() }}</flux:badge>
+                            @if($form->membership_since)
+                            <flux:text inline size="sm">Since {{ $form->membership_since }}</flux:text>
+                            @endif
+                        </div>
+
+                        <x-slot name="actions">
+                            <flux:button variant="ghost">Terminate...</flux:button>
+                            <flux:date-picker wire:model="form.membership_since">
+                                <x-slot name="trigger">
+                                    <flux:button icon="calendar">Set Date</flux:button>
+                                </x-slot>
+                            </flux:date-picker>
+                        </x-slot>
+                    </flux:callout>
                 </section>
 
                 {{-- Office --}}
