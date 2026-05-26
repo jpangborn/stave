@@ -8,7 +8,6 @@ use App\Livewire\Forms\PersonForm;
 use App\Models\Person;
 use App\Models\PersonOffice;
 use Flux\Flux;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -18,15 +17,6 @@ new class extends Component
     public ?int $personId = null;
 
     public PersonForm $form;
-
-    public ?string $newOffice = null;
-
-    public string $newOfficeStartedOn;
-
-    public function mount(): void
-    {
-        $this->newOfficeStartedOn = now()->toDateString();
-    }
 
     #[Computed]
     public function person(): ?Person
@@ -93,32 +83,36 @@ new class extends Component
         Flux::modal('person-drawer')->close();
 
         $this->personId = null;
+        $this->form->person = null;
+        unset($this->person);
+
         $this->dispatch('person-deleted', personId: $id);
     }
 
-    public function addOffice(): void
+    public function addOffice(string $kind): void
     {
         if (! $this->person) {
             return;
         }
 
-        $this->validate([
-            'newOffice' => ['required', Rule::enum(Office::class)],
-            'newOfficeStartedOn' => ['required', 'date'],
-        ]);
+        $office = Office::tryFrom($kind);
+        if (! $office) {
+            return;
+        }
+
+        if ($this->person->offices->contains(fn (PersonOffice $o) => $o->kind === $office)) {
+            return;
+        }
 
         PersonOffice::create([
             'person_id' => $this->person->id,
-            'kind' => $this->newOffice,
-            'started_on' => $this->newOfficeStartedOn,
+            'kind' => $office,
+            'started_on' => now()->toDateString(),
         ]);
-
-        $this->newOffice = null;
-        $this->newOfficeStartedOn = now()->toDateString();
 
         unset($this->person);
 
-        Flux::toast(variant: 'success', text: 'Office added.');
+        Flux::toast(variant: 'success', text: $office->label().' assigned.');
     }
 
     public function endOffice(int $officeId, ?string $reason = null): void
@@ -268,37 +262,49 @@ new class extends Component
                 {{-- Office --}}
                 <section>
                     <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Office</flux:heading>
-
-                    @if ($person->offices->isEmpty())
-                        <p class="text-sm text-zinc-500">No current office.</p>
-                    @else
-                        <ul class="space-y-1.5 mb-3">
-                            @foreach ($person->offices as $office)
-                                <li class="flex items-center justify-between gap-3 rounded-md ring-1 ring-zinc-200 dark:ring-zinc-700 px-3 py-2">
-                                    <div class="flex items-center gap-2">
-                                        <x-office-chip :kind="$office->kind" />
-                                        <span class="text-xs text-zinc-500">since {{ $office->started_on->format('M Y') }}</span>
+                    <div class="space-y-2">
+                        @foreach (Office::cases() as $kind)
+                            @php($held = $person->offices->firstWhere('kind', $kind))
+                            <flux:card class="!p-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-start gap-3 min-w-0">
+                                        <flux:icon :icon="$kind->icon()" variant="solid" class="size-5 shrink-0 mt-0.5 {{ $kind->textColorClass() }}" />
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <flux:heading class="!text-sm">{{ $kind->label() }}</flux:heading>
+                                                @if ($held)
+                                                    <flux:badge size="sm" color="zinc">Held</flux:badge>
+                                                @endif
+                                            </div>
+                                            @if ($held)
+                                                <p class="text-xs text-zinc-500">Since {{ $held->started_on->format('M Y') }}</p>
+                                            @else
+                                                <p class="text-xs text-zinc-500">{{ $kind->description() }}</p>
+                                            @endif
+                                        </div>
                                     </div>
-                                    <flux:button size="sm" variant="ghost" wire:click="endOffice({{ $office->id }})" wire:confirm="End this office?">End</flux:button>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-
-                    <div class="flex items-end gap-2">
-                        <flux:field class="flex-1">
-                            <flux:label>Add office</flux:label>
-                            <flux:select wire:model="newOffice" variant="listbox" placeholder="Select…">
-                                @foreach (Office::cases() as $kind)
-                                    <flux:select.option :value="$kind->value">{{ $kind->label() }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </flux:field>
-                        <flux:field>
-                            <flux:label>Started</flux:label>
-                            <flux:input wire:model="newOfficeStartedOn" type="date" />
-                        </flux:field>
-                        <flux:button type="button" variant="ghost" icon="plus" wire:click="addOffice">Add</flux:button>
+                                    @if ($held)
+                                        <flux:button
+                                            size="sm"
+                                            variant="ghost"
+                                            wire:click="endOffice({{ $held->id }})"
+                                            wire:confirm="End {{ $kind->label() }} office?"
+                                        >
+                                            Step down
+                                        </flux:button>
+                                    @else
+                                        <flux:button
+                                            size="sm"
+                                            variant="ghost"
+                                            icon="plus"
+                                            wire:click="addOffice('{{ $kind->value }}')"
+                                        >
+                                            Assign
+                                        </flux:button>
+                                    @endif
+                                </div>
+                            </flux:card>
+                        @endforeach
                     </div>
 
                     @if ($person->formerOffices->isNotEmpty())

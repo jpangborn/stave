@@ -83,9 +83,7 @@ test('adds a new office', function (): void {
 
     Livewire::test('people.drawer')
         ->call('openPerson', $person->id)
-        ->set('newOffice', Office::ELDER->value)
-        ->set('newOfficeStartedOn', '2024-01-15')
-        ->call('addOffice')
+        ->call('addOffice', Office::ELDER->value)
         ->assertHasNoErrors();
 
     expect($person->offices()->count())->toBe(1);
