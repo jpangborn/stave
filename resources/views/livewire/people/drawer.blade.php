@@ -431,23 +431,48 @@ new class extends Component
                 @if ($person->user)
                     <section>
                         <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Access</flux:heading>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach (AccessRole::cases() as $role)
-                                @php($active = $person->user->hasAccessRole($role))
-                                <button type="button" wire:click="toggleAccessRole('{{ $role->value }}')" class="appearance-none">
-                                    <flux:badge
-                                        :color="$active ? $role->color() : 'zinc'"
-                                        :icon="$role->icon()"
-                                        size="sm"
-                                        :title="$role->description()"
-                                        :class="$active ? '' : 'opacity-50'"
-                                    >
-                                        {{ $role->label() }}
-                                    </flux:badge>
-                                </button>
+                        <flux:card class="!p-3 bg-zinc-50 space-y-4">
+                            {{-- Person baseline (informational, always on) --}}
+                            <div class="flex items-center gap-3">
+                                <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-zinc-100">
+                                    <flux:icon icon="users" class="size-5 text-zinc-600" />
+                                </div>
+                                <div class="flex flex-col gap-0.5 min-w-0">
+                                    <flux:heading class="!text-sm">Person</flux:heading>
+                                    <p class="text-xs text-zinc-500">Default access. Can view and request to join groups.</p>
+                                </div>
+                                <flux:spacer />
+                                <flux:checkbox checked disabled />
+                            </div>
+
+                            @foreach (AccessRole::groupedForDisplay() as $group => $roles)
+                                <div class="space-y-3">
+                                    <flux:subheading class="!text-xs uppercase tracking-wider text-zinc-500">{{ $group }}</flux:subheading>
+                                    @foreach ($roles as $role)
+                                        @php($active = $person->user->hasAccessRole($role))
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex size-9 shrink-0 items-center justify-center rounded-lg {{ $role->iconBgClass() }}">
+                                                <flux:icon :icon="$role->icon()" class="size-5 {{ $role->iconColorClass() }}" />
+                                            </div>
+                                            <div class="flex flex-col gap-0.5 min-w-0">
+                                                <flux:heading class="!text-sm">{{ $role->label() }}</flux:heading>
+                                                <p class="text-xs text-zinc-500">{{ $role->description() }}</p>
+                                            </div>
+                                            <flux:spacer />
+                                            <flux:checkbox
+                                                :checked="$active"
+                                                wire:click="toggleAccessRole('{{ $role->value }}')"
+                                            />
+                                        </div>
+                                    @endforeach
+                                </div>
                             @endforeach
-                        </div>
-                        <p class="mt-1 text-xs text-zinc-500">Click to toggle. (Display-only for now — no enforcement yet.)</p>
+                        </flux:card>
+
+                        <p class="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
+                            <flux:icon icon="shield-check" class="size-3.5" />
+                            Administrators have everything above included.
+                        </p>
                     </section>
                 @endif
 
