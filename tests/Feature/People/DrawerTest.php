@@ -104,21 +104,50 @@ test('ends a current office', function (): void {
     expect($person->formerOffices()->count())->toBe(1);
 });
 
-test('toggles an access role on the linked user', function (): void {
+test('access role changes are staged and persisted on save', function (): void {
     $person = Person::factory()->member()->create();
     User::factory()->create(['person_id' => $person->id]);
 
-    Livewire::test('people.drawer')
+    $component = Livewire::test('people.drawer')
         ->call('openPerson', $person->id)
-        ->call('toggleAccessRole', AccessRole::ADMIN->value);
+        ->assertSet('accessRoles.'.AccessRole::ADMIN->value, false)
+        ->set('accessRoles.'.AccessRole::ADMIN->value, true);
+
+    expect($person->fresh()->user->hasAccessRole(AccessRole::ADMIN))->toBeFalse();
+
+    $component->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('person-saved');
 
     expect($person->fresh()->user->hasAccessRole(AccessRole::ADMIN))->toBeTrue();
 
     Livewire::test('people.drawer')
         ->call('openPerson', $person->id)
-        ->call('toggleAccessRole', AccessRole::ADMIN->value);
+        ->assertSet('accessRoles.'.AccessRole::ADMIN->value, true)
+        ->set('accessRoles.'.AccessRole::ADMIN->value, false)
+        ->call('save');
 
     expect($person->fresh()->user->hasAccessRole(AccessRole::ADMIN))->toBeFalse();
+});
+
+test('access role state resets when opening a different person', function (): void {
+    $personA = Person::factory()->member()->create();
+    User::factory()->create(['person_id' => $personA->id]);
+
+    $personB = Person::factory()->member()->create();
+    $userB = User::factory()->create(['person_id' => $personB->id]);
+    $userB->grantAccessRole(AccessRole::ADMIN);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $personA->id)
+        ->assertSet('accessRoles.'.AccessRole::ADMIN->value, false)
+        ->set('accessRoles.'.AccessRole::ADMIN->value, true)
+        ->call('openPerson', $personB->id)
+        ->assertSet('accessRoles.'.AccessRole::ADMIN->value, true)
+        ->call('openPerson', $personA->id)
+        ->assertSet('accessRoles.'.AccessRole::ADMIN->value, false);
+
+    expect($personA->fresh()->user->hasAccessRole(AccessRole::ADMIN))->toBeFalse();
 });
 
 test('assigns a pastoral care elder', function (): void {
