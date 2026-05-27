@@ -9,6 +9,7 @@ use App\Models\Person;
 use App\Models\PersonOffice;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -19,6 +20,13 @@ new class extends Component
     public bool $showElderPicker = false;
 
     public PersonForm $form;
+
+    /** @var array<string, bool> */
+    public array $accessRoles = [];
+
+    /** @var array<string, bool> */
+    #[Locked]
+    public array $originalAccessRoles = [];
 
     #[Computed]
     public function person(): ?Person
@@ -53,6 +61,7 @@ new class extends Component
         $this->personId = $personId;
         $this->showElderPicker = false;
         $this->loadForm();
+        $this->loadAccessRoles();
         Flux::modal('person-drawer')->show();
     }
 
@@ -70,6 +79,22 @@ new class extends Component
         }
     }
 
+    private function loadAccessRoles(): void
+    {
+        $this->accessRoles = [];
+        $this->originalAccessRoles = [];
+
+        if (! $this->person?->user) {
+            return;
+        }
+
+        foreach (AccessRole::cases() as $role) {
+            $active = $this->person->user->hasAccessRole($role);
+            $this->accessRoles[$role->value] = $active;
+            $this->originalAccessRoles[$role->value] = $active;
+        }
+    }
+
     public function save(): void
     {
         if (! $this->person) {
@@ -78,10 +103,34 @@ new class extends Component
 
         $this->form->update();
 
+        $this->persistAccessRoles();
+
         Flux::toast(variant: 'success', text: 'Saved.');
         Flux::modal('person-drawer')->close();
 
         $this->dispatch('person-saved', personId: $this->person->id);
+    }
+
+    private function persistAccessRoles(): void
+    {
+        $user = $this->person?->user;
+
+        if (! $user) {
+            return;
+        }
+
+        foreach (AccessRole::cases() as $role) {
+            $desired = (bool) ($this->accessRoles[$role->value] ?? false);
+            $original = (bool) ($this->originalAccessRoles[$role->value] ?? false);
+
+            if ($desired === $original) {
+                continue;
+            }
+
+            $desired
+                ? $user->grantAccessRole($role)
+                : $user->revokeAccessRole($role);
+        }
     }
 
     public function delete(): void
@@ -146,26 +195,6 @@ new class extends Component
         Flux::toast(variant: 'success', text: 'Office ended.');
     }
 
-    public function toggleAccessRole(string $role): void
-    {
-        if (! $this->person?->user) {
-            return;
-        }
-
-        $user = $this->person->user;
-        $accessRole = AccessRole::tryFrom($role);
-        if (! $accessRole) {
-            return;
-        }
-
-        $user->hasAccessRole($accessRole)
-            ? $user->revokeAccessRole($accessRole)
-            : $user->grantAccessRole($accessRole);
-
-        unset($this->person);
-
-        Flux::toast(variant: 'success', text: 'Access updated.');
-    }
 }; ?>
 
 <div>
@@ -449,7 +478,6 @@ new class extends Component
                                 <div class="space-y-3">
                                     <flux:subheading class="!text-xs uppercase tracking-wider text-zinc-500">{{ $group }}</flux:subheading>
                                     @foreach ($roles as $role)
-                                        @php($active = $person->user->hasAccessRole($role))
                                         <div class="flex items-center gap-3">
                                             <div class="flex size-9 shrink-0 items-center justify-center rounded-lg {{ $role->iconBgClass() }}">
                                                 <flux:icon :icon="$role->icon()" class="size-5 {{ $role->iconColorClass() }}" />
@@ -459,10 +487,7 @@ new class extends Component
                                                 <p class="text-xs text-zinc-500">{{ $role->description() }}</p>
                                             </div>
                                             <flux:spacer />
-                                            <flux:checkbox
-                                                :checked="$active"
-                                                wire:click="toggleAccessRole('{{ $role->value }}')"
-                                            />
+                                            <flux:checkbox wire:model="accessRoles.{{ $role->value }}" />
                                         </div>
                                     @endforeach
                                 </div>
