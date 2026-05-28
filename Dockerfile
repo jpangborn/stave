@@ -56,7 +56,7 @@ USER root
 RUN apt-get update && apt-get install -y git
 
 # Install the intl extension with root permissions
-RUN install-php-extensions intl
+RUN install-php-extensions intl bcmath
 
 # Drop back to our unprivileged user
 USER www-data
