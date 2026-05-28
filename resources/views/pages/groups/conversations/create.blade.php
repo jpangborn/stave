@@ -265,7 +265,7 @@ new class extends Component {
                 type="submit"
                 variant="primary"
                 icon="paper-airplane"
-                :disabled="trim($title) === ''"
+                x-bind:disabled="!$wire.title.trim()"
                 data-test="post-button"
             >
                 {{ $allowReplies ? 'Post conversation' : 'Post · replies off' }}
