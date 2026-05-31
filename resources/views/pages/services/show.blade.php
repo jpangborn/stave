@@ -72,8 +72,13 @@ new class extends Component {
         : $dayLabel.' · '.mb_strtoupper($form->date->format('F j, Y'));
 @endphp
 
-<section class="w-full" data-service-show>
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+@php($isDiscussion = $tab === 'discussion')
+
+<section @class([
+    'w-full',
+    'flex min-h-0 flex-col h-[calc(100dvh-6rem)] lg:h-[calc(100dvh-4rem)]' => $isDiscussion,
+]) data-service-show>
+    <header class="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-stretch">
         <x-service.date-block :date="$form->date" />
 
         <div class="min-w-0 flex-1">
@@ -125,7 +130,7 @@ new class extends Component {
 
     <x-service.stats-strip :service="$form->service" />
 
-    <flux:tab.group class="mt-6">
+    <flux:tab.group @class(['mt-6', 'flex min-h-0 flex-1 flex-col' => $isDiscussion])>
         <flux:tabs wire:model.live="tab" scrollable>
             <flux:tab name="service-order" icon="queue-list">Service Order</flux:tab>
             <flux:tab name="discussion" icon="chat-bubble-left-right">Discussion</flux:tab>
@@ -137,7 +142,7 @@ new class extends Component {
             <livewire:services.elements :service-id="$form->service->id" />
         </flux:tab.panel>
 
-        <flux:tab.panel name="discussion">
+        <flux:tab.panel name="discussion" @class(['flex min-h-0 flex-1 flex-col' => $isDiscussion])>
             <livewire:services.discussion :service-id="$form->service->id" />
         </flux:tab.panel>
 
