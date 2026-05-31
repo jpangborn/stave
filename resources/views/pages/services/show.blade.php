@@ -76,7 +76,7 @@ new class extends Component {
 
 <section @class([
     'w-full',
-    'flex min-h-0 flex-col h-[calc(100dvh-6rem)] lg:h-[calc(100dvh-4rem)]' => $isDiscussion,
+    'flex min-h-0 flex-col -mb-6 lg:-mb-8 h-[calc(100dvh-4.5rem)] lg:h-[calc(100dvh-2rem)]' => $isDiscussion,
 ]) data-service-show>
     <header class="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-stretch">
         <x-service.date-block :date="$form->date" />
