@@ -16,7 +16,7 @@ test('bell renders with the current unread count', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test('notification-bell')
+    Livewire::test('sidebar.notifications')
         ->assertSee('2');
 });
 
@@ -27,7 +27,7 @@ test('mark-read clears a single notification', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test('notification-bell')
+    Livewire::test('sidebar.notifications')
         ->call('markRead', $notification->id);
 
     expect($user->fresh()->unreadNotifications()->count())->toBe(0);
@@ -43,7 +43,7 @@ test('mark-all-read clears every unread notification', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test('notification-bell')
+    Livewire::test('sidebar.notifications')
         ->call('markAllRead');
 
     expect($user->fresh()->unreadNotifications()->count())->toBe(0);
@@ -53,6 +53,6 @@ test('bell shows empty state when there are no notifications', function (): void
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    Livewire::test('notification-bell')
+    Livewire::test('sidebar.notifications')
         ->assertSee('No notifications yet');
 });
