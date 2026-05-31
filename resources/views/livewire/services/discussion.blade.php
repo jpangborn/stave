@@ -282,14 +282,11 @@ new class extends Component {
 };
 ?>
 
-<section data-test="service-discussion">
+<section data-test="service-discussion" class="flex min-h-0 flex-1 flex-col">
     @php($currentUser = Auth::user())
     @php($quickReactions = Config::allowedReactions())
 
-    <div
-        class="flex w-full overflow-hidden"
-        style="height: min(calc(100vh - 22rem), 48rem); min-height: 28rem;"
-    >
+    <div class="flex min-h-[28rem] w-full flex-1 overflow-hidden">
         {{-- Conversation column (messages + composer) --}}
         <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
         {{-- Messages --}}
