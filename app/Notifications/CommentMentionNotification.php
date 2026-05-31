@@ -93,7 +93,7 @@ class CommentMentionNotification extends Notification implements ShouldQueue
 
         return match (true) {
             $commentable instanceof Conversation => $commentable->commentUrl().'#comment-'.$this->comment->id,
-            $commentable instanceof Service => route('services.show', $commentable).'#discussion',
+            $commentable instanceof Service => route('services.show', [$commentable, 'tab' => 'discussion']),
             default => throw new RuntimeException('Unsupported commentable type for mention notification: '.$this->comment->commentable_type),
         };
     }
