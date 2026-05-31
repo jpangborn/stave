@@ -396,7 +396,7 @@ new class extends Component
                 {{-- Office --}}
                 <section>
                     <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Office</flux:heading>
-                    <flux:card class="!p-3 bg-zinc-50 space-y-6">
+                    <flux:card class="!p-3 bg-zinc-50 dark:bg-zinc-700 space-y-6">
                         @foreach (Office::cases() as $kind)
                             @php($held = $person->offices->firstWhere('kind', $kind))
                             <div class="flex items-center gap-3">
@@ -460,7 +460,7 @@ new class extends Component
                 @if ($person->user)
                     <section>
                         <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Access</flux:heading>
-                        <flux:card class="!p-3 bg-zinc-50 space-y-4">
+                        <flux:card class="!p-3 bg-zinc-50 dark:bg-zinc-700 space-y-4">
                             {{-- Person baseline (informational, always on) --}}
                             <div class="flex items-center gap-3">
                                 <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-zinc-100">
