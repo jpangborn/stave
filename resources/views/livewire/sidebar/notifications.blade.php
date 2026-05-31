@@ -51,19 +51,7 @@ new class extends Component {
 
 <div>
     <flux:dropdown position="bottom" align="end">
-        <button
-            type="button"
-            aria-label="Notifications"
-            class="relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-        >
-            <flux:icon.bell class="size-5" />
-
-            @if ($this->unreadCount > 0)
-                <span class="absolute top-1 right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
-                    {{ $this->unreadCount > 9 ? '9+' : $this->unreadCount }}
-                </span>
-            @endif
-        </button>
+        <flux:sidebar.item icon="bell" :badge="$this->unreadCount">Notifications</flux:sidebar.item>
 
         <flux:menu class="max-h-[480px] w-[380px] overflow-y-auto">
             <div class="flex items-center justify-between px-3 py-2">
