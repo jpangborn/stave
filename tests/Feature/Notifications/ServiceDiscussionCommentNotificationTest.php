@@ -42,7 +42,7 @@ test('service-discussion broadcast payload includes service title and discussion
     expect($message->data['title'])->toContain('Easter Service');
     expect($message->data['body'])->toContain('Linus Torvalds');
     expect($message->data['body'])->toContain('introit');
-    expect($message->data['url'])->toContain('#discussion');
+    expect($message->data['url'])->toContain('?tab=discussion');
 });
 
 test('service-discussion webpush message is well-formed', function (): void {

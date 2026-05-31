@@ -69,7 +69,7 @@ test('mention notification url for service comment points to discussion anchor',
 
     $message = (new CommentMentionNotification($comment, $author))->toBroadcast($recipient);
 
-    expect($message->data['url'])->toContain('#discussion');
+    expect($message->data['url'])->toContain('?tab=discussion');
 });
 
 test('mention notification mail subject is prefixed', function (): void {

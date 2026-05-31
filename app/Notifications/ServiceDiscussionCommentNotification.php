@@ -80,7 +80,7 @@ class ServiceDiscussionCommentNotification extends Notification implements Shoul
         return [
             'title' => "Service discussion: {$this->service->title}",
             'body' => "{$this->author->name}: ".$this->commentPreview($this->comment->text),
-            'url' => route('services.show', $this->service).'#discussion',
+            'url' => route('services.show', [$this->service, 'tab' => 'discussion']),
         ];
     }
 }
