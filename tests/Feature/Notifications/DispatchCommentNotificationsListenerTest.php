@@ -48,7 +48,7 @@ test('conversation reply fans out to participants and excludes the author', func
 
     $conversation->postComment('<p>Second message from author</p>', $author);
 
-    Notification::assertSentTo($other, ConversationReplyNotification::class);
+    Notification::assertSentToTimes($other, ConversationReplyNotification::class, 1);
     Notification::assertNotSentTo($author, ConversationReplyNotification::class);
     Notification::assertNotSentTo($bystander, ConversationReplyNotification::class);
 });
@@ -73,8 +73,8 @@ test('service discussion comment fans out to liturgy assignees and excludes comm
 
     $service->comment('<p>A note</p>', $author);
 
-    Notification::assertSentTo($assignee1, ServiceDiscussionCommentNotification::class);
-    Notification::assertSentTo($assignee2, ServiceDiscussionCommentNotification::class);
+    Notification::assertSentToTimes($assignee1, ServiceDiscussionCommentNotification::class, 1);
+    Notification::assertSentToTimes($assignee2, ServiceDiscussionCommentNotification::class, 1);
     Notification::assertNotSentTo($author, ServiceDiscussionCommentNotification::class);
 });
 
@@ -106,10 +106,10 @@ test('mentioned users get the mention notification and are deduped from the regu
         $author,
     );
 
-    Notification::assertSentTo($mentioned, CommentMentionNotification::class);
+    Notification::assertSentToTimes($mentioned, CommentMentionNotification::class, 1);
     Notification::assertNotSentTo($mentioned, ConversationReplyNotification::class);
 
-    Notification::assertSentTo($other, ConversationReplyNotification::class);
+    Notification::assertSentToTimes($other, ConversationReplyNotification::class, 1);
     Notification::assertNotSentTo($other, CommentMentionNotification::class);
 
     Notification::assertNotSentTo($author, CommentMentionNotification::class);
@@ -137,7 +137,7 @@ test('mentioned user who is not a participant still receives the mention notific
         $author,
     );
 
-    Notification::assertSentTo($mentioned, CommentMentionNotification::class);
+    Notification::assertSentToTimes($mentioned, CommentMentionNotification::class, 1);
 });
 
 test('service discussion comment that mentions an assignee dedupes the regular notification', function (): void {
@@ -156,6 +156,6 @@ test('service discussion comment that mentions an assignee dedupes the regular n
         $author,
     );
 
-    Notification::assertSentTo($assignee, CommentMentionNotification::class);
+    Notification::assertSentToTimes($assignee, CommentMentionNotification::class, 1);
     Notification::assertNotSentTo($assignee, ServiceDiscussionCommentNotification::class);
 });
