@@ -1035,11 +1035,11 @@ new class extends Component {
                 'hidden lg:flex' => ! $headerExpanded,
                 'flex' => $headerExpanded,
             ]) data-test="pinned-strip">
-                <div class="flex size-6 shrink-0 items-center justify-center rounded-md border border-accent/30 bg-white text-accent dark:bg-zinc-900">
+                <div class="flex size-6 shrink-0 items-center justify-center rounded-md border border-accent/30 bg-white text-accent-content dark:bg-zinc-900">
                     <flux:icon.bookmark variant="micro" />
                 </div>
                 <div class="min-w-0 flex-1">
-                    <div class="text-xs font-semibold uppercase tracking-wide text-accent">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-accent-content">
                         Pinned by {{ $firstPinned->pinnedBy?->name ?? 'Unknown' }}
                     </div>
                     <div class="mt-0.5 truncate text-sm text-zinc-700 dark:text-zinc-200">
@@ -1097,7 +1097,7 @@ new class extends Component {
                                     <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                                         <span @class([
                                             'text-sm font-bold',
-                                            'text-accent' => $isMine,
+                                            'text-accent-content' => $isMine,
                                             'text-zinc-900 dark:text-white' => ! $isMine,
                                         ])>
                                             {{ $comment->commentator?->name ?? 'Unknown' }}@if ($isMine) <span class="font-normal text-zinc-500">(you)</span>@endif
@@ -1192,7 +1192,7 @@ new class extends Component {
                                                         type="button"
                                                         @class([
                                                             'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors',
-                                                            'border-accent bg-accent/10 text-accent' => $mine,
+                                                            'border-accent bg-accent/10 text-accent-content' => $mine,
                                                             'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $mine,
                                                         ])
                                                         data-test="reaction-chip"
@@ -1257,7 +1257,7 @@ new class extends Component {
                                     aria-label="Message actions"
                                     @class([
                                         'absolute right-2 top-2 grid size-8 place-items-center rounded-md transition-colors duration-100 hover:bg-zinc-100 lg:hidden dark:hover:bg-zinc-800',
-                                        'text-accent' => $isMine,
+                                        'text-accent-content' => $isMine,
                                         'text-zinc-500 dark:text-zinc-400' => ! $isMine,
                                     ])
                                     data-test="message-actions-trigger"
@@ -1282,7 +1282,7 @@ new class extends Component {
                                                 aria-label="Edit message"
                                                 @class([
                                                     'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
-                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
+                                                    'text-accent-content hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
                                                     'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine,
                                                 ])
                                                 data-test="edit-toggle"
@@ -1299,7 +1299,7 @@ new class extends Component {
                                                 aria-label="Add reaction"
                                                 @class([
                                                     'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
-                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
+                                                    'text-accent-content hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
                                                     'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine,
                                                 ])
                                             >
@@ -1325,8 +1325,8 @@ new class extends Component {
                                                 aria-pressed="{{ $comment->is_prayer ? 'true' : 'false' }}"
                                                 @class([
                                                     'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
-                                                    'bg-accent/20 text-accent' => $isMine && $comment->is_prayer,
-                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine && ! $comment->is_prayer,
+                                                    'bg-accent/20 text-accent-content' => $isMine && $comment->is_prayer,
+                                                    'text-accent-content hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine && ! $comment->is_prayer,
                                                     'bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-white' => ! $isMine && $comment->is_prayer,
                                                     'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine && ! $comment->is_prayer,
                                                 ])
@@ -1349,8 +1349,8 @@ new class extends Component {
                                                 aria-pressed="{{ $pinned ? 'true' : 'false' }}"
                                                 @class([
                                                     'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
-                                                    'bg-accent/20 text-accent' => $isMine && $pinned,
-                                                    'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine && ! $pinned,
+                                                    'bg-accent/20 text-accent-content' => $isMine && $pinned,
+                                                    'text-accent-content hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine && ! $pinned,
                                                     'bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-white' => ! $isMine && $pinned,
                                                     'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine && ! $pinned,
                                                 ])
@@ -1449,7 +1449,7 @@ new class extends Component {
                     <div
                         x-show="isDragging"
                         x-cloak
-                        class="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-accent bg-accent/10 text-sm font-semibold text-accent"
+                        class="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-accent bg-accent/10 text-sm font-semibold text-accent-content"
                         data-test="composer-drop-overlay"
                     >
                         Drop to attach
@@ -1658,12 +1658,12 @@ new class extends Component {
                         >
                             <span @class([
                                 'grid size-8 shrink-0 place-items-center rounded-md',
-                                'bg-accent/15 text-accent' => $sheetComment->is_prayer,
+                                'bg-accent/15 text-accent-content' => $sheetComment->is_prayer,
                                 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' => ! $sheetComment->is_prayer,
                             ])>
                                 <flux:icon.hand-raised variant="micro" />
                             </span>
-                            <span @class(['text-accent' => $sheetComment->is_prayer])>
+                            <span @class(['text-accent-content' => $sheetComment->is_prayer])>
                                 {{ $sheetComment->is_prayer ? 'Unmark as prayer' : 'Mark as prayer' }}
                             </span>
                         </button>
@@ -1681,7 +1681,7 @@ new class extends Component {
                         >
                             <span @class([
                                 'grid size-8 shrink-0 place-items-center rounded-md',
-                                'bg-accent/15 text-accent' => $pinned,
+                                'bg-accent/15 text-accent-content' => $pinned,
                                 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' => ! $pinned,
                             ])>
                                 @if ($pinned)
@@ -1690,7 +1690,7 @@ new class extends Component {
                                     <flux:icon.bookmark variant="micro" />
                                 @endif
                             </span>
-                            <span @class(['text-accent' => $pinned])>
+                            <span @class(['text-accent-content' => $pinned])>
                                 {{ $pinned ? 'Unpin from top' : 'Pin to top' }}
                             </span>
                         </button>

@@ -199,7 +199,7 @@ new class extends Component {
                         wire:click="setMessagingFilter('{{ $value }}')"
                         @class([
                             'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition cursor-pointer',
-                            'bg-accent/10 text-accent border-accent/30' => $active,
+                            'bg-accent/10 text-accent-content border-accent/30' => $active,
                             'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800' => ! $active,
                         ])
                         aria-pressed="{{ $active ? 'true' : 'false' }}"
@@ -207,7 +207,7 @@ new class extends Component {
                         <span>{{ $chip['label'] }}</span>
                         <span @class([
                             'text-[10px] font-semibold',
-                            'text-accent/70' => $active,
+                            'text-accent-content/70' => $active,
                             'text-zinc-400' => ! $active,
                         ])>{{ $chip['count'] }}</span>
                     </button>
