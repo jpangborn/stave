@@ -75,7 +75,7 @@
                     {{ $membersCount }} {{ Str::plural('member', $membersCount) }}
                 </span>
             </div>
-            <span class="text-xs font-semibold text-zinc-500 transition-all group-hover:text-accent group-hover:translate-x-0.5 whitespace-nowrap">
+            <span class="text-xs font-semibold text-zinc-500 transition-all group-hover:text-accent-content group-hover:translate-x-0.5 whitespace-nowrap">
                 Open <span aria-hidden="true">→</span>
             </span>
         </div>

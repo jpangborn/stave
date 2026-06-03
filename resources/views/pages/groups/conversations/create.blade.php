@@ -177,7 +177,7 @@ new class extends Component {
                     <div
                         @class([
                             'grid size-7 shrink-0 place-items-center rounded-lg transition-colors duration-200',
-                            'bg-accent/10 text-accent' => $allowReplies,
+                            'bg-accent/10 text-accent-content' => $allowReplies,
                             'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/50 dark:text-yellow-200' => ! $allowReplies,
                         ])
                     >
@@ -242,7 +242,7 @@ new class extends Component {
                         ])
                         data-test="pin-row"
                     >
-                        <div class="grid size-7 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent">
+                        <div class="grid size-7 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent-content">
                             <flux:icon.bookmark variant="micro" />
                         </div>
                         <div class="min-w-0 flex-1">

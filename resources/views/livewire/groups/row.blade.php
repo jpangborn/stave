@@ -28,7 +28,7 @@ new class extends Component {
                 <a
                     href="{{ route('groups.show', $group) }}"
                     wire:navigate
-                    class="font-semibold text-accent hover:underline"
+                    class="font-semibold text-accent-content hover:underline"
                 >{{ $group->name }}</a>
                 @if ($group->description)
                     <div class="text-xs text-zinc-500 line-clamp-1 max-w-md">

@@ -323,7 +323,7 @@ new class extends Component {
                             <div class="flex flex-col gap-y-0.5 lg:flex-row lg:flex-wrap lg:items-baseline lg:gap-x-2 lg:gap-y-1">
                                 <span @class([
                                     'text-sm font-bold',
-                                    'text-accent' => $isMine,
+                                    'text-accent-content' => $isMine,
                                     'text-zinc-900 dark:text-white' => ! $isMine,
                                 ])>
                                     {{ $comment->commentator?->name ?? 'Unknown' }}@if ($isMine) <span class="font-normal text-zinc-500">(you)</span>@endif
@@ -389,7 +389,7 @@ new class extends Component {
                                                     type="button"
                                                     @class([
                                                         'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors',
-                                                        'border-accent bg-accent/10 text-accent' => $mine,
+                                                        'border-accent bg-accent/10 text-accent-content' => $mine,
                                                         'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $mine,
                                                     ])
                                                     data-test="reaction-chip"
@@ -443,7 +443,7 @@ new class extends Component {
                                 aria-label="Message actions"
                                 @class([
                                     'absolute right-2 top-2 grid size-8 place-items-center rounded-md transition-colors duration-100 hover:bg-zinc-100 lg:hidden dark:hover:bg-zinc-800',
-                                    'text-accent' => $isMine,
+                                    'text-accent-content' => $isMine,
                                     'text-zinc-500 dark:text-zinc-400' => ! $isMine,
                                 ])
                                 data-test="message-actions-trigger"
@@ -468,7 +468,7 @@ new class extends Component {
                                             aria-label="Edit message"
                                             @class([
                                                 'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
-                                                'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
+                                                'text-accent-content hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
                                                 'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine,
                                             ])
                                             data-test="edit-toggle"
@@ -485,7 +485,7 @@ new class extends Component {
                                             aria-label="Add reaction"
                                             @class([
                                                 'flex size-[26px] cursor-pointer items-center justify-center rounded-md transition-colors duration-[120ms] focus-visible:outline-none',
-                                                'text-accent hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
+                                                'text-accent-content hover:bg-accent/20 focus-visible:bg-accent/20' => $isMine,
                                                 'text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus-visible:bg-zinc-200 focus-visible:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white dark:focus-visible:bg-zinc-700 dark:focus-visible:text-white' => ! $isMine,
                                             ])
                                         >
