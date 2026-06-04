@@ -7,8 +7,6 @@ namespace App\Support;
  *
  * Mirrors Flux UI's avatar color selection algorithm (crc32 of a seed mapped
  * to a color in an ordered palette) so the visual language stays consistent.
- * The palette is restricted to the colors with Flexoki overrides in app.css —
- * other hues fall back to default Tailwind and clash with the muted theme.
  *
  * @see vendor/livewire/flux/stubs/resources/views/flux/avatar/index.blade.php
  */

@@ -35,6 +35,244 @@
 }
 
 /* ----------------------------------------------------------
+   Harmonized semantic palette. Every accent hue uses one muted
+   OKLCH recipe (L/C curves below) so they complement pine:
+     50:.015 100:.030 200:.050 300:.075 400:.100 500:.115(peak)
+     600:.105 700:.085 800:.060 900:.040 950:.022
+   green sits at its own hue (≈150) so it stays distinct from the
+   pine brand and from emerald; emerald is aliased to pine below.
+   ---------------------------------------------------------- */
+@theme {
+    /* Red (errors, destructive) — hue 25 */
+    --color-red-50: oklch(97% 0.015 25);
+    --color-red-100: oklch(93% 0.030 25);
+    --color-red-200: oklch(87% 0.050 25);
+    --color-red-300: oklch(78% 0.075 25);
+    --color-red-400: oklch(65% 0.100 25);
+    --color-red-500: oklch(50% 0.115 25);
+    --color-red-600: oklch(41% 0.105 25);
+    --color-red-700: oklch(34% 0.085 25);
+    --color-red-800: oklch(26% 0.060 25);
+    --color-red-900: oklch(20% 0.040 25);
+    --color-red-950: oklch(14% 0.022 25);
+
+    /* Orange (warm accent) — hue 48 */
+    --color-orange-50: oklch(97% 0.015 48);
+    --color-orange-100: oklch(93% 0.030 48);
+    --color-orange-200: oklch(87% 0.050 48);
+    --color-orange-300: oklch(78% 0.075 48);
+    --color-orange-400: oklch(65% 0.100 48);
+    --color-orange-500: oklch(50% 0.115 48);
+    --color-orange-600: oklch(41% 0.105 48);
+    --color-orange-700: oklch(34% 0.085 48);
+    --color-orange-800: oklch(26% 0.060 48);
+    --color-orange-900: oklch(20% 0.040 48);
+    --color-orange-950: oklch(14% 0.022 48);
+
+    /* Amber (warnings) — hue 70 */
+    --color-amber-50: oklch(97% 0.015 70);
+    --color-amber-100: oklch(93% 0.030 70);
+    --color-amber-200: oklch(87% 0.050 70);
+    --color-amber-300: oklch(78% 0.075 70);
+    --color-amber-400: oklch(65% 0.100 70);
+    --color-amber-500: oklch(50% 0.115 70);
+    --color-amber-600: oklch(41% 0.105 70);
+    --color-amber-700: oklch(34% 0.085 70);
+    --color-amber-800: oklch(26% 0.060 70);
+    --color-amber-900: oklch(20% 0.040 70);
+    --color-amber-950: oklch(14% 0.022 70);
+
+    /* Yellow (highlights) — hue 86 */
+    --color-yellow-50: oklch(97% 0.015 86);
+    --color-yellow-100: oklch(93% 0.030 86);
+    --color-yellow-200: oklch(87% 0.050 86);
+    --color-yellow-300: oklch(78% 0.075 86);
+    --color-yellow-400: oklch(65% 0.100 86);
+    --color-yellow-500: oklch(50% 0.115 86);
+    --color-yellow-600: oklch(41% 0.105 86);
+    --color-yellow-700: oklch(34% 0.085 86);
+    --color-yellow-800: oklch(26% 0.060 86);
+    --color-yellow-900: oklch(20% 0.040 86);
+    --color-yellow-950: oklch(14% 0.022 86);
+
+    /* Lime (fresh secondary green) — hue 120 */
+    --color-lime-50: oklch(97% 0.015 120);
+    --color-lime-100: oklch(93% 0.030 120);
+    --color-lime-200: oklch(87% 0.050 120);
+    --color-lime-300: oklch(78% 0.075 120);
+    --color-lime-400: oklch(65% 0.100 120);
+    --color-lime-500: oklch(50% 0.115 120);
+    --color-lime-600: oklch(41% 0.105 120);
+    --color-lime-700: oklch(34% 0.085 120);
+    --color-lime-800: oklch(26% 0.060 120);
+    --color-lime-900: oklch(20% 0.040 120);
+    --color-lime-950: oklch(14% 0.022 120);
+
+    /* Green (distinct from pine brand) — hue 150 */
+    --color-green-50: oklch(97% 0.015 150);
+    --color-green-100: oklch(93% 0.030 150);
+    --color-green-200: oklch(87% 0.050 150);
+    --color-green-300: oklch(78% 0.075 150);
+    --color-green-400: oklch(65% 0.100 150);
+    --color-green-500: oklch(50% 0.115 150);
+    --color-green-600: oklch(41% 0.105 150);
+    --color-green-700: oklch(34% 0.085 150);
+    --color-green-800: oklch(26% 0.060 150);
+    --color-green-900: oklch(20% 0.040 150);
+    --color-green-950: oklch(14% 0.022 150);
+
+    /* Teal (calm cool accent) — hue 180 */
+    --color-teal-50: oklch(97% 0.015 180);
+    --color-teal-100: oklch(93% 0.030 180);
+    --color-teal-200: oklch(87% 0.050 180);
+    --color-teal-300: oklch(78% 0.075 180);
+    --color-teal-400: oklch(65% 0.100 180);
+    --color-teal-500: oklch(50% 0.105 180);
+    --color-teal-600: oklch(41% 0.095 180);
+    --color-teal-700: oklch(34% 0.080 180);
+    --color-teal-800: oklch(26% 0.055 180);
+    --color-teal-900: oklch(20% 0.040 180);
+    --color-teal-950: oklch(14% 0.022 180);
+
+    /* Cyan (info, calm) — hue 215 */
+    --color-cyan-50: oklch(97% 0.015 215);
+    --color-cyan-100: oklch(93% 0.030 215);
+    --color-cyan-200: oklch(87% 0.050 215);
+    --color-cyan-300: oklch(78% 0.075 215);
+    --color-cyan-400: oklch(65% 0.100 215);
+    --color-cyan-500: oklch(50% 0.110 215);
+    --color-cyan-600: oklch(41% 0.100 215);
+    --color-cyan-700: oklch(34% 0.080 215);
+    --color-cyan-800: oklch(26% 0.060 215);
+    --color-cyan-900: oklch(20% 0.040 215);
+    --color-cyan-950: oklch(14% 0.022 215);
+
+    /* Sky (links) — hue 235 */
+    --color-sky-50: oklch(97% 0.015 235);
+    --color-sky-100: oklch(93% 0.030 235);
+    --color-sky-200: oklch(87% 0.050 235);
+    --color-sky-300: oklch(78% 0.075 235);
+    --color-sky-400: oklch(65% 0.100 235);
+    --color-sky-500: oklch(50% 0.115 235);
+    --color-sky-600: oklch(41% 0.105 235);
+    --color-sky-700: oklch(34% 0.085 235);
+    --color-sky-800: oklch(26% 0.060 235);
+    --color-sky-900: oklch(20% 0.040 235);
+    --color-sky-950: oklch(14% 0.022 235);
+
+    /* Blue (primary info) — hue 258 */
+    --color-blue-50: oklch(97% 0.015 258);
+    --color-blue-100: oklch(93% 0.030 258);
+    --color-blue-200: oklch(87% 0.050 258);
+    --color-blue-300: oklch(78% 0.075 258);
+    --color-blue-400: oklch(65% 0.100 258);
+    --color-blue-500: oklch(50% 0.115 258);
+    --color-blue-600: oklch(41% 0.105 258);
+    --color-blue-700: oklch(34% 0.090 258);
+    --color-blue-800: oklch(26% 0.060 258);
+    --color-blue-900: oklch(20% 0.040 258);
+    --color-blue-950: oklch(14% 0.022 258);
+
+    /* Indigo (special, distinct) — hue 277 */
+    --color-indigo-50: oklch(97% 0.015 277);
+    --color-indigo-100: oklch(93% 0.030 277);
+    --color-indigo-200: oklch(87% 0.050 277);
+    --color-indigo-300: oklch(78% 0.075 277);
+    --color-indigo-400: oklch(65% 0.100 277);
+    --color-indigo-500: oklch(50% 0.115 277);
+    --color-indigo-600: oklch(41% 0.105 277);
+    --color-indigo-700: oklch(34% 0.090 277);
+    --color-indigo-800: oklch(26% 0.060 277);
+    --color-indigo-900: oklch(20% 0.040 277);
+    --color-indigo-950: oklch(14% 0.022 277);
+
+    /* Violet (premium) — hue 292 */
+    --color-violet-50: oklch(97% 0.015 292);
+    --color-violet-100: oklch(93% 0.030 292);
+    --color-violet-200: oklch(87% 0.050 292);
+    --color-violet-300: oklch(78% 0.075 292);
+    --color-violet-400: oklch(65% 0.100 292);
+    --color-violet-500: oklch(50% 0.115 292);
+    --color-violet-600: oklch(41% 0.105 292);
+    --color-violet-700: oklch(34% 0.090 292);
+    --color-violet-800: oklch(26% 0.060 292);
+    --color-violet-900: oklch(20% 0.040 292);
+    --color-violet-950: oklch(14% 0.022 292);
+
+    /* Purple (heather variant) — hue 305 */
+    --color-purple-50: oklch(97% 0.015 305);
+    --color-purple-100: oklch(93% 0.030 305);
+    --color-purple-200: oklch(87% 0.050 305);
+    --color-purple-300: oklch(78% 0.075 305);
+    --color-purple-400: oklch(65% 0.100 305);
+    --color-purple-500: oklch(50% 0.115 305);
+    --color-purple-600: oklch(41% 0.105 305);
+    --color-purple-700: oklch(34% 0.090 305);
+    --color-purple-800: oklch(26% 0.060 305);
+    --color-purple-900: oklch(20% 0.040 305);
+    --color-purple-950: oklch(14% 0.022 305);
+
+    /* Fuchsia (bold accent) — hue 322 */
+    --color-fuchsia-50: oklch(97% 0.015 322);
+    --color-fuchsia-100: oklch(93% 0.030 322);
+    --color-fuchsia-200: oklch(87% 0.050 322);
+    --color-fuchsia-300: oklch(78% 0.075 322);
+    --color-fuchsia-400: oklch(65% 0.100 322);
+    --color-fuchsia-500: oklch(50% 0.115 322);
+    --color-fuchsia-600: oklch(41% 0.105 322);
+    --color-fuchsia-700: oklch(34% 0.090 322);
+    --color-fuchsia-800: oklch(26% 0.060 322);
+    --color-fuchsia-900: oklch(20% 0.040 322);
+    --color-fuchsia-950: oklch(14% 0.022 322);
+
+    /* Pink (soft highlight) — hue 350 */
+    --color-pink-50: oklch(97% 0.015 350);
+    --color-pink-100: oklch(93% 0.030 350);
+    --color-pink-200: oklch(87% 0.050 350);
+    --color-pink-300: oklch(78% 0.075 350);
+    --color-pink-400: oklch(65% 0.100 350);
+    --color-pink-500: oklch(50% 0.115 350);
+    --color-pink-600: oklch(41% 0.105 350);
+    --color-pink-700: oklch(34% 0.090 350);
+    --color-pink-800: oklch(26% 0.060 350);
+    --color-pink-900: oklch(20% 0.040 350);
+    --color-pink-950: oklch(14% 0.022 350);
+
+    /* Rose (antique rose) — hue 12 */
+    --color-rose-50: oklch(97% 0.015 12);
+    --color-rose-100: oklch(93% 0.030 12);
+    --color-rose-200: oklch(87% 0.050 12);
+    --color-rose-300: oklch(78% 0.075 12);
+    --color-rose-400: oklch(65% 0.100 12);
+    --color-rose-500: oklch(50% 0.115 12);
+    --color-rose-600: oklch(41% 0.105 12);
+    --color-rose-700: oklch(34% 0.090 12);
+    --color-rose-800: oklch(26% 0.060 12);
+    --color-rose-900: oklch(20% 0.040 12);
+    --color-rose-950: oklch(14% 0.022 12);
+}
+
+/* ----------------------------------------------------------
+   Alias emerald → pine so Flux's success/positive states (and
+   any emerald background/text utilities in the app) use the
+   brand green. green is intentionally NOT aliased — it keeps its
+   own harmonized hue above so it stays distinct from the brand.
+   ---------------------------------------------------------- */
+@theme {
+    --color-emerald-50: var(--color-pine-50);
+    --color-emerald-100: var(--color-pine-100);
+    --color-emerald-200: var(--color-pine-200);
+    --color-emerald-300: var(--color-pine-300);
+    --color-emerald-400: var(--color-pine-400);
+    --color-emerald-500: var(--color-pine-500);
+    --color-emerald-600: var(--color-pine-600);
+    --color-emerald-700: var(--color-pine-700);
+    --color-emerald-800: var(--color-pine-800);
+    --color-emerald-900: var(--color-pine-900);
+    --color-emerald-950: var(--color-pine-950);
+}
+
+/* ----------------------------------------------------------
    Redefine Flux's `zinc` scale → Tailwind's `taupe` warm gray.
    Flux uses `zinc` for nearly every gray (sidebar, borders,
    text, inputs). The canonical `bg-zinc-50 dark:bg-zinc-900`
