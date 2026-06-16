@@ -513,7 +513,7 @@ new class extends Component {
     }
 }; ?>
 
-<section class="-m-6 flex h-[calc(100vh-3rem)] min-h-0" data-test="messages-page">
+<section class="-m-6 lg:-m-8 flex h-[calc(100vh-3rem)] lg:h-screen min-h-0" data-test="messages-page">
     {{-- ============ LEFT RAIL ============ --}}
     <div class="flex w-[344px] shrink-0 flex-col border-e border-zinc-200 dark:border-zinc-700">
         <div class="border-b border-zinc-200 px-4 pb-3 pt-4 dark:border-zinc-700">
