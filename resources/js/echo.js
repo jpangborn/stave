@@ -22,6 +22,9 @@ if (reverbKey) {
         window.Echo.private(`App.Models.User.${userId}`)
             .notification((notification) => {
                 window.dispatchEvent(new CustomEvent('stave:notification', { detail: notification }));
+            })
+            .listen('.reaction.toggled', (payload) => {
+                window.dispatchEvent(new CustomEvent('stave:reaction', { detail: payload }));
             });
     }
 }
