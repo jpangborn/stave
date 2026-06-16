@@ -39,15 +39,27 @@ class GroupFactory extends Factory
         return $this->state(['visibility' => GroupVisibility::PRIVATE]);
     }
 
+    public function direct(): self
+    {
+        return $this->state([
+            'name' => null,
+            'visibility' => GroupVisibility::PRIVATE,
+            'messaging' => GroupMessaging::ALL_MEMBERS,
+            'is_direct' => true,
+        ]);
+    }
+
     public function withMembers(int $count = 3, GroupMembershipStatus $status = GroupMembershipStatus::ACTIVE, GroupRole $role = GroupRole::MEMBER): self
     {
         return $this->afterCreating(function (Group $group) use ($count, $status, $role): void {
-            User::factory()->count($count)->create()->each(function (User $user) use ($group, $status, $role): void {
+            $users = User::factory()->count($count)->create();
+
+            foreach ($users as $user) {
                 $group->allUsers()->attach($user, [
                     'role' => $role,
                     'status' => $status,
                 ]);
-            });
+            }
         });
     }
 

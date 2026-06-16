@@ -24,6 +24,7 @@
                 <flux:sidebar.group expandable icon="church" :heading="__('Congregation')">
                     <flux:sidebar.item icon="users" :href="route('people.index')" :current="request()->routeIs('people.*')" wire:navigate>{{ __('People') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="user-group" :href="route('groups.index')" :current="request()->routeIs('groups.*')" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
+                    <livewire:sidebar.messages />
                     <flux:sidebar.item icon="calendar-date-range" wire:navigate>{{ __('Prayer Schedule') }}</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>

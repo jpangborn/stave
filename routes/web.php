@@ -82,6 +82,13 @@ Route::middleware(['auth'])->group(function (): void {
         });
 
     Route::livewire('/people', 'pages::people.index')->name('people.index');
+
+    Route::name('messages.')
+        ->prefix('messages')
+        ->group(function (): void {
+            Route::livewire('/', 'pages::messages.index')->name('index');
+            Route::livewire('/{conversation}', 'pages::messages.index')->name('show');
+        });
 });
 
 require __DIR__.'/auth.php';

@@ -56,6 +56,7 @@ new class extends Component {
     public function myGroups(): Collection
     {
         return Auth::user()->groups()
+            ->where('groups.is_direct', false)
             ->withCount('members')
             ->with([
                 'members' => fn ($q) => $q->limit(4),

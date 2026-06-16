@@ -10,6 +10,7 @@ use App\Models\Traits\HasGravatar;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -110,6 +111,46 @@ class User extends Authenticatable implements CanComment
             ->withPivot('role', 'status')
             ->withTimestamps()
             ->wherePivot('status', GroupMembershipStatus::ACTIVE);
+    }
+
+    /**
+     * Conversations belonging to the user's direct-message groups.
+     *
+     * @return Builder<Conversation>
+     */
+    public function directConversations(): Builder
+    {
+        return Conversation::query()
+            ->whereHas('group', fn (Builder $query): Builder => $query
+                ->where('is_direct', true)
+                ->whereHas('allUsers', fn (Builder $inner): Builder => $inner
+                    ->where('users.id', $this->id)
+                    ->where('status', GroupMembershipStatus::ACTIVE->value)
+                )
+            );
+    }
+
+    /**
+     * Total unread direct messages across all of the user's conversations.
+     */
+    public function unreadDirectCount(): int
+    {
+        return Comment::query()
+            ->where('comments.commentable_type', (new Conversation())->getMorphClass())
+            ->whereIn('comments.commentable_id', $this->directConversations()->select('conversations.id'))
+            ->whereNot(fn ($q) => $q
+                ->where('comments.commentator_id', $this->id)
+                ->where('comments.commentator_type', $this->getMorphClass())
+            )
+            ->leftJoin('conversation_user', fn ($join) => $join
+                ->on('conversation_user.conversation_id', '=', 'comments.commentable_id')
+                ->where('conversation_user.user_id', $this->id)
+            )
+            ->where(fn ($q) => $q
+                ->whereNull('conversation_user.last_read_at')
+                ->orWhereColumn('comments.created_at', '>', 'conversation_user.last_read_at')
+            )
+            ->count();
     }
 
     /** @return HasMany<NotificationPreference, $this> */
