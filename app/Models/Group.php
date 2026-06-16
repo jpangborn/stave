@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -169,13 +170,25 @@ class Group extends Model
                 }
             }
 
-            $group = self::create([
-                'name' => null,
-                'visibility' => GroupVisibility::PRIVATE,
-                'messaging' => GroupMessaging::ALL_MEMBERS,
-                'is_direct' => true,
-                'direct_key' => $directKey,
-            ]);
+            try {
+                $group = self::create([
+                    'name' => null,
+                    'visibility' => GroupVisibility::PRIVATE,
+                    'messaging' => GroupMessaging::ALL_MEMBERS,
+                    'is_direct' => true,
+                    'direct_key' => $directKey,
+                ]);
+            } catch (QueryException $exception) {
+                if ($directKey !== null && in_array($exception->getCode(), ['23000', '23505'], true)) {
+                    $existing = self::query()->direct()->where('direct_key', $directKey)->first();
+
+                    if ($existing instanceof self) {
+                        return $existing;
+                    }
+                }
+
+                throw $exception;
+            }
 
             $group->allUsers()->attach(collect($allIds)->mapWithKeys(fn (int $id): array => [
                 $id => [

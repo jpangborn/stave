@@ -274,7 +274,10 @@ new class extends Component {
 
         if ($count >= 2) {
             if ($this->addPersonFrom !== null) {
-                $from = Conversation::find($this->addPersonFrom);
+                $from = $this->user()
+                    ->directConversations()
+                    ->whereKey($this->addPersonFrom)
+                    ->first();
                 $fromTitle = $from?->displayTitleFor($this->user()) ?? 'this thread';
 
                 return ['tone' => 'warn', 'title' => 'This starts a new conversation', 'body' => "Stave keeps one conversation per set of people. Your existing thread ({$fromTitle}) stays exactly as it is — these messages won’t appear there."];
