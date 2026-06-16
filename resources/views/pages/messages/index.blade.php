@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\DirectMessageReactionToggled;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\Group;
@@ -13,6 +14,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Spatie\Comments\Support\Config;
 
 new class extends Component {
     public ?int $activeConversationId = null;
@@ -179,7 +181,7 @@ new class extends Component {
 
         /** @var EloquentCollection<int, Comment> */
         return $conversation->comments()
-            ->with('commentator')
+            ->with(['commentator', 'reactions.commentator'])
             ->orderBy('created_at')
             ->get();
     }
@@ -502,6 +504,42 @@ new class extends Component {
         $this->dispatch('messages-unread-updated');
     }
 
+    public function react(int $commentId, string $reaction): void
+    {
+        $conversation = $this->activeConversation;
+
+        if ($conversation === null) {
+            return;
+        }
+
+        $this->authorize('comment', $conversation);
+
+        abort_unless(in_array($reaction, Config::allowedReactions(), true), 422);
+
+        /** @var Comment $comment */
+        $comment = $conversation->comments()->findOrFail($commentId);
+        $user = $this->user();
+
+        if ($comment->findReaction($reaction, $user)) {
+            $comment->deleteReaction($reaction, $user);
+        } else {
+            $comment->react($reaction, $user);
+        }
+
+        unset($this->messages, $this->groupedMessages);
+
+        DirectMessageReactionToggled::dispatch($conversation, $user->id);
+    }
+
+    public function refreshReactions(?int $conversationId = null): void
+    {
+        if ($conversationId === null || $conversationId !== $this->activeConversationId) {
+            return;
+        }
+
+        unset($this->messages, $this->groupedMessages, $this->activeConversation);
+    }
+
     private function markRead(Conversation $conversation): void
     {
         $user = $this->user();
@@ -658,7 +696,10 @@ new class extends Component {
                         @php($isMine = $author instanceof App\Models\User && $author->id === $this->user()->id)
                         @php($showAuthor = ! $isMine && $others->count() > 1)
 
-                        <div @class(['flex flex-col gap-1', 'items-end' => $isMine, 'items-start' => ! $isMine]) wire:key="msg-{{ $comment->id }}" data-test="message">
+                        @php($currentUser = $this->user())
+                        @php($summary = $comment->reactions->summary($currentUser))
+
+                        <div @class(['group/msg flex flex-col gap-1', 'items-end' => $isMine, 'items-start' => ! $isMine]) wire:key="msg-{{ $comment->id }}" data-test="message">
                             <div @class(['flex items-center gap-2', 'flex-row-reverse' => $isMine])>
                                 @if ($showAuthor)
                                     <flux:avatar size="xs" :name="$author?->name" :src="$author?->gravatar" color="auto" />
@@ -667,15 +708,72 @@ new class extends Component {
                                 <span class="text-[11px] text-zinc-400">{{ $comment->created_at->format('g:i A') }}</span>
                             </div>
 
-                            <div @class([
-                                'max-w-[min(560px,78%)] break-words rounded-xl px-3.5 py-2.5 text-sm leading-relaxed',
-                                'rounded-tr-sm bg-accent text-white' => $isMine,
-                                'rounded-tl-sm bg-zinc-100 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100' => ! $isMine,
-                            ])>
-                                <div class="**:[a]:underline **:[strong]:font-semibold **:[em]:italic **:[u]:underline **:[s]:line-through **:[ol]:ml-5 **:[ol]:list-decimal **:[ul]:ml-5 **:[ul]:list-disc **:[blockquote]:border-l-2 **:[blockquote]:pl-2 **:[p]:not-first:mt-2">
-                                    {!! app(ScriptureLinker::class)->linkify($comment->text) !!}
+                            <div @class(['flex items-center gap-1.5', 'flex-row-reverse' => $isMine])>
+                                <div @class([
+                                    'max-w-[min(560px,78%)] break-words rounded-xl px-3.5 py-2.5 text-sm leading-relaxed',
+                                    'rounded-tr-sm bg-accent text-white' => $isMine,
+                                    'rounded-tl-sm bg-zinc-100 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100' => ! $isMine,
+                                ])>
+                                    <div class="**:[a]:underline **:[strong]:font-semibold **:[em]:italic **:[u]:underline **:[s]:line-through **:[ol]:ml-5 **:[ol]:list-decimal **:[ul]:ml-5 **:[ul]:list-disc **:[blockquote]:border-l-2 **:[blockquote]:pl-2 **:[p]:not-first:mt-2">
+                                        {!! app(ScriptureLinker::class)->linkify($comment->text) !!}
+                                    </div>
                                 </div>
+
+                                {{-- Add reaction: revealed on hover (desktop), always tappable on touch --}}
+                                <flux:dropdown :align="$isMine ? 'end' : 'start'" class="opacity-0 transition-opacity group-hover/msg:opacity-100 group-focus-within/msg:opacity-100 group-has-[[data-flux-popover][data-open]]/msg:opacity-100 max-lg:opacity-100">
+                                    <button
+                                        type="button"
+                                        aria-label="Add reaction"
+                                        class="grid size-7 shrink-0 place-items-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                                        data-test="reaction-picker-trigger"
+                                    >
+                                        <flux:icon.face-smile variant="micro" class="size-4" />
+                                    </button>
+                                    <flux:popover>
+                                        <div class="flex">
+                                            @foreach (Config::allowedReactions() as $allowedReaction)
+                                                <flux:button size="sm" variant="ghost" square wire:click="react({{ $comment->id }}, '{{ $allowedReaction }}')">{{ $allowedReaction }}</flux:button>
+                                            @endforeach
+                                        </div>
+                                    </flux:popover>
+                                </flux:dropdown>
                             </div>
+
+                            @if ($summary->isNotEmpty())
+                                <div @class(['flex flex-wrap items-center gap-1.5', 'justify-end' => $isMine])>
+                                    @foreach ($summary as $reaction)
+                                        @php($mine = (bool) ($reaction['commentator_reacted'] ?? false))
+                                        @php($reactorNames = $comment->reactions
+                                            ->where('reaction', $reaction['reaction'])
+                                            ->map(fn ($r) => $currentUser
+                                                && $r->commentator_id === $currentUser->getKey()
+                                                && $r->commentator_type === $currentUser->getMorphClass()
+                                                    ? 'You'
+                                                    : $r->commentator?->name)
+                                            ->filter()
+                                            ->sortBy(fn ($name) => $name === 'You' ? 0 : 1)
+                                            ->values()
+                                            ->implode(', '))
+                                        <flux:tooltip content="{{ $reactorNames }}">
+                                            <button
+                                                wire:key="reaction-{{ $comment->id }}-{{ $reaction['reaction'] }}"
+                                                wire:click="react({{ $comment->id }}, '{{ $reaction['reaction'] }}')"
+                                                type="button"
+                                                @class([
+                                                    'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors',
+                                                    'border-accent bg-accent/10 text-accent-content' => $mine,
+                                                    'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => ! $mine,
+                                                ])
+                                                data-test="reaction-chip"
+                                                @if ($mine) data-test-mine="true" @endif
+                                            >
+                                                <span>{{ $reaction['reaction'] }}</span>
+                                                <span>{{ $reaction['count'] }}</span>
+                                            </button>
+                                        </flux:tooltip>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @endforeach
                 @endforeach
@@ -811,6 +909,14 @@ new class extends Component {
 
             if (detail.is_direct || detail.conversation_id) {
                 $wire.handleIncoming(detail.conversation_id ?? null);
+            }
+        });
+
+        window.addEventListener('stave:reaction', (event) => {
+            const detail = event.detail ?? {};
+
+            if (detail.conversation_id) {
+                $wire.refreshReactions(detail.conversation_id);
             }
         });
     </script>
