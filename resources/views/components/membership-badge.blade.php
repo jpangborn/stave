@@ -11,6 +11,7 @@
 <flux:badge
     :color="$status->color()"
     :icon="$status->icon()"
+    variant="solid"
     :size="$size"
     :title="$title"
     {{ $attributes }}
