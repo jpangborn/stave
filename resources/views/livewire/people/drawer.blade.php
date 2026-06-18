@@ -131,7 +131,7 @@ new class extends Component
         $this->newHouseholdName = '';
         $this->form->household_id = $this->person?->household_id;
         $this->form->household_role = $this->person?->household_role?->value;
-        $this->householdSelection = (string) ($this->person?->household_id ?? '');
+        $this->householdSelection = (string) ($this->form->household_id ?? '');
     }
 
     public function toggleElderPicker(): void
