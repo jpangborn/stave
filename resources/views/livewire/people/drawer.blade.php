@@ -2,12 +2,15 @@
 
 use App\Enums\AccessRole;
 use App\Enums\Gender;
+use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
 use App\Enums\Office;
 use App\Livewire\Forms\PersonForm;
+use App\Models\Household;
 use App\Models\Person;
 use App\Models\PersonOffice;
 use Flux\Flux;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -18,6 +21,13 @@ new class extends Component
     public ?int $personId = null;
 
     public bool $showElderPicker = false;
+
+    public bool $creatingHousehold = false;
+
+    public string $newHouseholdName = '';
+
+    /** Bound to the household <select>; holds '' | household id | '__new__'. */
+    public string $householdSelection = '';
 
     public PersonForm $form;
 
@@ -35,7 +45,7 @@ new class extends Component
             return null;
         }
 
-        return Person::with(['allOffices', 'user', 'pastoralCareElder', 'assignedCongregants'])->find($this->personId);
+        return Person::with(['allOffices', 'user', 'pastoralCareElder', 'assignedCongregants', 'household'])->find($this->personId);
     }
 
     #[Computed]
@@ -44,9 +54,9 @@ new class extends Component
         return (bool) $this->person?->allOffices->contains(fn (PersonOffice $o) => $o->kind === Office::ELDER && $o->ended_on === null);
     }
 
-    /** @return \Illuminate\Support\Collection<int, Person> */
+    /** @return Collection<int, Person> */
     #[Computed]
-    public function elderCandidates()
+    public function elderCandidates(): Collection
     {
         return Person::query()
             ->whereHas('offices', fn ($q) => $q->where('kind', Office::ELDER))
@@ -55,14 +65,73 @@ new class extends Component
             ->get();
     }
 
+    /** @return Collection<int, Household> */
+    #[Computed]
+    public function households(): Collection
+    {
+        return Household::orderBy('name')->get();
+    }
+
     #[On('open-person-drawer')]
     public function openPerson(int $personId): void
     {
         $this->personId = $personId;
         $this->showElderPicker = false;
+        $this->creatingHousehold = false;
+        $this->newHouseholdName = '';
         $this->loadForm();
         $this->loadAccessRoles();
         Flux::modal('person-drawer')->show();
+    }
+
+    public function updatedHouseholdSelection(string $value): void
+    {
+        if ($value === '__new__') {
+            $this->creatingHousehold = true;
+            $this->householdSelection = '';
+            $this->form->household_id = null;
+            $this->form->household_role = null;
+
+            return;
+        }
+
+        if ($value === '') {
+            $this->form->household_id = null;
+            $this->form->household_role = null;
+
+            return;
+        }
+
+        $this->form->household_id = (int) $value;
+        $this->form->household_role = $this->form->household_role ?: HouseholdRole::OTHER->value;
+    }
+
+    public function createHousehold(): void
+    {
+        $name = trim($this->newHouseholdName);
+
+        if ($name === '') {
+            return;
+        }
+
+        $household = Household::create(['name' => $name]);
+
+        $this->form->household_id = $household->id;
+        $this->form->household_role = $this->form->household_role ?: HouseholdRole::HEAD_OF_HOUSEHOLD->value;
+        $this->householdSelection = (string) $household->id;
+
+        $this->creatingHousehold = false;
+        $this->newHouseholdName = '';
+        unset($this->households);
+    }
+
+    public function cancelCreateHousehold(): void
+    {
+        $this->creatingHousehold = false;
+        $this->newHouseholdName = '';
+        $this->form->household_id = $this->person?->household_id;
+        $this->form->household_role = $this->person?->household_role?->value;
+        $this->householdSelection = (string) ($this->form->household_id ?? '');
     }
 
     public function toggleElderPicker(): void
@@ -76,6 +145,7 @@ new class extends Component
 
         if ($person) {
             $this->form->setPerson($person);
+            $this->householdSelection = (string) ($person->household_id ?? '');
         }
     }
 
@@ -266,6 +336,82 @@ new class extends Component
                             <flux:input wire:model="form.address_zip" />
                         </flux:field>
                     </div>
+                </section>
+
+                {{-- Personal --}}
+                <section>
+                    <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Personal</flux:heading>
+                    <div class="grid grid-cols-2 gap-3">
+                        <flux:field>
+                            <flux:label>Birthdate</flux:label>
+                            <flux:date-picker wire:model="form.birth_date" />
+                            <flux:error name="form.birth_date" />
+                        </flux:field>
+                        <flux:field>
+                            <flux:label>Gender</flux:label>
+                            <flux:select variant="listbox" wire:model="form.gender" placeholder="Not specified" clearable>
+                                @foreach (Gender::cases() as $gender)
+                                    <flux:select.option :value="$gender->value">{{ $gender->label() }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="form.gender" />
+                        </flux:field>
+                    </div>
+
+                    <flux:card class="!p-4 mt-4 bg-zinc-50 dark:bg-zinc-800 space-y-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <flux:icon icon="waves" class="size-[18px] text-emerald-600 dark:text-emerald-400" />
+                                <flux:heading class="!text-sm">Baptized</flux:heading>
+                            </div>
+                            <flux:switch wire:model.live="form.baptized" />
+                        </div>
+                        @if ($form->baptized)
+                            <flux:field>
+                                <flux:label>Baptism date</flux:label>
+                                <flux:date-picker wire:model="form.baptism_date" />
+                                <flux:error name="form.baptism_date" />
+                            </flux:field>
+                        @endif
+                    </flux:card>
+                </section>
+
+                {{-- Household --}}
+                <section>
+                    <flux:heading class="!text-xs uppercase tracking-wider text-zinc-500 mb-2">Household</flux:heading>
+                    @if ($creatingHousehold)
+                        <flux:field>
+                            <flux:label>New household name</flux:label>
+                            <div class="flex gap-2">
+                                <flux:input wire:model="newHouseholdName" placeholder="e.g. The Baker Household" class="flex-1" wire:keydown.enter.prevent="createHousehold" />
+                                <flux:button variant="primary" wire:click="createHousehold">Create</flux:button>
+                                <flux:button variant="ghost" wire:click="cancelCreateHousehold">Cancel</flux:button>
+                            </div>
+                        </flux:field>
+                    @else
+                        <flux:field>
+                            <flux:label>Household</flux:label>
+                            <flux:select variant="listbox" wire:model.live="householdSelection" placeholder="Not in a household" clearable>
+                                @foreach ($this->households as $household)
+                                    <flux:select.option :value="(string) $household->id">{{ $household->name }}</flux:select.option>
+                                @endforeach
+                                <flux:select.option value="__new__">+ Create new household…</flux:select.option>
+                            </flux:select>
+                            <flux:error name="form.household_id" />
+                        </flux:field>
+
+                        @if ($form->household_id)
+                            <flux:field class="mt-3">
+                                <flux:label>Role in household</flux:label>
+                                <flux:select variant="listbox" wire:model="form.household_role">
+                                    @foreach (HouseholdRole::cases() as $role)
+                                        <flux:select.option :value="$role->value">{{ $role->label() }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                                <flux:error name="form.household_role" />
+                            </flux:field>
+                        @endif
+                    @endif
                 </section>
 
                 {{-- Membership --}}
@@ -521,8 +667,34 @@ new class extends Component
                         <dd>{{ $person->last_active_at?->diffForHumans() ?? '—' }}</dd>
                         <dt class="text-zinc-500">Added</dt>
                         <dd>{{ $person->created_at->toFormattedDayDateString() }}</dd>
+                        <dt class="text-zinc-500">Birthdate</dt>
+                        <dd>
+                            @if ($person->birth_date)
+                                {{ $person->birth_date->format('M j, Y') }} · {{ $person->birth_date->age }} yrs
+                            @else
+                                <span class="text-zinc-400">—</span>
+                            @endif
+                        </dd>
                         <dt class="text-zinc-500">Gender</dt>
                         <dd>{{ $person->gender?->label() ?? '—' }}</dd>
+                        <dt class="text-zinc-500">Baptism</dt>
+                        <dd>
+                            @if ($person->baptized && $person->baptism_date)
+                                {{ $person->baptism_date->format('M j, Y') }}
+                            @elseif ($person->baptized)
+                                Yes — date not set
+                            @else
+                                Not baptized
+                            @endif
+                        </dd>
+                        <dt class="text-zinc-500">Household</dt>
+                        <dd>
+                            @if ($person->household)
+                                {{ $person->household->name }}@if ($person->household_role) · {{ $person->household_role->label() }}@endif
+                            @else
+                                <span class="text-zinc-400">—</span>
+                            @endif
+                        </dd>
                     </dl>
                 </section>
 

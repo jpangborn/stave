@@ -1,9 +1,12 @@
 <?php
 
 use App\Enums\AccessRole;
+use App\Enums\Gender;
+use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
 use App\Enums\Office;
 use App\Enums\TerminationReason;
+use App\Models\Household;
 use App\Models\Person;
 use App\Models\PersonOffice;
 use App\Models\User;
@@ -215,6 +218,126 @@ test('toggles the elder picker', function (): void {
         ->assertSet('showElderPicker', true)
         ->call('toggleElderPicker')
         ->assertSet('showElderPicker', false);
+});
+
+test('saves personal fields', function (): void {
+    $person = Person::factory()->visitor()->create(['birth_date' => null, 'gender' => null, 'baptized' => false]);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->set('form.birth_date', '1998-06-18')
+        ->set('form.gender', Gender::FEMALE->value)
+        ->set('form.baptized', true)
+        ->set('form.baptism_date', '2010-04-15')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $person->refresh();
+    expect($person->birth_date->toDateString())->toBe('1998-06-18');
+    expect($person->gender)->toBe(Gender::FEMALE);
+    expect($person->baptized)->toBeTrue();
+    expect($person->baptism_date->toDateString())->toBe('2010-04-15');
+});
+
+test('clears baptism date when not baptized', function (): void {
+    $person = Person::factory()->create(['baptized' => true, 'baptism_date' => '2010-04-15']);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->set('form.baptized', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $person->refresh();
+    expect($person->baptized)->toBeFalse();
+    expect($person->baptism_date)->toBeNull();
+});
+
+test('selecting a household defaults role to other', function (): void {
+    $household = Household::factory()->create();
+    $person = Person::factory()->create(['household_id' => null, 'household_role' => null]);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->set('householdSelection', (string) $household->id)
+        ->assertSet('form.household_role', HouseholdRole::OTHER->value)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $person->refresh();
+    expect($person->household_id)->toBe($household->id);
+    expect($person->household_role)->toBe(HouseholdRole::OTHER);
+});
+
+test('clearing the household nulls the role', function (): void {
+    $household = Household::factory()->create();
+    $person = Person::factory()->inHousehold($household, HouseholdRole::CHILD)->create();
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->set('householdSelection', '')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $person->refresh();
+    expect($person->household_id)->toBeNull();
+    expect($person->household_role)->toBeNull();
+});
+
+test('inline household creation assigns the person and defaults role to head', function (): void {
+    $person = Person::factory()->create(['household_id' => null, 'household_role' => null]);
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->set('householdSelection', '__new__')
+        ->assertSet('creatingHousehold', true)
+        ->set('newHouseholdName', 'The Baker Household')
+        ->call('createHousehold')
+        ->assertSet('creatingHousehold', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $household = Household::where('name', 'The Baker Household')->first();
+    expect($household)->not->toBeNull();
+
+    $person->refresh();
+    expect($person->household_id)->toBe($household->id);
+    expect($person->household_role)->toBe(HouseholdRole::HEAD_OF_HOUSEHOLD);
+});
+
+test('inline household creation is a no-op for a blank name', function (): void {
+    $person = Person::factory()->create();
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->set('householdSelection', '__new__')
+        ->set('newHouseholdName', '   ')
+        ->call('createHousehold')
+        ->assertSet('creatingHousehold', true);
+
+    expect(Household::count())->toBe(0);
+});
+
+test('canceling inline household creation restores the original household', function (): void {
+    $household = Household::factory()->create();
+    $person = Person::factory()->inHousehold($household, HouseholdRole::CHILD)->create();
+
+    Livewire::test('people.drawer')
+        ->call('openPerson', $person->id)
+        ->set('householdSelection', '__new__')
+        ->assertSet('creatingHousehold', true)
+        ->assertSet('form.household_id', null)
+        ->call('cancelCreateHousehold')
+        ->assertSet('creatingHousehold', false)
+        ->assertSet('form.household_id', $household->id)
+        ->assertSet('form.household_role', HouseholdRole::CHILD->value)
+        ->assertSet('householdSelection', (string) $household->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $person->refresh();
+    expect($person->household_id)->toBe($household->id);
+    expect($person->household_role)->toBe(HouseholdRole::CHILD);
 });
 
 test('deletes a person', function (): void {

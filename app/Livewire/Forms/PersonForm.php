@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Enums\Gender;
+use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
 use App\Enums\TerminationReason;
 use App\Models\Person;
@@ -40,6 +41,16 @@ class PersonForm extends Form
 
     public ?string $gender = null;
 
+    public ?string $birth_date = null;
+
+    public bool $baptized = false;
+
+    public ?string $baptism_date = null;
+
+    public ?int $household_id = null;
+
+    public ?string $household_role = null;
+
     public string $membership_status = MembershipStatus::VISITOR->value;
 
     public ?string $membership_since = null;
@@ -52,6 +63,11 @@ class PersonForm extends Form
     {
         return [
             'gender' => ['nullable', Rule::enum(Gender::class)],
+            'birth_date' => ['nullable', 'date'],
+            'baptized' => ['boolean'],
+            'baptism_date' => ['nullable', 'date'],
+            'household_id' => ['nullable', 'integer', Rule::exists('households', 'id')],
+            'household_role' => ['nullable', Rule::enum(HouseholdRole::class)],
             'membership_status' => ['required', Rule::enum(MembershipStatus::class)],
             'membership_since' => ['nullable', 'date'],
             'termination_reason' => ['nullable', Rule::enum(TerminationReason::class)],
@@ -72,6 +88,11 @@ class PersonForm extends Form
         $this->address_state = $person->address_state;
         $this->address_zip = $person->address_zip;
         $this->gender = $person->gender?->value;
+        $this->birth_date = $person->birth_date?->toDateString();
+        $this->baptized = $person->baptized;
+        $this->baptism_date = $person->baptism_date?->toDateString();
+        $this->household_id = $person->household_id;
+        $this->household_role = $person->household_role?->value;
         $this->membership_status = $person->membership_status->value;
         $this->membership_since = $person->membership_since?->toDateString();
         $this->termination_reason = $person->termination_reason?->value;
@@ -105,10 +126,17 @@ class PersonForm extends Form
             'address_state',
             'address_zip',
             'gender',
+            'birth_date',
+            'baptized',
+            'household_id',
             'membership_status',
             'membership_since',
             'pastoral_care_elder_id',
         ]);
+
+        $data['baptism_date'] = $this->baptized ? $this->baptism_date : null;
+
+        $data['household_role'] = $this->household_id ? $this->household_role : null;
 
         $data['termination_reason'] = $this->membership_status === MembershipStatus::TERMINATED->value
             ? $this->termination_reason

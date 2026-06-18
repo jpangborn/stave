@@ -83,6 +83,8 @@ Route::middleware(['auth'])->group(function (): void {
 
     Route::livewire('/people', 'pages::people.index')->name('people.index');
 
+    Route::livewire('/households', 'pages::households.index')->name('households.index');
+
     Route::name('messages.')
         ->prefix('messages')
         ->group(function (): void {
