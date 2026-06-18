@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Gender;
+use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
 use App\Enums\TerminationReason;
 use App\Models\Traits\HasGravatar;
@@ -24,6 +25,10 @@ use Illuminate\Support\Carbon;
  * @property ?Carbon $membership_since
  * @property ?Carbon $last_active_at
  * @property ?Carbon $birth_date
+ * @property bool $baptized
+ * @property ?Carbon $baptism_date
+ * @property ?int $household_id
+ * @property ?HouseholdRole $household_role
  */
 #[Fillable([
     'first_name',
@@ -36,6 +41,10 @@ use Illuminate\Support\Carbon;
     'address_zip',
     'birth_date',
     'gender',
+    'baptized',
+    'baptism_date',
+    'household_id',
+    'household_role',
     'membership_status',
     'membership_since',
     'termination_reason',
@@ -55,6 +64,9 @@ class Person extends Model
         return [
             'gender' => Gender::class,
             'birth_date' => 'date',
+            'baptized' => 'boolean',
+            'baptism_date' => 'date',
+            'household_role' => HouseholdRole::class,
             'membership_status' => MembershipStatus::class,
             'membership_since' => 'date',
             'termination_reason' => TerminationReason::class,
@@ -84,6 +96,12 @@ class Person extends Model
     public function allOffices(): HasMany
     {
         return $this->hasMany(PersonOffice::class);
+    }
+
+    /** @return BelongsTo<Household, $this> */
+    public function household(): BelongsTo
+    {
+        return $this->belongsTo(Household::class);
     }
 
     /** @return BelongsTo<Person, $this> */

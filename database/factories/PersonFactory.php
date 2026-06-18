@@ -3,7 +3,9 @@
 namespace Database\Factories;
 
 use App\Enums\Gender;
+use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
+use App\Models\Household;
 use App\Models\Person;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -28,6 +30,8 @@ class PersonFactory extends Factory
             'address_zip' => fake()->optional(0.6)->postcode(),
             'birth_date' => fake()->date(),
             'gender' => fake()->randomElement(Gender::cases()),
+            'baptized' => $baptized = fake()->boolean(),
+            'baptism_date' => $baptized ? fake()->optional(0.8)->date() : null,
             'membership_status' => fake()->randomElement([
                 MembershipStatus::VISITOR,
                 MembershipStatus::ADHERENT,
@@ -56,5 +60,13 @@ class PersonFactory extends Factory
     public function member(): self
     {
         return $this->state(['membership_status' => MembershipStatus::MEMBER]);
+    }
+
+    public function inHousehold(Household $household, HouseholdRole $role = HouseholdRole::OTHER): self
+    {
+        return $this->state([
+            'household_id' => $household->id,
+            'household_role' => $role,
+        ]);
     }
 }
