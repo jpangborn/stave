@@ -81,6 +81,17 @@ class User extends Authenticatable implements CanComment
             ->exists();
     }
 
+    /**
+     * Whether the user may view pastoral-care surfaces (the Pastoral Care page,
+     * pastoral notes, and the prayer schedule).
+     */
+    public function canAccessPastoralCare(): bool
+    {
+        return $this->hasAccessRole(AccessRole::PASTORAL_CARE_USER)
+            || $this->hasAccessRole(AccessRole::PASTORAL_CARE_ADMIN)
+            || $this->hasAccessRole(AccessRole::ADMIN);
+    }
+
     public function grantAccessRole(AccessRole $role): void
     {
         DB::table('user_access_roles')->insertOrIgnore([
