@@ -87,6 +87,8 @@ Route::middleware(['auth'])->group(function (): void {
 
     Route::livewire('/pastoral-care', 'pages::pastoral-care.index')->name('pastoral-care.index');
 
+    Route::livewire('/prayer-schedule', 'pages::prayer-schedule.index')->name('prayer-schedule.index');
+
     Route::livewire('/households', 'pages::households.index')->name('households.index');
 
     Route::name('messages.')

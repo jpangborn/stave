@@ -29,7 +29,9 @@
                     <flux:sidebar.item icon="user-group" :href="route('groups.index')" :current="request()->routeIs('groups.*')" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="home-modern" :href="route('households.index')" :current="request()->routeIs('households.*')" wire:navigate>{{ __('Households') }}</flux:sidebar.item>
                     <livewire:sidebar.messages />
-                    <flux:sidebar.item icon="calendar-date-range" wire:navigate>{{ __('Prayer Schedule') }}</flux:sidebar.item>
+                    @if (auth()->user()?->canAccessPastoralCare())
+                        <flux:sidebar.item icon="calendar-date-range" :href="route('prayer-schedule.index')" :current="request()->routeIs('prayer-schedule.*')" wire:navigate>{{ __('Prayer Schedule') }}</flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
