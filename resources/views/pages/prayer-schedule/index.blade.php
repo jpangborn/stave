@@ -178,7 +178,7 @@ new class extends Component
     }
 }; ?>
 
-<section class="mx-auto w-full max-w-6xl">
+<section class="mx-auto w-full">
     <div class="mb-4">
         <flux:heading size="xl" level="1">Prayer Schedule</flux:heading>
         <flux:subheading>Pray through the congregation over a {{ $cycleWeeks }}-week cycle.</flux:subheading>

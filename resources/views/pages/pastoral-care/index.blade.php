@@ -90,7 +90,7 @@ new class extends Component
     }
 }; ?>
 
-<section class="mx-auto w-full max-w-6xl">
+<section class="mx-auto w-full">
     {{-- Header --}}
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
