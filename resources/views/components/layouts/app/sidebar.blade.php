@@ -23,6 +23,9 @@
 
                 <flux:sidebar.group expandable icon="church" :heading="__('Congregation')">
                     <flux:sidebar.item icon="users" :href="route('people.index')" :current="request()->routeIs('people.*')" wire:navigate>{{ __('People') }}</flux:sidebar.item>
+                    @if (auth()->user()?->canAccessPastoralCare())
+                        <flux:sidebar.item icon="heart" :href="route('pastoral-care.index')" :current="request()->routeIs('pastoral-care.*')" wire:navigate>{{ __('Pastoral Care') }}</flux:sidebar.item>
+                    @endif
                     <flux:sidebar.item icon="user-group" :href="route('groups.index')" :current="request()->routeIs('groups.*')" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
                     <flux:sidebar.item icon="home-modern" :href="route('households.index')" :current="request()->routeIs('households.*')" wire:navigate>{{ __('Households') }}</flux:sidebar.item>
                     <livewire:sidebar.messages />

@@ -85,6 +85,8 @@ Route::middleware(['auth'])->group(function (): void {
 
     Route::livewire('/people/{person}', 'pages::people.show')->name('people.show');
 
+    Route::livewire('/pastoral-care', 'pages::pastoral-care.index')->name('pastoral-care.index');
+
     Route::livewire('/households', 'pages::households.index')->name('households.index');
 
     Route::name('messages.')
