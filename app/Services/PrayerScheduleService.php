@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\MembershipStatus;
 use App\Enums\PrayerScheduleGrouping;
 use App\Models\Person;
+use App\Models\PrayerRequest;
 use App\Models\PrayerScheduleSettings;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -46,6 +47,45 @@ class PrayerScheduleService
     public function peopleForWeek(PrayerScheduleSettings $settings, int $weekIndex, ?array $statusOverride = null): Collection
     {
         return $this->buckets($settings, $statusOverride)->get($weekIndex) ?? collect();
+    }
+
+    /**
+     * The prayer-email payload for a week: each scheduled person with ONLY their
+     * open, bulletin-visibility requests. Private requests and pastoral notes are
+     * never included — this is the confidentiality boundary for the Monday email.
+     *
+     * @param  array<int, string|MembershipStatus>|null  $statusOverride
+     * @return array<int, array{name: string, household: ?string, status: string, requests: array<int, string>}>
+     */
+    public function bulletinDigestForWeek(PrayerScheduleSettings $settings, int $weekIndex, ?array $statusOverride = null): array
+    {
+        $ids = $this->peopleForWeek($settings, $weekIndex, $statusOverride)->pluck('id');
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $requestsByPerson = PrayerRequest::query()
+            ->open()
+            ->bulletin()
+            ->whereIn('person_id', $ids)
+            ->orderBy('created_at')
+            ->get()
+            ->groupBy('person_id');
+
+        return Person::query()
+            ->whereIn('id', $ids)
+            ->with('household')
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get()
+            ->map(fn (Person $person): array => [
+                'name' => $person->full_name,
+                'household' => $person->household?->name,
+                'status' => $person->membership_status->label(),
+                'requests' => ($requestsByPerson->get($person->id) ?? collect())->pluck('body')->all(),
+            ])
+            ->all();
     }
 
     /**

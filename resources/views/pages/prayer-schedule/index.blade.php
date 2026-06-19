@@ -1,10 +1,12 @@
 <?php
 
 use App\Enums\MembershipStatus;
+use App\Mail\PrayerScheduleDigestMail;
 use App\Models\PrayerRequest;
 use App\Models\PrayerScheduleSettings;
 use App\Models\User;
 use App\Services\PrayerScheduleService;
+use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -21,6 +23,10 @@ new class extends Component
     public int $cycleWeeks = 8;
 
     public string $groupBy = 'alpha';
+
+    public ?string $previewHtml = null;
+
+    public int $previewWeek = 0;
 
     public function mount(): void
     {
@@ -82,6 +88,25 @@ new class extends Component
     public function updatedGroupBy(): void
     {
         $this->persist();
+    }
+
+    public function previewEmail(?int $week = null): void
+    {
+        $week ??= $this->currentWeekIndex();
+        $this->previewWeek = $week;
+
+        $settings = $this->settings;
+        $people = $this->service()->bulletinDigestForWeek($settings, $week, $this->includeStatuses);
+
+        $this->previewHtml = (new PrayerScheduleDigestMail(
+            recipient: $this->user(),
+            people: $people,
+            weekNumber: $week + 1,
+            totalWeeks: $settings->cycle_weeks,
+            weekRange: $this->service()->weekRange($settings, $week),
+        ))->render();
+
+        Flux::modal('email-preview')->show();
     }
 
     #[Computed]
@@ -209,6 +234,10 @@ new class extends Component
                 <flux:radio value="roster">Roster</flux:radio>
             </flux:radio.group>
         </div>
+
+        <flux:button class="ms-auto" size="sm" variant="primary" icon="envelope" wire:click="previewEmail" data-test="preview-email">
+            Preview Monday email
+        </flux:button>
     </flux:card>
 
     <p class="mb-5 text-sm text-zinc-500" data-test="stat-line">{{ $this->statLine() }}</p>
@@ -236,6 +265,7 @@ new class extends Component
                             </div>
                             <p class="mt-0.5 text-xs text-zinc-500">{{ $this->service()->weekRange($this->settings, $weekIndex) }} · {{ $week->count() }} people</p>
                         </div>
+                        <flux:button size="xs" variant="ghost" icon="envelope" wire:click="previewEmail({{ $weekIndex }})" aria-label="Preview email for this week" />
                     </div>
                     <div class="px-4 py-2">
                         @forelse ($week as $person)
@@ -287,4 +317,19 @@ new class extends Component
             </flux:table>
         </div>
     @endif
+
+    <flux:modal name="email-preview" class="w-full max-w-2xl">
+        <div class="space-y-3">
+            <flux:heading size="lg">Monday email · Week {{ $previewWeek + 1 }}</flux:heading>
+            @if ($previewHtml !== null)
+                <iframe srcdoc="{{ $previewHtml }}" class="h-[60vh] w-full rounded-lg border border-zinc-200 dark:border-zinc-700" title="Monday email preview"></iframe>
+            @endif
+            <div class="flex items-center justify-between gap-3">
+                <flux:text size="sm" class="text-zinc-500">Sends automatically every Monday at 6:00 AM to all elders.</flux:text>
+                <flux:modal.close>
+                    <flux:button variant="ghost">Close</flux:button>
+                </flux:modal.close>
+            </div>
+        </div>
+    </flux:modal>
 </section>

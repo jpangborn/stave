@@ -10,3 +10,5 @@ Artisan::command('inspire', function (): void {
 
 Schedule::command('stave:send-digests --frequency=daily')->dailyAt('07:00');
 Schedule::command('stave:send-digests --frequency=weekly')->weeklyOn(1, '07:00');
+
+Schedule::command('stave:send-prayer-schedule')->weeklyOn(1, '06:00');
