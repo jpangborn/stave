@@ -218,7 +218,7 @@ new class extends Component
         </flux:button>
     </div>
 
-    <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_340px]">
+    <div class="grid grid-cols-1 items-start gap-6 md:grid-cols-[1fr_340px]">
         {{-- LEFT --}}
         <div class="space-y-6">
             {{-- Prayer Requests --}}
@@ -328,7 +328,7 @@ new class extends Component
         </div>
 
         {{-- RIGHT: read-only profile --}}
-        <flux:card class="overflow-hidden !p-0 lg:sticky lg:top-6" data-test="profile">
+        <flux:card class="overflow-hidden !p-0 md:sticky md:top-6" data-test="profile">
             <div class="flex items-center gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
                 <flux:icon icon="identification" class="size-5 text-zinc-500" />
                 <flux:heading size="lg">Profile</flux:heading>

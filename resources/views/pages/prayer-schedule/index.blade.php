@@ -185,60 +185,64 @@ new class extends Component
     </div>
 
     {{-- Controls --}}
-    <flux:card class="mb-3 flex flex-wrap items-center gap-x-6 gap-y-4 !p-4">
-        <div class="flex items-center gap-2.5">
-            <span class="text-xs font-semibold text-zinc-500">Cycle length</span>
-            <div class="inline-flex items-center overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
-                <flux:button size="xs" variant="subtle" icon="minus" wire:click="decrementWeeks" aria-label="Fewer weeks" />
-                <span class="min-w-16 text-center text-sm font-semibold">{{ $cycleWeeks }} weeks</span>
-                <flux:button size="xs" variant="subtle" icon="plus" wire:click="incrementWeeks" aria-label="More weeks" />
+    <flux:card class="mb-3 flex flex-wrap items-start justify-between gap-4 !p-4">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs font-semibold text-zinc-500">Cycle length</span>
+                <div class="inline-flex items-center overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <flux:button size="xs" variant="subtle" icon="minus" wire:click="decrementWeeks" aria-label="Fewer weeks" />
+                    <span class="min-w-16 text-center text-sm font-semibold">{{ $cycleWeeks }} weeks</span>
+                    <flux:button size="xs" variant="subtle" icon="plus" wire:click="incrementWeeks" aria-label="More weeks" />
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs font-semibold text-zinc-500">Include</span>
+                <div class="flex flex-wrap gap-1.5" data-test="status-chips">
+                    @foreach ([MembershipStatus::MEMBER, MembershipStatus::CATECHUMEN, MembershipStatus::ADHERENT, MembershipStatus::VISITOR] as $status)
+                        @php($on = in_array($status->value, $includeStatuses, true))
+                        <button
+                            type="button"
+                            wire:click="toggleStatus('{{ $status->value }}')"
+                            @class([
+                                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition',
+                                'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300' => $on,
+                                'border-zinc-200 text-zinc-500 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800' => ! $on,
+                            ])
+                            data-test="status-chip-{{ $status->value }}"
+                            @if ($on) data-on="true" @endif
+                        >
+                            @if ($on)
+                                <flux:icon icon="check" variant="micro" class="size-3.5" />
+                            @endif
+                            {{ $status->label() }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs font-semibold text-zinc-500">Group by</span>
+                <flux:radio.group variant="segmented" size="sm" wire:model.live="groupBy">
+                    <flux:radio value="alpha">Alphabetical</flux:radio>
+                    <flux:radio value="household">By household</flux:radio>
+                </flux:radio.group>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs font-semibold text-zinc-500">View</span>
+                <flux:radio.group variant="segmented" size="sm" wire:model.live="view">
+                    <flux:radio value="weeks">Weeks</flux:radio>
+                    <flux:radio value="roster">Roster</flux:radio>
+                </flux:radio.group>
             </div>
         </div>
 
-        <div class="flex items-center gap-2.5">
-            <span class="text-xs font-semibold text-zinc-500">Include</span>
-            <div class="flex flex-wrap gap-1.5" data-test="status-chips">
-                @foreach ([MembershipStatus::MEMBER, MembershipStatus::CATECHUMEN, MembershipStatus::ADHERENT, MembershipStatus::VISITOR] as $status)
-                    @php($on = in_array($status->value, $includeStatuses, true))
-                    <button
-                        type="button"
-                        wire:click="toggleStatus('{{ $status->value }}')"
-                        @class([
-                            'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition',
-                            'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300' => $on,
-                            'border-zinc-200 text-zinc-500 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800' => ! $on,
-                        ])
-                        data-test="status-chip-{{ $status->value }}"
-                        @if ($on) data-on="true" @endif
-                    >
-                        @if ($on)
-                            <flux:icon icon="check" variant="micro" class="size-3.5" />
-                        @endif
-                        {{ $status->label() }}
-                    </button>
-                @endforeach
-            </div>
+        <div>
+            <flux:button size="sm" variant="primary" icon="envelope" wire:click="previewEmail" data-test="preview-email">
+                Preview Monday email
+            </flux:button>
         </div>
-
-        <div class="flex items-center gap-2.5">
-            <span class="text-xs font-semibold text-zinc-500">Group by</span>
-            <flux:radio.group variant="segmented" size="sm" wire:model.live="groupBy">
-                <flux:radio value="alpha">Alphabetical</flux:radio>
-                <flux:radio value="household">By household</flux:radio>
-            </flux:radio.group>
-        </div>
-
-        <div class="flex items-center gap-2.5">
-            <span class="text-xs font-semibold text-zinc-500">View</span>
-            <flux:radio.group variant="segmented" size="sm" wire:model.live="view">
-                <flux:radio value="weeks">Weeks</flux:radio>
-                <flux:radio value="roster">Roster</flux:radio>
-            </flux:radio.group>
-        </div>
-
-        <flux:button class="ms-auto" size="sm" variant="primary" icon="envelope" wire:click="previewEmail" data-test="preview-email">
-            Preview Monday email
-        </flux:button>
     </flux:card>
 
     <p class="mb-5 text-sm text-zinc-500" data-test="stat-line">{{ $this->statLine() }}</p>
