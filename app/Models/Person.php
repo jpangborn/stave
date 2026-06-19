@@ -116,6 +116,12 @@ class Person extends Model
         return $this->hasMany(Person::class, 'pastoral_care_elder_id');
     }
 
+    /** @return HasMany<PrayerRequest, $this> */
+    public function prayerRequests(): HasMany
+    {
+        return $this->hasMany(PrayerRequest::class);
+    }
+
     /** @return Attribute<string, never> */
     protected function fullName(): Attribute
     {

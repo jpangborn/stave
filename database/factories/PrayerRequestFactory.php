@@ -1,0 +1,51 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Enums\PrayerRequestVisibility;
+use App\Models\Person;
+use App\Models\PrayerRequest;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<PrayerRequest>
+ */
+class PrayerRequestFactory extends Factory
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'person_id' => Person::factory(),
+            'body' => fake()->sentence(),
+            'visibility' => fake()->randomElement(PrayerRequestVisibility::cases()),
+            'created_by_user_id' => User::factory(),
+            'completed_at' => null,
+        ];
+    }
+
+    public function bulletin(): self
+    {
+        return $this->state(['visibility' => PrayerRequestVisibility::BULLETIN]);
+    }
+
+    public function private(): self
+    {
+        return $this->state(['visibility' => PrayerRequestVisibility::PRIVATE]);
+    }
+
+    public function open(): self
+    {
+        return $this->state(['completed_at' => null]);
+    }
+
+    public function completed(?string $when = null): self
+    {
+        return $this->state([
+            'completed_at' => $when ? new \DateTimeImmutable($when) : fake()->dateTimeBetween('-30 days', 'now'),
+        ]);
+    }
+}

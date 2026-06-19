@@ -23,5 +23,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ServicesTableSeeder::class);
         $this->call(LiturgyElementsTableSeeder::class);
         $this->call(GroupSeeder::class);
+        $this->call(PrayerRequestSeeder::class);
     }
 }
