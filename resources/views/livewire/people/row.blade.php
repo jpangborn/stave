@@ -59,6 +59,21 @@ new class extends Component
     </flux:table.cell>
 
     <flux:table.cell align="end">
-        <flux:icon name="chevron-right" class="size-4 text-zinc-400" />
+        <div class="inline-flex items-center gap-1.5">
+            <flux:tooltip content="Open pastoral care">
+                <flux:button
+                    :href="route('people.show', $person)"
+                    wire:navigate
+                    size="xs"
+                    variant="ghost"
+                    icon="heart"
+                    class="text-emerald-600 dark:text-emerald-400"
+                    x-on:click.stop
+                    aria-label="Open pastoral care"
+                    data-test="open-pastoral-care"
+                />
+            </flux:tooltip>
+            <flux:icon name="chevron-right" class="size-4 text-zinc-400" />
+        </div>
     </flux:table.cell>
 </flux:table.row>

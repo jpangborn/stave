@@ -287,6 +287,9 @@ new class extends Component
                             @endforeach
                         </div>
                     </div>
+                    <flux:button :href="route('people.show', $person)" wire:navigate size="sm" variant="ghost" icon="heart" data-test="drawer-pastoral-care">
+                        Open pastoral care
+                    </flux:button>
                 </div>
             </div>
 
