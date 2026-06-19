@@ -187,7 +187,7 @@ new class extends Component
     }
 }; ?>
 
-<section class="mx-auto w-full max-w-6xl">
+<section class="mx-auto w-full">
     <flux:button :href="route('people.index')" wire:navigate variant="ghost" size="sm" icon="arrow-left" class="mb-4">
         People
     </flux:button>
