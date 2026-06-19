@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\AccessRole;
 use App\Enums\DigestFrequency;
 use App\Enums\GroupMembershipStatus;
@@ -78,6 +77,22 @@ class User extends Authenticatable implements CanComment
         return DB::table('user_access_roles')
             ->where('user_id', $this->id)
             ->where('role', $role->value)
+            ->exists();
+    }
+
+    /**
+     * Whether the user may view pastoral-care surfaces (the Pastoral Care page,
+     * pastoral notes, and the prayer schedule).
+     */
+    public function canAccessPastoralCare(): bool
+    {
+        return DB::table('user_access_roles')
+            ->where('user_id', $this->id)
+            ->whereIn('role', [
+                AccessRole::PASTORAL_CARE_USER->value,
+                AccessRole::PASTORAL_CARE_ADMIN->value,
+                AccessRole::ADMIN->value,
+            ])
             ->exists();
     }
 
