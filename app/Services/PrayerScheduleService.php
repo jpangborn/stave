@@ -57,12 +57,28 @@ class PrayerScheduleService
         $weeks = max(1, $settings->cycle_weeks);
 
         $anchorMonday = $settings->anchor_date->copy()->startOfWeek(Carbon::MONDAY);
-        $nowMonday = Carbon::instance($now ?? Carbon::now())->startOfWeek(Carbon::MONDAY);
+        $nowMonday = ($now ? Carbon::instance($now) : Carbon::now())->startOfWeek(Carbon::MONDAY);
 
         $weeksSince = (int) floor($anchorMonday->diffInDays($nowMonday, false) / 7);
         $index = $weeksSince % $weeks;
 
         return $index < 0 ? $index + $weeks : $index;
+    }
+
+    /**
+     * A human label for a week's calendar range relative to the current week,
+     * e.g. "Jun 15 – 21".
+     */
+    public function weekRange(PrayerScheduleSettings $settings, int $weekIndex, ?CarbonInterface $now = null): string
+    {
+        $current = $this->currentWeekIndex($settings, $now);
+        $reference = $now ? Carbon::instance($now) : Carbon::now();
+        $monday = $reference->copy()->startOfWeek(Carbon::MONDAY)->addWeeks($weekIndex - $current);
+        $end = $monday->copy()->addDays(6);
+
+        return $monday->format('M j').' – '.($monday->month === $end->month
+            ? $end->format('j')
+            : $end->format('M j'));
     }
 
     /**
