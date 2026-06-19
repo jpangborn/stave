@@ -7,7 +7,9 @@ use App\Models\User;
 use App\Services\PrayerScheduleService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -184,10 +186,10 @@ new class extends Component
                         </span>
                         <span @class(['inline-flex items-center gap-1.5', 'font-semibold text-emerald-700 dark:text-emerald-400' => $person->open_requests_count > 0])>
                             <flux:icon icon="hand-raised" class="size-3.5" />
-                            {{ $person->open_requests_count > 0 ? $person->open_requests_count.' '.\Illuminate\Support\Str::plural('request', $person->open_requests_count) : 'No open requests' }}
+                            {{ $person->open_requests_count > 0 ? $person->open_requests_count.' '.Str::plural('request', $person->open_requests_count) : 'No open requests' }}
                         </span>
                         <span class="ms-auto text-zinc-400">
-                            {{ $person->last_note_at ? 'Last note '.\Illuminate\Support\Carbon::parse($person->last_note_at)->format('M j') : 'No notes' }}
+                            {{ $person->last_note_at ? 'Last note '.Carbon::parse($person->last_note_at)->format('M j') : 'No notes' }}
                         </span>
                     </div>
                 </a>

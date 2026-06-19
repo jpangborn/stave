@@ -154,7 +154,7 @@ new class extends Component
 
             @foreach ($dayMessages as $comment)
                 @php($author = $comment->commentator)
-                @php($isMine = $author instanceof App\Models\User && $author->id === $this->user()->id)
+                @php($isMine = $author instanceof User && $author->id === $this->user()->id)
 
                 <div @class(['flex flex-col gap-1', 'items-end' => $isMine, 'items-start' => ! $isMine]) wire:key="msg-{{ $comment->id }}" data-test="message">
                     <div @class([
@@ -189,13 +189,16 @@ new class extends Component
 
     @script
     <script>
-        window.addEventListener('stave:notification', (event) => {
+        const handler = (event) => {
             const detail = event.detail ?? {};
 
             if (detail.is_direct || detail.conversation_id) {
                 $wire.handleIncoming(detail.conversation_id ?? null);
             }
-        });
+        };
+
+        window.addEventListener('stave:notification', handler);
+        $cleanup(() => window.removeEventListener('stave:notification', handler));
     </script>
     @endscript
 </flux:card>

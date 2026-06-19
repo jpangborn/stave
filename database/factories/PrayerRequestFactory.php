@@ -7,6 +7,7 @@ use App\Models\Person;
 use App\Models\PrayerRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends Factory<PrayerRequest>
@@ -45,7 +46,7 @@ class PrayerRequestFactory extends Factory
     public function completed(?string $when = null): self
     {
         return $this->state([
-            'completed_at' => $when ? new \DateTimeImmutable($when) : fake()->dateTimeBetween('-30 days', 'now'),
+            'completed_at' => $when ? Carbon::parse($when) : fake()->dateTimeBetween('-30 days', 'now'),
         ]);
     }
 }

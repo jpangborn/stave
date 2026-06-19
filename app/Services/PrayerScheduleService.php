@@ -100,9 +100,8 @@ class PrayerScheduleService
         $nowMonday = ($now ? Carbon::instance($now) : Carbon::now())->startOfWeek(Carbon::MONDAY);
 
         $weeksSince = (int) floor($anchorMonday->diffInDays($nowMonday, false) / 7);
-        $index = $weeksSince % $weeks;
 
-        return $index < 0 ? $index + $weeks : $index;
+        return (($weeksSince % $weeks) + $weeks) % $weeks;
     }
 
     /**
@@ -114,11 +113,11 @@ class PrayerScheduleService
         $current = $this->currentWeekIndex($settings, $now);
         $reference = $now ? Carbon::instance($now) : Carbon::now();
         $monday = $reference->copy()->startOfWeek(Carbon::MONDAY)->addWeeks($weekIndex - $current);
-        $end = $monday->copy()->addDays(6);
+        $sunday = $monday->copy()->addDays(6);
 
-        return $monday->format('M j').' – '.($monday->month === $end->month
-            ? $end->format('j')
-            : $end->format('M j'));
+        $endFormat = $monday->month === $sunday->month ? 'j' : 'M j';
+
+        return $monday->format('M j').' – '.$sunday->format($endFormat);
     }
 
     /**
@@ -246,9 +245,7 @@ class PrayerScheduleService
         $statuses = $statusOverride ?? $settings->include_statuses;
 
         return collect($statuses)
-            ->map(fn (string|MembershipStatus $status): string => $status instanceof MembershipStatus
-                ? $status->value
-                : $status)
+            ->map(fn (string|MembershipStatus $status): string => $status instanceof MembershipStatus ? $status->value : $status)
             ->reject(fn (string $status): bool => $status === MembershipStatus::TERMINATED->value)
             ->unique()
             ->values()

@@ -1,12 +1,12 @@
 <?php
 
 use App\Enums\PrayerRequestVisibility;
+use App\Models\PastoralNote;
 use App\Models\Person;
 use App\Models\PrayerRequest;
 use App\Models\PrayerScheduleSettings;
 use App\Models\User;
 use App\Services\PrayerScheduleService;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -118,7 +118,7 @@ new class extends Component
 
     /* -------------------------- pastoral notes ---------------------- */
 
-    /** @return Collection<int, \App\Models\PastoralNote> */
+    /** @return Collection<int, PastoralNote> */
     #[Computed]
     public function notes(): Collection
     {

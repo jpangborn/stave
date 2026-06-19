@@ -2,6 +2,7 @@
 
 use App\Enums\MembershipStatus;
 use App\Mail\PrayerScheduleDigestMail;
+use App\Models\Person;
 use App\Models\PrayerRequest;
 use App\Models\PrayerScheduleSettings;
 use App\Models\User;
@@ -115,7 +116,7 @@ new class extends Component
         return PrayerScheduleSettings::current();
     }
 
-    /** @return Collection<int, Collection<int, \App\Models\Person>> */
+    /** @return Collection<int, Collection<int, Person>> */
     #[Computed]
     public function buckets(): Collection
     {
@@ -134,7 +135,7 @@ new class extends Component
         return $this->service()->stats($this->settings, $this->includeStatuses);
     }
 
-    /** @return Collection<int, array{person: \App\Models\Person, week: int}> */
+    /** @return Collection<int, array{person: Person, week: int}> */
     #[Computed]
     public function roster(): Collection
     {

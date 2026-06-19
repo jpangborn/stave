@@ -11,11 +11,9 @@ return new class() extends Migration
         Schema::create('pastoral_notes', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('person_id')->constrained('people')->cascadeOnDelete();
-            $table->foreignId('author_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('author_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('body');
             $table->timestamps();
-
-            $table->index('person_id');
         });
     }
 

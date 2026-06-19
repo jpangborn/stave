@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\AccessRole;
 use App\Enums\DigestFrequency;
 use App\Enums\GroupMembershipStatus;
@@ -87,9 +86,14 @@ class User extends Authenticatable implements CanComment
      */
     public function canAccessPastoralCare(): bool
     {
-        return $this->hasAccessRole(AccessRole::PASTORAL_CARE_USER)
-            || $this->hasAccessRole(AccessRole::PASTORAL_CARE_ADMIN)
-            || $this->hasAccessRole(AccessRole::ADMIN);
+        return DB::table('user_access_roles')
+            ->where('user_id', $this->id)
+            ->whereIn('role', [
+                AccessRole::PASTORAL_CARE_USER->value,
+                AccessRole::PASTORAL_CARE_ADMIN->value,
+                AccessRole::ADMIN->value,
+            ])
+            ->exists();
     }
 
     public function grantAccessRole(AccessRole $role): void

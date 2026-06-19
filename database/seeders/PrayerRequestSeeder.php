@@ -28,20 +28,21 @@ class PrayerRequestSeeder extends Seeder
         foreach ($people as $person) {
             $count = fake()->numberBetween(0, 3);
 
-            for ($i = 0; $i < $count; $i++) {
-                $completed = fake()->boolean(30);
-
-                PrayerRequest::factory()
-                    ->for($person)
-                    ->state([
-                        'created_by_user_id' => $author?->id,
-                        'visibility' => fake()->boolean(80)
-                            ? PrayerRequestVisibility::BULLETIN
-                            : PrayerRequestVisibility::PRIVATE,
-                        'completed_at' => $completed ? fake()->dateTimeBetween('-21 days', 'now') : null,
-                    ])
-                    ->create();
+            if ($count === 0) {
+                continue;
             }
+
+            PrayerRequest::factory()
+                ->count($count)
+                ->for($person)
+                ->state(fn () => [
+                    'created_by_user_id' => $author?->id,
+                    'visibility' => fake()->boolean(80)
+                        ? PrayerRequestVisibility::BULLETIN
+                        : PrayerRequestVisibility::PRIVATE,
+                    'completed_at' => fake()->boolean(30) ? fake()->dateTimeBetween('-21 days', 'now') : null,
+                ])
+                ->create();
         }
     }
 }
