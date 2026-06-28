@@ -24,6 +24,34 @@ test('renders the households index', function (): void {
         ->assertSee('Child');
 });
 
+test('lists members ordered by household role then alphabetically', function (): void {
+    $household = Household::factory()->create();
+
+    Person::factory()->inHousehold($household, HouseholdRole::OTHER)->create(['first_name' => 'Olive', 'last_name' => 'Zane']);
+    Person::factory()->inHousehold($household, HouseholdRole::CHILD)->create(['first_name' => 'Cara', 'last_name' => 'Young']);
+    Person::factory()->inHousehold($household, HouseholdRole::CHILD)->create(['first_name' => 'Adam', 'last_name' => 'Adams']);
+    Person::factory()->inHousehold($household, HouseholdRole::DEPENDENT)->create(['first_name' => 'Dana', 'last_name' => 'Doe']);
+    Person::factory()->inHousehold($household, HouseholdRole::SPOUSE)->create(['first_name' => 'Sam', 'last_name' => 'Smith']);
+    Person::factory()->inHousehold($household, HouseholdRole::HEAD_OF_HOUSEHOLD)->create(['first_name' => 'Hana', 'last_name' => 'Hill']);
+    Person::factory()->create(['household_id' => $household->id, 'household_role' => null, 'first_name' => 'Nora', 'last_name' => 'Null']);
+
+    $households = Livewire::test('pages::households.index')->instance()->households;
+
+    $roles = $households->firstWhere('id', $household->id)->people
+        ->map(fn (Person $person) => [$person->household_role?->value, $person->full_name])
+        ->all();
+
+    expect($roles)->toBe([
+        ['head_of_household', 'Hana Hill'],
+        ['spouse', 'Sam Smith'],
+        ['dependent', 'Dana Doe'],
+        ['child', 'Adam Adams'],
+        ['child', 'Cara Young'],
+        ['other', 'Olive Zane'],
+        [null, 'Nora Null'],
+    ]);
+});
+
 test('shows empty state when no households exist', function (): void {
     $this->get('/households')->assertOk()->assertSee('No households yet');
 });

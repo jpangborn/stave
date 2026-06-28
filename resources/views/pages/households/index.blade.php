@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Household;
+use App\Models\Person;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -25,7 +26,13 @@ new class extends Component
     {
         return Household::with(['people' => fn ($q) => $q->orderBy('last_name')->orderBy('first_name')])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->each(fn (Household $household) => $household->setRelation(
+                'people',
+                $household->people
+                    ->sortBy(fn (Person $person) => $person->household_role?->sortOrder() ?? PHP_INT_MAX)
+                    ->values()
+            ));
     }
 
     public function openNew(): void
