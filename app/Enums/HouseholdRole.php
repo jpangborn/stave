@@ -20,4 +20,15 @@ enum HouseholdRole: string
             self::OTHER => 'Other',
         };
     }
+
+    public function sortOrder(): int
+    {
+        return match ($this) {
+            self::HEAD_OF_HOUSEHOLD => 1,
+            self::SPOUSE => 2,
+            self::DEPENDENT => 3,
+            self::CHILD => 4,
+            self::OTHER => 5,
+        };
+    }
 }
