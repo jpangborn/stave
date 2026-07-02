@@ -377,6 +377,35 @@ a.mention:hover {
     @apply bg-accent/10 text-accent-content;
 }
 
+/* ----------------------------------------------------------
+   Public bulletin (follow-along) body text. The wrapper's
+   font-size carries the A− / A+ reader scale; everything
+   inside is em-relative so arbitrary editor HTML scales too.
+   ---------------------------------------------------------- */
+.bulletin-body {
+    font-size: calc(var(--reader-scale, 1) * 1.0625rem);
+    line-height: 1.65;
+}
+
+@media (width >= 48rem) {
+    .bulletin-body {
+        font-size: calc(var(--reader-scale, 1) * 1.1875rem);
+    }
+}
+
+.bulletin-body :where(h1, h2, h3) {
+    font-size: 1em;
+    font-weight: 700;
+}
+
+.bulletin-body :where(p + p, p + h1, p + h2, p + h3) {
+    margin-top: 1em;
+}
+
+.bulletin-body :where(h1 + p, h2 + p, h3 + p) {
+    margin-top: 0.35em;
+}
+
 .mention-suggestions__avatar {
     @apply size-5 shrink-0 rounded-full object-cover;
 }
