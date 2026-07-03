@@ -9,6 +9,7 @@ use App\Enums\TerminationReason;
 use App\Models\Traits\HasGravatar;
 use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -71,6 +72,7 @@ class Person extends Model
             'membership_since' => 'date',
             'termination_reason' => TerminationReason::class,
             'last_active_at' => 'datetime',
+            'last_noted_at' => 'datetime',
         ];
     }
 
@@ -154,5 +156,44 @@ class Person extends Model
             'like',
             "%{$term}%",
         );
+    }
+
+    /**
+     * Add last pastoral note date to the query.
+     *
+     * @param  Builder<Person>  $query
+     * @return Builder<Person>
+     */
+    #[Scope]
+    protected function withLastPastoralNoteDate(Builder $query): Builder
+    {
+        return $query->addSelect([
+            'last_noted_at' => PastoralNote::query()
+                ->selectRaw('MAX(created_at)')
+                ->whereColumn('pastoral_notes.person_id', 'people.id'),
+        ]);
+    }
+
+    /**
+     * Filter people whose next birthday falls within the given number of days.
+     *
+     * @param  Builder<Person>  $query
+     * @return Builder<Person>
+     */
+    #[Scope]
+    protected function birthdayWithin(Builder $query, int $days = 30): Builder
+    {
+        $from = today()->format('m-d');
+        $to = today()->addDays($days)->format('m-d');
+
+        return $query->whereNotNull('birth_date')
+            ->where(function (Builder $q) use ($from, $to): void {
+                if ($from <= $to) {
+                    $q->whereRaw("strftime('%m-%d', birth_date) BETWEEN ? AND ?", [$from, $to]);
+                } else { // window wraps the new year (e.g. Dec 20 → Jan 19)
+                    $q->whereRaw("strftime('%m-%d', birth_date) >= ?", [$from])
+                        ->orWhereRaw("strftime('%m-%d', birth_date) <= ?", [$to]);
+                }
+            });
     }
 }
