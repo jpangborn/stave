@@ -41,3 +41,29 @@ test('skeleton renders with animate-pulse and a bar per row', function (): void 
 
     expect($rowBarCount)->toBe(5);
 });
+
+test('skeleton without a title keeps the fake header placeholder bars', function (): void {
+    $view = $this->blade(
+        '<x-dashboard.widget-skeleton :rows="3" />'
+    );
+
+    $view->assertDontSee('My Assignments')
+        ->assertSeeHtml('size-7 rounded-lg bg-zinc-100 dark:bg-zinc-800');
+});
+
+test('skeleton with a title renders the real header outside the pulsing wrapper', function (): void {
+    $view = $this->blade(
+        '<x-dashboard.widget-skeleton title="My Assignments" icon="clipboard" :rows="3" />'
+    );
+
+    $html = (string) $view;
+
+    $view->assertSee('My Assignments');
+
+    $headerPos = strpos($html, 'My Assignments');
+    $pulsePos = strpos($html, 'animate-pulse');
+
+    expect($headerPos)->not->toBeFalse()
+        ->and($pulsePos)->not->toBeFalse()
+        ->and($headerPos)->toBeLessThan($pulsePos);
+});
