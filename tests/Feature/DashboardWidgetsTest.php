@@ -5,6 +5,8 @@ use App\Enums\GroupMembershipStatus;
 use App\Enums\LiturgyElementType;
 use App\Models\Group;
 use App\Models\LiturgyElement;
+use App\Models\Person;
+use App\Models\PrayerRequest;
 use App\Models\Reading;
 use App\Models\Service;
 use App\Models\Template;
@@ -429,4 +431,87 @@ test('liturgy user does not see Service Readiness on initial render', function (
     $response = $this->get('/dashboard');
 
     $response->assertDontSee('Service Readiness');
+});
+
+/* ---------------------------- upcomingBirthdays ---------------------------- */
+
+test('upcomingBirthdays orders cross-year birthdays correctly and excludes far-off or missing dates', function (): void {
+    $this->travelTo(Carbon::parse('2026-12-20'));
+
+    // Pin the acting user's own birth_date well outside the window: the User
+    // factory's underlying Person otherwise gets a random birth_date that can
+    // flakily fall inside the 30-day window.
+    $user = User::factory()->create();
+    $user->person->update(['birth_date' => '1990-06-01']);
+    $user->grantAccessRole(AccessRole::PASTORAL_CARE_USER);
+
+    $dec25 = Person::factory()->create(['birth_date' => '1990-12-25']);
+    $jan5 = Person::factory()->create(['birth_date' => '1985-01-05']);
+    $feb15 = Person::factory()->create(['birth_date' => '1990-02-15']);
+    $noBirthDate = Person::factory()->create(['birth_date' => null]);
+
+    $ids = Livewire::actingAs($user)->test('pages::dashboard.index')->instance()->upcomingBirthdays->pluck('id')->all();
+
+    expect($ids)->toBe([$dec25->id, $jan5->id])
+        ->and($ids)->not->toContain($feb15->id)
+        ->and($ids)->not->toContain($noBirthDate->id);
+});
+
+test('upcomingBirthdays sorts a birthday today first', function (): void {
+    $this->travelTo(Carbon::parse('2026-12-20'));
+
+    $user = User::factory()->create();
+    $user->person->update(['birth_date' => '1990-06-01']);
+    $user->grantAccessRole(AccessRole::PASTORAL_CARE_USER);
+
+    $dec25 = Person::factory()->create(['birth_date' => '1990-12-25']);
+    $today = Person::factory()->create(['birth_date' => '1990-12-20']);
+
+    $ids = Livewire::actingAs($user)->test('pages::dashboard.index')->instance()->upcomingBirthdays->pluck('id')->all();
+
+    expect($ids)->toBe([$today->id, $dec25->id]);
+});
+
+/* -------------------------- recentPrayerRequests -------------------------- */
+
+test('recentPrayerRequests only includes open requests, newest first, limited to 5', function (): void {
+    $user = User::factory()->create();
+    $user->grantAccessRole(AccessRole::PASTORAL_CARE_USER);
+
+    PrayerRequest::factory()->completed()->create(['created_at' => now()]);
+
+    $requests = collect(range(1, 6))->map(
+        fn (int $daysAgo) => PrayerRequest::factory()->open()->create(['created_at' => now()->subDays($daysAgo)]),
+    );
+    $newest = $requests->first();
+    $oldest = $requests->last();
+
+    $result = Livewire::actingAs($user)->test('pages::dashboard.index')->instance()->recentPrayerRequests;
+
+    expect($result)->toHaveCount(5)
+        ->and($result->first()->id)->toBe($newest->id)
+        ->and($result->pluck('id')->all())->not->toContain($oldest->id);
+});
+
+/* ------------------------------ pastoral initial render ------------------------------ */
+
+test('pastoral user sees Prayer This Week and My Care List headings on initial render', function (): void {
+    $user = User::factory()->create();
+    $user->grantAccessRole(AccessRole::PASTORAL_CARE_USER);
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertSee('Prayer This Week');
+    $response->assertSee('My Care List');
+});
+
+test('plain user does not see pastoral islands on initial render', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertDontSee('Prayer This Week');
+    $response->assertDontSee('My Care List');
 });

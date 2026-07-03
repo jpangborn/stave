@@ -1,7 +1,13 @@
 <?php
 
+use App\Enums\PrayerRequestVisibility;
+use App\Models\PastoralNote;
+use App\Models\Person;
+use App\Models\PrayerRequest;
+use App\Models\PrayerScheduleSettings;
 use App\Models\Service;
 use App\Models\Song;
+use App\Services\PrayerScheduleService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -112,6 +118,102 @@ new #[Title('Dashboard')] class extends Component
         }
 
         return Song::query()->withLastUsedDate()->orderBy('last_used_date')->orderBy('name')->limit(5)->get();
+    }
+
+    /**
+     * The current prayer-schedule week, matching the Prayer Schedule page's
+     * display semantics, or null when nobody is eligible for the schedule.
+     *
+     * @return array{label: string, range: string, people: Collection<int, Person>}|null
+     */
+    #[Computed]
+    public function prayerWeek(): ?array
+    {
+        if (! auth()->user()->canAccessPastoralCare()) {
+            return null;
+        }
+
+        $service = app(PrayerScheduleService::class);
+        $settings = PrayerScheduleSettings::current();
+
+        if ($service->stats($settings)['total'] === 0) {
+            return null;
+        }
+
+        $weekIndex = $service->currentWeekIndex($settings);
+
+        return [
+            'label' => 'Week '.($weekIndex + 1),
+            'range' => $service->weekRange($settings, $weekIndex),
+            'people' => $service->peopleForWeek($settings, $weekIndex),
+        ];
+    }
+
+    /** @return Collection<int, PrayerRequest> */
+    #[Computed]
+    public function recentPrayerRequests(): Collection
+    {
+        if (! auth()->user()->canAccessPastoralCare()) {
+            return collect();
+        }
+
+        return PrayerRequest::query()->open()->with('person')->latest()->limit(5)->get();
+    }
+
+    /** @return Collection<int, PastoralNote> */
+    #[Computed]
+    public function recentPastoralNotes(): Collection
+    {
+        if (! auth()->user()->canAccessPastoralCare()) {
+            return collect();
+        }
+
+        return PastoralNote::query()->with('person', 'author')->latest()->limit(5)->get();
+    }
+
+    /** @return Collection<int, Person> */
+    #[Computed]
+    public function careList(): Collection
+    {
+        if (! auth()->user()->canAccessPastoralCare()) {
+            return collect();
+        }
+
+        $me = auth()->user()->person;
+
+        if ($me === null) {
+            return collect();
+        }
+
+        return $me->assignedCongregants()
+            ->withLastPastoralNoteDate()
+            ->orderBy('last_noted_at')
+            ->orderBy('last_name')
+            ->limit(5)
+            ->get();
+    }
+
+    /** @return Collection<int, Person> */
+    #[Computed]
+    public function upcomingBirthdays(): Collection
+    {
+        if (! auth()->user()->canAccessPastoralCare()) {
+            return collect();
+        }
+
+        return Person::query()
+            ->birthdayWithin(30)
+            ->get()
+            ->sortBy(fn (Person $p) => $this->nextBirthday($p))
+            ->take(5)
+            ->values();
+    }
+
+    public function nextBirthday(Person $person): Carbon
+    {
+        $next = $person->birth_date->copy()->year(today()->year);
+
+        return $next->lt(today()) ? $next->addYear() : $next;
     }
 }; ?>
 
@@ -395,6 +497,169 @@ new #[Title('Dashboard')] class extends Component
                                     {{ $song->name }}
                                 </a>
                                 <span class="whitespace-nowrap text-xs text-zinc-500">{{ $song->last_used_date?->format('M j, Y') ?? 'Never' }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-dashboard.widget>
+            @endisland
+        @endif
+
+        @if ($pastoral)
+            @island(name: 'prayer-this-week', defer: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="Prayer This Week" icon="hand-platter" :rows="4" />
+                @endplaceholder
+
+                @php($prayerWeek = $this->prayerWeek)
+                <x-dashboard.widget
+                    title="Prayer This Week"
+                    icon="hand-platter"
+                    :href="route('prayer-schedule.index')"
+                    link-label="Schedule"
+                    :is-empty="! $prayerWeek"
+                    empty-message="No prayer schedule configured."
+                >
+                    @if ($prayerWeek)
+                        <div class="mb-2 flex items-center gap-2">
+                            <flux:badge color="emerald" size="sm">{{ $prayerWeek['label'] }}</flux:badge>
+                            <span class="text-xs text-zinc-500">{{ $prayerWeek['range'] }}</span>
+                        </div>
+
+                        <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            @foreach ($prayerWeek['people'] as $person)
+                                <div class="flex items-center gap-2.5 py-2.5">
+                                    <flux:icon.hand-platter variant="micro" class="text-zinc-400" />
+                                    <span class="text-[13px] font-medium">{{ $person->full_name }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </x-dashboard.widget>
+            @endisland
+
+            @island(name: 'recent-prayer-requests', lazy: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="Prayer Requests" icon="heart" :rows="4" />
+                @endplaceholder
+
+                <x-dashboard.widget
+                    title="Prayer Requests"
+                    icon="heart"
+                    :href="route('pastoral-care.index')"
+                    link-label="All"
+                    :is-empty="$this->recentPrayerRequests->isEmpty()"
+                    empty-message="No open prayer requests."
+                >
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                        @foreach ($this->recentPrayerRequests as $r)
+                            <div class="py-2.5">
+                                <div class="flex items-center gap-1.5">
+                                    <a href="{{ route('people.show', $r->person) }}" wire:navigate class="flex-1 truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                        {{ $r->person->full_name }}
+                                    </a>
+                                    <flux:badge size="sm" :color="match ($r->visibility) {
+                                        PrayerRequestVisibility::BULLETIN => 'purple',
+                                        PrayerRequestVisibility::PRIVATE => 'amber',
+                                    }">{{ $r->visibility->label() }}</flux:badge>
+                                    @if ($r->created_at->lte(now()->subWeeks(3)))
+                                        <flux:badge color="amber" size="sm">{{ (int) floor($r->created_at->diffInWeeks(now())) }}w open</flux:badge>
+                                    @endif
+                                    <span class="shrink-0 text-[11px] text-zinc-400">{{ $r->created_at->diffForHumans(short: true) }}</span>
+                                </div>
+                                <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($r->body, 70) }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-dashboard.widget>
+            @endisland
+
+            @island(name: 'recent-pastoral-notes', lazy: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="Pastoral Notes" icon="pencil-square" :rows="4" />
+                @endplaceholder
+
+                <x-dashboard.widget
+                    title="Pastoral Notes"
+                    icon="pencil-square"
+                    :href="route('pastoral-care.index')"
+                    link-label="All"
+                    :is-empty="$this->recentPastoralNotes->isEmpty()"
+                    empty-message="No pastoral notes yet."
+                >
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                        @foreach ($this->recentPastoralNotes as $note)
+                            <div class="flex items-start gap-2.5 py-2.5">
+                                <x-person-avatar :person="$note->person" size="xs" />
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('people.show', $note->person) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                        {{ $note->person->full_name }}
+                                    </a>
+                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($note->body, 70) }}</p>
+                                    <p class="text-[11px] text-zinc-400">{{ $note->author->name }} · {{ $note->created_at->diffForHumans(short: true) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-dashboard.widget>
+            @endisland
+
+            @island(name: 'my-care-list', lazy: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="My Care List" icon="clock" :rows="4" />
+                @endplaceholder
+
+                <x-dashboard.widget
+                    title="My Care List"
+                    icon="clock"
+                    :href="route('pastoral-care.index')"
+                    link-label="All"
+                    :is-empty="$this->careList->isEmpty()"
+                    empty-message="No one is assigned to your care."
+                >
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                        @foreach ($this->careList as $p)
+                            <div class="flex items-center gap-2.5 py-2.5">
+                                <flux:icon.clock variant="micro" class="text-zinc-400" />
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('people.show', $p) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                        {{ $p->full_name }}
+                                    </a>
+                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">Last contact {{ $p->last_noted_at?->diffForHumans() ?? 'never' }}</p>
+                                </div>
+                                @if ($p->last_noted_at === null || $p->last_noted_at->lte(now()->subWeeks(8)))
+                                    <flux:badge color="amber" size="sm">Overdue</flux:badge>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </x-dashboard.widget>
+            @endisland
+
+            @island(name: 'upcoming-birthdays', lazy: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="Upcoming Birthdays" icon="cake" :rows="4" />
+                @endplaceholder
+
+                <x-dashboard.widget
+                    title="Upcoming Birthdays"
+                    icon="cake"
+                    :href="route('people.index')"
+                    link-label="People"
+                    :is-empty="$this->upcomingBirthdays->isEmpty()"
+                    empty-message="No birthdays in the next 30 days."
+                >
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                        @foreach ($this->upcomingBirthdays as $p)
+                            @php($next = $this->nextBirthday($p))
+                            <div class="flex items-center gap-2.5 py-2.5">
+                                <x-person-avatar :person="$p" size="xs" />
+                                <a href="{{ route('people.show', $p) }}" wire:navigate class="flex-1 truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                    {{ $p->full_name }}
+                                </a>
+                                <div class="shrink-0 text-right">
+                                    <p class="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $next->format('M j') }}</p>
+                                    <p class="text-[11px] text-zinc-400">{{ $next->isToday() ? 'Today' : 'in '.(int) today()->diffInDays($next).' days' }}</p>
+                                </div>
                             </div>
                         @endforeach
                     </div>
