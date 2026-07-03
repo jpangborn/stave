@@ -19,6 +19,14 @@ test('authenticated users can visit the dashboard', function (): void {
     $response->assertStatus(200);
 });
 
+test('the dashboard sets the browser title', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+    $response->assertSee('<title>Dashboard</title>', false);
+});
+
 test('greeting renders for an authenticated user', function (): void {
     $user = User::factory()->create();
     $this->actingAs($user);

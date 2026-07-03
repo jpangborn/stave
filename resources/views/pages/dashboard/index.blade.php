@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new class extends Component
+new #[Title('Dashboard')] class extends Component
 {
     //
 }; ?>
