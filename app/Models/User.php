@@ -20,6 +20,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use LogicException;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Comments\Models\Concerns\InteractsWithComments;
 use Spatie\Comments\Models\Concerns\Interfaces\CanComment;
@@ -209,11 +210,31 @@ class User extends Authenticatable implements CanComment
     {
         return LiturgyElement::query()
             ->where('assignee_id', $this->id)
-            ->whereHasMorph('liturgy', Service::class, fn (Builder $query): Builder => $query->upcoming())
+            ->whereHasMorph('liturgy', Service::class, $this->constrainToUpcomingServices(...))
             ->with(['liturgy.template', 'content'])
             ->get()
-            ->sortBy(fn (LiturgyElement $element): string => $element->liturgy->date->toDateString())
+            ->sortBy($this->upcomingAssignmentSortKey(...))
             ->values();
+    }
+
+    /**
+     * @param  Builder<Service>  $query
+     * @return Builder<Service>
+     */
+    private function constrainToUpcomingServices(Builder $query): Builder
+    {
+        return $query->upcoming();
+    }
+
+    private function upcomingAssignmentSortKey(LiturgyElement $element): string
+    {
+        $liturgy = $element->liturgy;
+
+        if (! $liturgy instanceof Service) {
+            throw new LogicException('Expected upcoming assignment liturgy to be a Service.');
+        }
+
+        return $liturgy->date->toDateString();
     }
 
     /**
