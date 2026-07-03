@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AccessRole;
 use App\Enums\GroupMembershipStatus;
 use App\Models\Group;
 use App\Models\LiturgyElement;
@@ -7,6 +8,8 @@ use App\Models\Service;
 use App\Models\Template;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -191,4 +194,139 @@ test('unreadGroupCounts omits groups with zero unread', function (): void {
     $conversation->markReadFor($me);
 
     expect($me->unreadGroupCounts()->has($group->id))->toBeFalse();
+});
+
+/* -------------------------- unreadDirectCounts -------------------------- */
+
+test('unreadDirectCounts counts others\' comments made after my last_read_at', function (): void {
+    $me = User::factory()->create();
+    $other = User::factory()->create();
+
+    $conversation = Group::findOrCreateDirect($me, [$other->id])->directConversation;
+    $conversation->markReadFor($me);
+
+    $this->travelTo(now()->addMinute());
+    $conversation->postComment('<p>new message</p>', $other);
+
+    expect($me->unreadDirectCounts()->get($conversation->id))->toBe(1);
+});
+
+test('unreadDirectCounts excludes my own comments', function (): void {
+    $me = User::factory()->create();
+    $other = User::factory()->create();
+
+    $conversation = Group::findOrCreateDirect($me, [$other->id])->directConversation;
+    $conversation->markReadFor($me);
+
+    $this->travelTo(now()->addMinute());
+    $conversation->postComment('<p>mine</p>', $me);
+
+    expect($me->unreadDirectCounts()->get($conversation->id, 0))->toBe(0);
+});
+
+test('unreadDirectCounts matches Conversation::unreadCountFor when the pivot row is missing', function (): void {
+    $me = User::factory()->create();
+    $other = User::factory()->create();
+
+    $conversation = Group::findOrCreateDirect($me, [$other->id])->directConversation;
+    // No markReadFor call: the conversation_user pivot row never gets created.
+    $conversation->postComment('<p>first</p>', $other);
+    $conversation->postComment('<p>second</p>', $other);
+
+    expect($me->unreadDirectCounts()->get($conversation->id))
+        ->toBe($conversation->unreadCountFor($me));
+});
+
+test('unreadDirectCounts does not count comments made before my last_read_at', function (): void {
+    $me = User::factory()->create();
+    $other = User::factory()->create();
+
+    $conversation = Group::findOrCreateDirect($me, [$other->id])->directConversation;
+    $conversation->postComment('<p>old message</p>', $other);
+    $conversation->markReadFor($me);
+
+    expect($me->unreadDirectCounts()->get($conversation->id, 0))->toBe(0);
+});
+
+test('unreadDirectCounts excludes non-direct group conversations', function (): void {
+    $me = User::factory()->create();
+
+    $group = groupWithConversation($me);
+    $conversation = $group->conversations()->create([
+        'user_id' => $me->id,
+        'title' => 'Thread',
+        'allow_replies' => true,
+    ]);
+    $author = User::factory()->create();
+    $group->allUsers()->attach($author, [
+        'role' => 'member',
+        'status' => GroupMembershipStatus::ACTIVE,
+    ]);
+    $conversation->postComment('<p>hi</p>', $author);
+
+    expect($me->unreadDirectCounts())->toBeEmpty();
+});
+
+test('unreadDirectCounts is keyed by conversation id', function (): void {
+    $me = User::factory()->create();
+    $other = User::factory()->create();
+
+    $conversation = Group::findOrCreateDirect($me, [$other->id])->directConversation;
+    $conversation->postComment('<p>hi</p>', $other);
+
+    expect($me->unreadDirectCounts()->keys()->all())->toBe([$conversation->id]);
+});
+
+/* --------------------------- upcomingServices --------------------------- */
+
+test('upcomingServices returns at most 3 services, ascending by date, excluding past services', function (): void {
+    $user = User::factory()->create();
+
+    Service::factory()->create(['date' => today()->subWeek()]);
+    $first = Service::factory()->create(['date' => today()]);
+    $second = Service::factory()->create(['date' => today()->addDay()]);
+    $third = Service::factory()->create(['date' => today()->addWeek()]);
+    Service::factory()->create(['date' => today()->addMonth()]);
+
+    $upcoming = Livewire::actingAs($user)->test('pages::dashboard.index')->instance()->upcomingServices;
+
+    expect($upcoming->pluck('id')->all())->toBe([$first->id, $second->id, $third->id]);
+});
+
+/* --------------------------- relativeDateBadge --------------------------- */
+
+test('relativeDateBadge labels dates relative to today', function (): void {
+    $this->travelTo(Carbon::parse('2026-07-03')); // Friday
+
+    $user = User::factory()->create();
+    $component = Livewire::actingAs($user)->test('pages::dashboard.index');
+
+    expect($component->instance()->relativeDateBadge(today()))->toBe('Today')
+        ->and($component->instance()->relativeDateBadge(today()->addDay()))->toBe('Tomorrow')
+        ->and($component->instance()->relativeDateBadge(today()->next(Carbon::SUNDAY)))->toBe('This Sunday')
+        ->and($component->instance()->relativeDateBadge(today()->addDays(10)))->toBe('In 10 days');
+});
+
+/* ------------------------------ initial render ------------------------------ */
+
+test('liturgy user sees My Assignments heading on initial render', function (): void {
+    $user = User::factory()->create();
+    $user->grantAccessRole(AccessRole::LITURGY_USER);
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertSee('My Assignments');
+});
+
+test('plain user does not see My Assignments but sees the other islands on initial render', function (): void {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertDontSee('My Assignments');
+    $response->assertSee('Upcoming Services');
+    $response->assertSee('Group Messages');
+    $response->assertSee('Messages');
 });

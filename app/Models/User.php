@@ -256,6 +256,35 @@ class User extends Authenticatable implements CanComment
             ->pluck('unread_count', 'group_id');
     }
 
+    /**
+     * Per-conversation unread message counts for the user's direct
+     * conversations, keyed by conversation id. Conversations with zero
+     * unread messages are omitted from the collection.
+     *
+     * @return Collection<int, int>
+     */
+    public function unreadDirectCounts(): Collection
+    {
+        return Comment::query()
+            ->where('comments.commentable_type', (new Conversation())->getMorphClass())
+            ->whereIn('comments.commentable_id', $this->directConversations()->select('conversations.id'))
+            ->whereNot(fn ($q) => $q
+                ->where('comments.commentator_id', $this->id)
+                ->where('comments.commentator_type', $this->getMorphClass())
+            )
+            ->leftJoin('conversation_user', fn ($join) => $join
+                ->on('conversation_user.conversation_id', '=', 'comments.commentable_id')
+                ->where('conversation_user.user_id', $this->id)
+            )
+            ->where(fn ($q) => $q
+                ->whereNull('conversation_user.last_read_at')
+                ->orWhereColumn('comments.created_at', '>', 'conversation_user.last_read_at')
+            )
+            ->groupBy('comments.commentable_id')
+            ->selectRaw('comments.commentable_id as conversation_id, count(*) as unread_count')
+            ->pluck('unread_count', 'conversation_id');
+    }
+
     /** @return HasMany<NotificationPreference, $this> */
     public function notificationPreferences(): HasMany
     {

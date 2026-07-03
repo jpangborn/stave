@@ -1,12 +1,72 @@
 <?php
 
+use App\Models\Service;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Dashboard')] class extends Component
 {
-    //
+    /** @return Collection<int, \App\Models\LiturgyElement> */
+    #[Computed]
+    public function myAssignments(): Collection
+    {
+        return auth()->user()->upcomingAssignments();
+    }
+
+    /** @return Collection<int, Service> */
+    #[Computed]
+    public function upcomingServices(): Collection
+    {
+        return Service::query()->upcoming()->with('template')->limit(3)->get();
+    }
+
+    public function relativeDateBadge(Carbon $date): string
+    {
+        return match (true) {
+            $date->isToday() => 'Today',
+            $date->isTomorrow() => 'Tomorrow',
+            $date->isSunday() && $date->lt(today()->addDays(7)) => 'This Sunday',
+            default => 'In '.(int) today()->diffInDays($date).' days',
+        };
+    }
+
+    /** @return Collection<int, \App\Models\Group> */
+    #[Computed]
+    public function messageGroups(): Collection
+    {
+        return auth()->user()->groups()->notDirect()
+            ->with('latestConversation.lastComment')
+            ->get();
+    }
+
+    /** @return Collection<int, int> */
+    #[Computed]
+    public function groupUnreadCounts(): Collection
+    {
+        return auth()->user()->unreadGroupCounts();
+    }
+
+    /** @return Collection<int, \App\Models\Conversation> */
+    #[Computed]
+    public function directMessages(): Collection
+    {
+        return auth()->user()->directConversations()
+            ->with(['group.members', 'lastComment.commentator'])
+            ->orderByDesc('last_comment_at')
+            ->limit(5)
+            ->get();
+    }
+
+    /** @return Collection<int, int> */
+    #[Computed]
+    public function directUnreadCounts(): Collection
+    {
+        return auth()->user()->unreadDirectCounts();
+    }
 }; ?>
 
 @php
@@ -68,6 +128,148 @@ new #[Title('Dashboard')] class extends Component
             </div>
         </flux:card>
 
-        {{-- islands land here in later tasks --}}
+        @if ($liturgy)
+            @island(name: 'my-assignments', defer: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="My Assignments" icon="clipboard" :rows="4" />
+                @endplaceholder
+
+                <x-dashboard.widget
+                    title="My Assignments"
+                    icon="clipboard"
+                    :href="route('services.index')"
+                    link-label="All"
+                    :is-empty="$this->myAssignments->isEmpty()"
+                    empty-message="You have no upcoming assignments."
+                >
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                        @foreach ($this->myAssignments as $element)
+                            <a href="{{ route('services.show', $element->liturgy) }}" wire:navigate class="flex items-center gap-2.5 py-2.5">
+                                <flux:icon name="{{ $element->type->icon() }}" variant="micro" class="shrink-0 text-zinc-400" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $element->getDisplayTitle() }}</p>
+                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                                        {{ $element->liturgy->title ?: ($element->liturgy->template->name ?? 'Untitled Service') }} · {{ $element->liturgy->date->format('D, M j') }}
+                                    </p>
+                                </div>
+                                @if ($element->requiresContent() && ! $element->hasContent())
+                                    <flux:badge color="amber" size="sm">Needs content</flux:badge>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </x-dashboard.widget>
+            @endisland
+        @endif
+
+        @island(name: 'upcoming-services', defer: true)
+            @placeholder
+                <x-dashboard.widget-skeleton title="Upcoming Services" icon="calendar" :rows="3" />
+            @endplaceholder
+
+            <x-dashboard.widget title="Upcoming Services" icon="calendar" :href="route('services.index')" link-label="All">
+                @if ($this->upcomingServices->isEmpty())
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">No upcoming services.</p>
+                @else
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                        @foreach ($this->upcomingServices as $service)
+                            <div class="flex items-center gap-3 py-2.5">
+                                <div class="flex w-[42px] shrink-0 flex-col items-center">
+                                    <span class="text-[10px] font-bold uppercase text-zinc-400">{{ $service->date->format('M') }}</span>
+                                    <span class="text-[19px] font-bold leading-tight text-zinc-900 dark:text-zinc-100">{{ $service->date->format('j') }}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('services.show', $service) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                        {{ $service->title ?: ($service->template->name ?? 'Untitled Service') }}
+                                    </a>
+                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $service->template->name ?? '' }}</p>
+                                </div>
+                                @if ($loop->first)
+                                    <flux:badge color="emerald" size="sm">{{ $this->relativeDateBadge($service->date) }}</flux:badge>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </x-dashboard.widget>
+        @endisland
+
+        @island(name: 'group-messages', defer: true)
+            @placeholder
+                <x-dashboard.widget-skeleton title="Group Messages" icon="chat-bubble-left-right" :rows="3" />
+            @endplaceholder
+
+            <x-dashboard.widget title="Group Messages" icon="chat-bubble-left-right" :href="route('groups.index')" link-label="Groups">
+                <div wire:poll.60s>
+                    @if ($this->messageGroups->isEmpty())
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">You're not in any groups yet.</p>
+                    @else
+                        <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            @foreach ($this->messageGroups as $group)
+                                @php($unread = $this->groupUnreadCounts[$group->id] ?? 0)
+                                @php($latestConversation = $group->latestConversation)
+                                @php($latestComment = $latestConversation?->lastComment->first())
+                                <a href="{{ route('groups.show', $group) }}" wire:navigate class="flex items-center gap-2.5 py-2.5">
+                                    <flux:avatar :name="$group->name" :src="$group->cover_url" size="sm" />
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-1.5">
+                                            <p class="truncate text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $group->name }}</p>
+                                            @if ($unread > 0)
+                                                <flux:badge color="emerald" variant="solid" size="sm">{{ $unread }}</flux:badge>
+                                            @endif
+                                        </div>
+                                        <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                                            @if ($latestConversation)
+                                                {{ $latestConversation->title ?? 'Thread' }} · {{ $latestConversation->last_comment_at?->diffForHumans() }}
+                                            @else
+                                                No conversations yet
+                                            @endif
+                                        </p>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </x-dashboard.widget>
+        @endisland
+
+        @island(name: 'direct-messages', defer: true)
+            @placeholder
+                <x-dashboard.widget-skeleton title="Messages" icon="envelope" :rows="4" />
+            @endplaceholder
+
+            <x-dashboard.widget
+                title="Messages"
+                icon="envelope"
+                :href="route('messages.index')"
+                link-label="All"
+                :is-empty="$this->directMessages->isEmpty()"
+                empty-message="You're all caught up."
+            >
+                <div wire:poll.60s class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                    @foreach ($this->directMessages as $conversation)
+                        @php($title = $conversation->displayTitleFor(auth()->user()))
+                        @php($unread = $this->directUnreadCounts[$conversation->id] ?? 0)
+                        @php($latestComment = $conversation->lastComment->first())
+                        <a href="{{ route('messages.show', $conversation) }}" wire:navigate class="flex items-start gap-2.5 py-2.5">
+                            <flux:avatar :name="$title" size="xs" color="auto" />
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <p class="truncate text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $title }}</p>
+                                    <span class="ms-auto shrink-0 text-[11px] text-zinc-400">{{ $conversation->last_comment_at?->diffForHumans() }}</span>
+                                    @if ($unread > 0)
+                                        <flux:badge color="emerald" variant="solid" size="sm">{{ $unread }}</flux:badge>
+                                    @endif
+                                </div>
+                                <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                                    {{ Str::limit(strip_tags($latestComment->text ?? ''), 60) }}
+                                </p>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </x-dashboard.widget>
+        @endisland
     </div>
 </section>
