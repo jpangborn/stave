@@ -96,6 +96,37 @@ class User extends Authenticatable implements CanComment
             ->exists();
     }
 
+    /**
+     * Whether the user may view liturgy surfaces (service planning,
+     * assignments, the song & reading library).
+     */
+    public function canAccessLiturgy(): bool
+    {
+        return DB::table('user_access_roles')
+            ->where('user_id', $this->id)
+            ->whereIn('role', [
+                AccessRole::LITURGY_USER->value,
+                AccessRole::LITURGY_ADMIN->value,
+                AccessRole::ADMIN->value,
+            ])
+            ->exists();
+    }
+
+    /**
+     * Whether the user may manage liturgy (readiness overview, rotation
+     * planning, library and template administration).
+     */
+    public function canManageLiturgy(): bool
+    {
+        return DB::table('user_access_roles')
+            ->where('user_id', $this->id)
+            ->whereIn('role', [
+                AccessRole::LITURGY_ADMIN->value,
+                AccessRole::ADMIN->value,
+            ])
+            ->exists();
+    }
+
     public function grantAccessRole(AccessRole $role): void
     {
         DB::table('user_access_roles')->insertOrIgnore([
@@ -166,6 +197,63 @@ class User extends Authenticatable implements CanComment
                 ->orWhereColumn('comments.created_at', '>', 'conversation_user.last_read_at')
             )
             ->count();
+    }
+
+    /**
+     * Liturgy elements assigned to this user in upcoming (today or later)
+     * services, ordered by the parent service's date ascending.
+     *
+     * @return Collection<int, LiturgyElement>
+     */
+    public function upcomingAssignments(): Collection
+    {
+        return LiturgyElement::query()
+            ->where('assignee_id', $this->id)
+            ->whereHasMorph('liturgy', Service::class, fn (Builder $query): Builder => $query->upcoming())
+            ->with(['liturgy', 'content'])
+            ->get()
+            ->sortBy(fn (LiturgyElement $element): string => $element->liturgy->date->toDateString())
+            ->values();
+    }
+
+    /**
+     * Per-group unread message counts for the user's active, non-direct
+     * groups, keyed by group id. Groups with zero unread messages are
+     * omitted from the collection.
+     *
+     * @return Collection<int, int>
+     */
+    public function unreadGroupCounts(): Collection
+    {
+        return Comment::query()
+            ->where('comments.commentable_type', (new Conversation())->getMorphClass())
+            ->whereIn('comments.commentable_id', Conversation::query()
+                ->whereHas('group', fn (Builder $query): Builder => $query
+                    ->where('is_direct', false)
+                    ->whereHas('allUsers', fn (Builder $inner): Builder => $inner
+                        ->where('users.id', $this->id)
+                        ->where('status', GroupMembershipStatus::ACTIVE->value)
+                    )
+                )
+                ->select('conversations.id')
+            )
+            ->whereNot(fn ($q) => $q
+                ->where('comments.commentator_id', $this->id)
+                ->where('comments.commentator_type', $this->getMorphClass())
+            )
+            ->leftJoin('conversation_user', fn ($join) => $join
+                ->on('conversation_user.conversation_id', '=', 'comments.commentable_id')
+                ->where('conversation_user.user_id', $this->id)
+            )
+            ->where(fn ($q) => $q
+                ->whereNull('conversation_user.last_read_at')
+                ->orWhereColumn('comments.created_at', '>', 'conversation_user.last_read_at')
+            )
+            ->join('conversations', 'conversations.id', '=', 'comments.commentable_id')
+            ->join('groups', 'groups.id', '=', 'conversations.group_id')
+            ->groupBy('groups.id')
+            ->selectRaw('groups.id as group_id, count(*) as unread_count')
+            ->pluck('unread_count', 'group_id');
     }
 
     /** @return HasMany<NotificationPreference, $this> */
