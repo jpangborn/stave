@@ -2,8 +2,10 @@
 
 use App\Enums\AccessRole;
 use App\Enums\GroupMembershipStatus;
+use App\Enums\LiturgyElementType;
 use App\Models\Group;
 use App\Models\LiturgyElement;
+use App\Models\Reading;
 use App\Models\Service;
 use App\Models\Template;
 use App\Models\User;
@@ -320,6 +322,71 @@ test('relativeDateBadge labels dates relative to today', function (): void {
         ->and($component->instance()->relativeDateBadge(today()->addDays(10)))->toBe('In 10 days');
 });
 
+/* ------------------------------- readiness ------------------------------- */
+
+test('readiness is null when there is no upcoming service', function (): void {
+    $admin = User::factory()->create();
+    $admin->grantAccessRole(AccessRole::LITURGY_ADMIN);
+
+    $readiness = Livewire::actingAs($admin)->test('pages::dashboard.index')->instance()->readiness;
+
+    expect($readiness)->toBeNull();
+});
+
+test('readiness computes missing, unassigned, total, ready, and pct for a mixed service', function (): void {
+    $admin = User::factory()->create();
+    $admin->grantAccessRole(AccessRole::LITURGY_ADMIN);
+
+    $service = Service::factory()->create(['date' => today()]);
+
+    // Excluded from all counts.
+    LiturgyElement::factory()->section()->for($service, 'liturgy')->create();
+
+    // Missing content (assigned, but requires content it doesn't have).
+    LiturgyElement::factory()->withAssignee()->for($service, 'liturgy')->create([
+        'type' => LiturgyElementType::SONG,
+    ]);
+
+    // Unassigned (doesn't require content, so it's not "missing").
+    LiturgyElement::factory()->for($service, 'liturgy')->create([
+        'type' => LiturgyElementType::PRAYER,
+    ]);
+
+    // Fully ready: has content and is assigned.
+    $reading = Reading::factory()->create();
+    LiturgyElement::factory()->withAssignee()->for($service, 'liturgy')->create([
+        'type' => LiturgyElementType::READING,
+        'content_type' => Reading::class,
+        'content_id' => $reading->id,
+    ]);
+
+    $readiness = Livewire::actingAs($admin)->test('pages::dashboard.index')->instance()->readiness;
+
+    expect($readiness['service']->is($service))->toBeTrue()
+        ->and($readiness['total'])->toBe(3)
+        ->and($readiness['missing'])->toBe(1)
+        ->and($readiness['unassigned'])->toBe(1)
+        ->and($readiness['ready'])->toBe(1)
+        ->and($readiness['pct'])->toBe(33);
+});
+
+test('readiness reports full pct when all elements are ready', function (): void {
+    $admin = User::factory()->create();
+    $admin->grantAccessRole(AccessRole::LITURGY_ADMIN);
+
+    $service = Service::factory()->create(['date' => today()]);
+
+    LiturgyElement::factory()->withAssignee()->for($service, 'liturgy')->create([
+        'type' => LiturgyElementType::PRAYER,
+    ]);
+
+    $readiness = Livewire::actingAs($admin)->test('pages::dashboard.index')->instance()->readiness;
+
+    expect($readiness['missing'])->toBe(0)
+        ->and($readiness['unassigned'])->toBe(0)
+        ->and($readiness['pct'])->toBe(100);
+});
+
 /* ------------------------------ initial render ------------------------------ */
 
 test('liturgy user sees My Assignments heading on initial render', function (): void {
@@ -342,4 +409,24 @@ test('plain user does not see My Assignments but sees the other islands on initi
     $response->assertSee('Upcoming Services');
     $response->assertSee('Group Messages');
     $response->assertSee('Messages');
+});
+
+test('liturgy admin sees Service Readiness heading on initial render', function (): void {
+    $admin = User::factory()->create();
+    $admin->grantAccessRole(AccessRole::LITURGY_ADMIN);
+    $this->actingAs($admin);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertSee('Service Readiness');
+});
+
+test('liturgy user does not see Service Readiness on initial render', function (): void {
+    $user = User::factory()->create();
+    $user->grantAccessRole(AccessRole::LITURGY_USER);
+    $this->actingAs($user);
+
+    $response = $this->get('/dashboard');
+
+    $response->assertDontSee('Service Readiness');
 });

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Service;
+use App\Models\Song;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -66,6 +67,51 @@ new #[Title('Dashboard')] class extends Component
     public function directUnreadCounts(): Collection
     {
         return auth()->user()->unreadDirectCounts();
+    }
+
+    /**
+     * Readiness snapshot for the current (soonest upcoming) service, or
+     * null when there is no upcoming service.
+     *
+     * @return array{service: Service, missing: int, unassigned: int, total: int, ready: int, pct: int}|null
+     */
+    #[Computed]
+    public function readiness(): ?array
+    {
+        if (! auth()->user()->canManageLiturgy()) {
+            return null;
+        }
+
+        $service = Service::current();
+
+        if (! $service) {
+            return null;
+        }
+
+        $missing = $service->missingContentCount();
+        $unassigned = $service->unassignedCount();
+        $total = $service->elementCount();
+        $ready = max(0, $total - $missing - $unassigned);
+
+        return [
+            'service' => $service,
+            'missing' => $missing,
+            'unassigned' => $unassigned,
+            'total' => $total,
+            'ready' => $ready,
+            'pct' => $total > 0 ? (int) round($ready / $total * 100) : 100,
+        ];
+    }
+
+    /** @return Collection<int, Song> */
+    #[Computed]
+    public function rotationCandidates(): Collection
+    {
+        if (! auth()->user()->canManageLiturgy()) {
+            return collect();
+        }
+
+        return Song::query()->withLastUsedDate()->orderBy('last_used_date')->orderBy('name')->limit(5)->get();
     }
 }; ?>
 
@@ -271,5 +317,89 @@ new #[Title('Dashboard')] class extends Component
                 </div>
             </x-dashboard.widget>
         @endisland
+
+        @if ($liturgyAdmin)
+            @island(name: 'service-readiness', defer: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="Service Readiness" icon="circle-check-big" chip="emerald" :rows="3" />
+                @endplaceholder
+
+                @php($readiness = $this->readiness)
+                <x-dashboard.widget
+                    title="Service Readiness"
+                    icon="circle-check-big"
+                    chip="emerald"
+                    :href="$readiness ? route('services.show', $readiness['service']) : null"
+                    link-label="Open"
+                >
+                    @if (! $readiness)
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">No upcoming service.</p>
+                    @else
+                        <div class="flex items-center justify-between">
+                            <p class="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $readiness['service']->display_title }}</p>
+                            <span class="text-[11px] font-semibold text-amber-700 dark:text-amber-500">{{ $this->relativeDateBadge($readiness['service']->date) }}</span>
+                        </div>
+
+                        <div class="mt-2.5">
+                            <div class="h-2 rounded-full bg-zinc-100 dark:bg-zinc-800">
+                                <div class="h-2 rounded-full bg-emerald-500 transition-[width] duration-500" style="width: {{ $readiness['pct'] }}%"></div>
+                            </div>
+                            <div class="mt-1 flex items-center justify-between">
+                                <p class="text-xs text-zinc-400">{{ $readiness['ready'] }} of {{ $readiness['total'] }} elements ready</p>
+                                <span class="text-xs font-bold text-zinc-500">{{ $readiness['pct'] }}%</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-2.5">
+                            @if ($readiness['missing'] === 0 && $readiness['unassigned'] === 0)
+                                <div class="flex items-center gap-2 rounded-lg bg-emerald-50 p-2.5 dark:bg-emerald-950">
+                                    <flux:icon.check-circle variant="micro" class="shrink-0 text-emerald-700 dark:text-emerald-400" />
+                                    <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Ready for {{ $readiness['service']->date->format('l') }}</p>
+                                </div>
+                            @else
+                                <div class="flex gap-2">
+                                    <div class="flex-1 rounded-lg bg-amber-50 px-3 py-2 dark:bg-amber-950">
+                                        <flux:icon.exclamation-triangle variant="micro" class="text-amber-700 dark:text-amber-400" />
+                                        <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ $readiness['missing'] }}</p>
+                                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400">missing content</p>
+                                    </div>
+                                    <div class="flex-1 rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
+                                        <flux:icon.users variant="micro" class="text-zinc-500 dark:text-zinc-400" />
+                                        <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ $readiness['unassigned'] }}</p>
+                                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400">unassigned</p>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                </x-dashboard.widget>
+            @endisland
+
+            @island(name: 'rotation-candidates', lazy: true)
+                @placeholder
+                    <x-dashboard.widget-skeleton title="Rotation Candidates" icon="library-big" :rows="4" />
+                @endplaceholder
+
+                <x-dashboard.widget
+                    title="Rotation Candidates"
+                    icon="library-big"
+                    :href="route('songs.index')"
+                    link-label="Songs"
+                    :is-empty="$this->rotationCandidates->isEmpty()"
+                    empty-message="No songs in the library yet."
+                >
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                        @foreach ($this->rotationCandidates as $song)
+                            <div class="flex items-center justify-between gap-2.5 py-2.5">
+                                <a href="{{ route('songs.show', $song) }}" wire:navigate class="truncate text-[13px] text-emerald-600 underline underline-offset-2 hover:text-emerald-700 dark:text-emerald-400">
+                                    {{ $song->name }}
+                                </a>
+                                <span class="whitespace-nowrap text-xs text-zinc-500">{{ $song->last_used_date?->format('M j, Y') ?? 'Never' }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-dashboard.widget>
+            @endisland
+        @endif
     </div>
 </section>
