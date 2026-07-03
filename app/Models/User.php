@@ -210,7 +210,7 @@ class User extends Authenticatable implements CanComment
         return LiturgyElement::query()
             ->where('assignee_id', $this->id)
             ->whereHasMorph('liturgy', Service::class, fn (Builder $query): Builder => $query->upcoming())
-            ->with(['liturgy', 'content'])
+            ->with(['liturgy.template', 'content'])
             ->get()
             ->sortBy(fn (LiturgyElement $element): string => $element->liturgy->date->toDateString())
             ->values();

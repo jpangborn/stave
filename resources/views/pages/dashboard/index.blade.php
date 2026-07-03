@@ -149,7 +149,7 @@ new #[Title('Dashboard')] class extends Component
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $element->getDisplayTitle() }}</p>
                                     <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                                        {{ $element->liturgy->title ?: ($element->liturgy->template->name ?? 'Untitled Service') }} · {{ $element->liturgy->date->format('D, M j') }}
+                                        {{ $element->liturgy->display_title }} · {{ $element->liturgy->date->format('D, M j') }}
                                     </p>
                                 </div>
                                 @if ($element->requiresContent() && ! $element->hasContent())
@@ -180,7 +180,7 @@ new #[Title('Dashboard')] class extends Component
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <a href="{{ route('services.show', $service) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
-                                        {{ $service->title ?: ($service->template->name ?? 'Untitled Service') }}
+                                        {{ $service->display_title }}
                                     </a>
                                     <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $service->template->name ?? '' }}</p>
                                 </div>

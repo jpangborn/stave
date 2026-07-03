@@ -277,6 +277,19 @@ test('unreadDirectCounts is keyed by conversation id', function (): void {
     expect($me->unreadDirectCounts()->keys()->all())->toBe([$conversation->id]);
 });
 
+/* ----------------------------- display_title ----------------------------- */
+
+test('display_title falls back from title to template name to a placeholder', function (?string $title, bool $withTemplate, string $expected): void {
+    $template = $withTemplate ? Template::factory()->create(['name' => 'Sunday Morning']) : null;
+    $service = Service::factory()->create(['title' => $title, 'template_id' => $template?->id]);
+
+    expect($service->display_title)->toBe($expected);
+})->with([
+    'title set' => ['Easter Sunday', true, 'Easter Sunday'],
+    'null title with template' => [null, true, 'Sunday Morning'],
+    'null title without template' => [null, false, 'Untitled Service'],
+]);
+
 /* --------------------------- upcomingServices --------------------------- */
 
 test('upcomingServices returns at most 3 services, ascending by date, excluding past services', function (): void {
