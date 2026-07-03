@@ -109,7 +109,7 @@ it('shows reading text with the reading type as the kind label', function (): vo
     $service->liturgyElements()->create([
         'type' => LiturgyElementType::READING,
         'reading_type' => ReadingType::WORSHIP_CALL,
-        'name' => 'Call to Worship',
+        'name' => 'Opening Reading',
         'order' => 1,
         'content_type' => Reading::class,
         'content_id' => $reading->id,
@@ -118,7 +118,54 @@ it('shows reading text with the reading type as the kind label', function (): vo
     $this->get(route('bulletin.show', $service))
         ->assertSuccessful()
         ->assertSee('Sing to the LORD with thanksgiving')
+        ->assertSee('Opening Reading')
         ->assertSee('Call to Worship');
+});
+
+it('strips dangerous html from song lyrics before the public page renders it', function (): void {
+    $song = Song::factory()->create([
+        'name' => 'Doxology',
+        'lyrics' => '<p>Praise God</p><script>alert(1)</script>',
+    ]);
+
+    expect($song->fresh()->lyrics)->not->toContain('script');
+
+    $service = Service::factory()->create(['date' => now()]);
+    $service->liturgyElements()->create([
+        'type' => LiturgyElementType::SONG,
+        'name' => 'Doxology',
+        'order' => 1,
+        'content_type' => Song::class,
+        'content_id' => $song->id,
+    ]);
+
+    $this->get(route('bulletin.show', $service))
+        ->assertSuccessful()
+        ->assertSee('Praise God')
+        ->assertDontSee('alert(1)');
+});
+
+it('strips dangerous html from reading text before the public page renders it', function (): void {
+    $reading = Reading::factory()->create([
+        'title' => 'Psalm 147',
+        'text' => '<p>Sing praises</p><script>alert(1)</script>',
+    ]);
+
+    expect($reading->fresh()->text)->not->toContain('script');
+
+    $service = Service::factory()->create(['date' => now()]);
+    $service->liturgyElements()->create([
+        'type' => LiturgyElementType::READING,
+        'name' => 'Opening Reading',
+        'order' => 1,
+        'content_type' => Reading::class,
+        'content_id' => $reading->id,
+    ]);
+
+    $this->get(route('bulletin.show', $service))
+        ->assertSuccessful()
+        ->assertSee('Sing praises')
+        ->assertDontSee('alert(1)');
 });
 
 it('hides assignees on non-sermon elements', function (): void {
@@ -208,6 +255,36 @@ it('shows the entering card on the first element of a movement', function (): vo
         ->assertSuccessful()
         ->assertSee('Entering · God')
         ->assertSee('We start with a proclamation of God.');
+});
+
+it('keeps a trailing section with no following element in the stepper', function (): void {
+    $service = Service::factory()->create(['date' => now()]);
+
+    $service->liturgyElements()->createMany([
+        ['type' => LiturgyElementType::SECTION, 'name' => 'God', 'order' => 1],
+        ['type' => LiturgyElementType::READING, 'name' => 'Call to Worship', 'order' => 2],
+        ['type' => LiturgyElementType::SECTION, 'name' => 'Sending', 'order' => 3],
+    ]);
+
+    $this->get(route('bulletin.show', $service))
+        ->assertSuccessful()
+        ->assertSee('God')
+        ->assertSee('Sending');
+});
+
+it('keeps consecutive sections in the stepper', function (): void {
+    $service = Service::factory()->create(['date' => now()]);
+
+    $service->liturgyElements()->createMany([
+        ['type' => LiturgyElementType::SECTION, 'name' => 'Adoration', 'order' => 1],
+        ['type' => LiturgyElementType::SECTION, 'name' => 'Confession', 'order' => 2],
+        ['type' => LiturgyElementType::SERMON, 'name' => 'The Sermon', 'order' => 3],
+    ]);
+
+    $this->get(route('bulletin.show', $service))
+        ->assertSuccessful()
+        ->assertSee('Adoration')
+        ->assertSee('Confession');
 });
 
 it('renders a service with no elements without a counter', function (): void {

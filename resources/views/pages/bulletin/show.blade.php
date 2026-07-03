@@ -19,7 +19,10 @@ new #[Layout('components.layouts.public')] class extends Component {
      * The service shaped for the follow-along view: `panels` are the
      * navigable elements (sections excluded), `sections` the movements
      * that hold them. Each panel knows its section, and the first panel
-     * of a movement carries that section's "Entering" intro.
+     * of a movement carries that section's "Entering" intro. A section is
+     * recorded the moment it appears, so content-less sections (trailing or
+     * consecutive) still show in the stepper; their tab just jumps to the
+     * nearest panel since they own none.
      *
      * @return array{
      *     panels: array<int, array<string, mixed>>,
@@ -31,7 +34,8 @@ new #[Layout('components.layouts.public')] class extends Component {
     {
         $panels = [];
         $sections = [];
-        $entering = null;
+        $currentSection = null;
+        $pendingEntering = null;
 
         if (! $this->service) {
             return ['panels' => $panels, 'sections' => $sections];
@@ -39,13 +43,15 @@ new #[Layout('components.layouts.public')] class extends Component {
 
         foreach ($this->service->liturgyElements as $element) {
             if ($element->type === LiturgyElementType::SECTION) {
-                $entering = ['name' => $element->name, 'description' => $element->description];
+                $sections[] = [
+                    'name' => $element->name,
+                    'description' => $element->description,
+                    'firstIndex' => count($panels),
+                ];
+                $currentSection = count($sections) - 1;
+                $pendingEntering = ['name' => $element->name, 'description' => $element->description];
 
                 continue;
-            }
-
-            if ($entering) {
-                $sections[] = [...$entering, 'firstIndex' => count($panels)];
             }
 
             $body = $element->hasContent() ? $element->getContentText() : null;
@@ -59,11 +65,11 @@ new #[Layout('components.layouts.public')] class extends Component {
                 'isEmpty' => ! $body && ! $element->description && ! $preacher,
                 'preacher' => $preacher,
                 'song' => $element->isSong() && $element->hasContent() ? $element->content : null,
-                'sectionIndex' => count($sections) - 1,
-                'entering' => $entering,
+                'sectionIndex' => $currentSection ?? -1,
+                'entering' => $pendingEntering,
             ];
 
-            $entering = null;
+            $pendingEntering = null;
         }
 
         return ['panels' => $panels, 'sections' => $sections];

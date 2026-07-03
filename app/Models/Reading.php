@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Mews\Purifier\Casts\CleanHtmlInput;
 
 /**
  * @property ReadingType $type
@@ -31,6 +32,7 @@ class Reading extends Model
         return [
             'type' => ReadingType::class,
             'last_used_date' => 'date',
+            'text' => CleanHtmlInput::class.':rich_text',
         ];
     }
 
