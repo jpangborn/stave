@@ -487,19 +487,21 @@ new #[Title('Dashboard')] class extends Component
                     icon="library-big"
                     :href="route('songs.index')"
                     link-label="Songs"
-                    :is-empty="$this->rotationCandidates->isEmpty()"
-                    empty-message="No songs in the library yet."
                 >
-                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
-                        @foreach ($this->rotationCandidates as $song)
-                            <div class="flex items-center justify-between gap-2.5 py-2.5">
-                                <a href="{{ route('songs.show', $song) }}" wire:navigate class="truncate text-[13px] text-emerald-600 underline underline-offset-2 hover:text-emerald-700 dark:text-emerald-400">
-                                    {{ $song->name }}
-                                </a>
-                                <span class="whitespace-nowrap text-xs text-zinc-500">{{ $song->last_used_date?->format('M j, Y') ?? 'Never' }}</span>
-                            </div>
-                        @endforeach
-                    </div>
+                    @if ($this->rotationCandidates->isEmpty())
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">No songs in the library yet.</p>
+                    @else
+                        <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            @foreach ($this->rotationCandidates as $song)
+                                <div class="flex items-center justify-between gap-2.5 py-2.5">
+                                    <a href="{{ route('songs.show', $song) }}" wire:navigate class="truncate text-[13px] text-emerald-600 underline underline-offset-2 hover:text-emerald-700 dark:text-emerald-400">
+                                        {{ $song->name }}
+                                    </a>
+                                    <span class="whitespace-nowrap text-xs text-zinc-500">{{ $song->last_used_date?->format('M j, Y') ?? 'Never' }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </x-dashboard.widget>
             @endisland
         @endif
@@ -516,10 +518,10 @@ new #[Title('Dashboard')] class extends Component
                     icon="hand-platter"
                     :href="route('prayer-schedule.index')"
                     link-label="Schedule"
-                    :is-empty="! $prayerWeek"
-                    empty-message="No prayer schedule configured."
                 >
-                    @if ($prayerWeek)
+                    @if (! $prayerWeek)
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">No prayer schedule configured.</p>
+                    @else
                         <div class="mb-2 flex items-center gap-2">
                             <flux:badge color="emerald" size="sm">{{ $prayerWeek['label'] }}</flux:badge>
                             <span class="text-xs text-zinc-500">{{ $prayerWeek['range'] }}</span>
@@ -583,23 +585,25 @@ new #[Title('Dashboard')] class extends Component
                     icon="pencil-square"
                     :href="route('pastoral-care.index')"
                     link-label="All"
-                    :is-empty="$this->recentPastoralNotes->isEmpty()"
-                    empty-message="No pastoral notes yet."
                 >
-                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
-                        @foreach ($this->recentPastoralNotes as $note)
-                            <div class="flex items-start gap-2.5 py-2.5">
-                                <x-person-avatar :person="$note->person" size="xs" />
-                                <div class="min-w-0 flex-1">
-                                    <a href="{{ route('people.show', $note->person) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
-                                        {{ $note->person->full_name }}
-                                    </a>
-                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($note->body, 70) }}</p>
-                                    <p class="text-[11px] text-zinc-400">{{ $note->author->name }} · {{ $note->created_at->diffForHumans(short: true) }}</p>
+                    @if ($this->recentPastoralNotes->isEmpty())
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">No pastoral notes yet.</p>
+                    @else
+                        <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            @foreach ($this->recentPastoralNotes as $note)
+                                <div class="flex items-start gap-2.5 py-2.5">
+                                    <x-person-avatar :person="$note->person" size="xs" />
+                                    <div class="min-w-0 flex-1">
+                                        <a href="{{ route('people.show', $note->person) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                            {{ $note->person->full_name }}
+                                        </a>
+                                        <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($note->body, 70) }}</p>
+                                        <p class="text-[11px] text-zinc-400">{{ $note->author->name }} · {{ $note->created_at->diffForHumans(short: true) }}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </x-dashboard.widget>
             @endisland
 
@@ -613,25 +617,27 @@ new #[Title('Dashboard')] class extends Component
                     icon="clock"
                     :href="route('pastoral-care.index')"
                     link-label="All"
-                    :is-empty="$this->careList->isEmpty()"
-                    empty-message="No one is assigned to your care."
                 >
-                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
-                        @foreach ($this->careList as $p)
-                            <div class="flex items-center gap-2.5 py-2.5">
-                                <flux:icon.clock variant="micro" class="text-zinc-400" />
-                                <div class="min-w-0 flex-1">
-                                    <a href="{{ route('people.show', $p) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
-                                        {{ $p->full_name }}
-                                    </a>
-                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">Last contact {{ $p->last_noted_at?->diffForHumans() ?? 'never' }}</p>
+                    @if ($this->careList->isEmpty())
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">No one is assigned to your care.</p>
+                    @else
+                        <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            @foreach ($this->careList as $p)
+                                <div class="flex items-center gap-2.5 py-2.5">
+                                    <flux:icon.clock variant="micro" class="text-zinc-400" />
+                                    <div class="min-w-0 flex-1">
+                                        <a href="{{ route('people.show', $p) }}" wire:navigate class="block truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                            {{ $p->full_name }}
+                                        </a>
+                                        <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">Last contact {{ $p->last_noted_at?->diffForHumans() ?? 'never' }}</p>
+                                    </div>
+                                    @if ($p->last_noted_at === null || $p->last_noted_at->lte(now()->subWeeks(8)))
+                                        <flux:badge color="amber" size="sm">Overdue</flux:badge>
+                                    @endif
                                 </div>
-                                @if ($p->last_noted_at === null || $p->last_noted_at->lte(now()->subWeeks(8)))
-                                    <flux:badge color="amber" size="sm">Overdue</flux:badge>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </x-dashboard.widget>
             @endisland
 
@@ -645,24 +651,26 @@ new #[Title('Dashboard')] class extends Component
                     icon="cake"
                     :href="route('people.index')"
                     link-label="People"
-                    :is-empty="$this->upcomingBirthdays->isEmpty()"
-                    empty-message="No birthdays in the next 30 days."
                 >
-                    <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
-                        @foreach ($this->upcomingBirthdays as $p)
-                            @php($next = $this->nextBirthday($p))
-                            <div class="flex items-center gap-2.5 py-2.5">
-                                <x-person-avatar :person="$p" size="xs" />
-                                <a href="{{ route('people.show', $p) }}" wire:navigate class="flex-1 truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
-                                    {{ $p->full_name }}
-                                </a>
-                                <div class="shrink-0 text-right">
-                                    <p class="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $next->format('M j') }}</p>
-                                    <p class="text-[11px] text-zinc-400">{{ $next->isToday() ? 'Today' : 'in '.(int) today()->diffInDays($next).' days' }}</p>
+                    @if ($this->upcomingBirthdays->isEmpty())
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">No birthdays in the next 30 days.</p>
+                    @else
+                        <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
+                            @foreach ($this->upcomingBirthdays as $p)
+                                @php($next = $this->nextBirthday($p))
+                                <div class="flex items-center gap-2.5 py-2.5">
+                                    <x-person-avatar :person="$p" size="xs" />
+                                    <a href="{{ route('people.show', $p) }}" wire:navigate class="flex-1 truncate text-[13px] font-semibold text-zinc-900 hover:underline dark:text-zinc-100">
+                                        {{ $p->full_name }}
+                                    </a>
+                                    <div class="shrink-0 text-right">
+                                        <p class="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">{{ $next->format('M j') }}</p>
+                                        <p class="text-[11px] text-zinc-400">{{ $next->isToday() ? 'Today' : 'in '.(int) today()->diffInDays($next).' days' }}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </x-dashboard.widget>
             @endisland
         @endif
