@@ -362,14 +362,21 @@ test('readiness computes missing, unassigned, total, ready, and pct for a mixed 
         'content_id' => $reading->id,
     ]);
 
+    // Overlap: both missing content AND unassigned (e.g. a song freshly
+    // created from a template). Naive `total - missing - unassigned` arithmetic
+    // double-subtracts this element, undercounting ready.
+    LiturgyElement::factory()->for($service, 'liturgy')->create([
+        'type' => LiturgyElementType::SONG,
+    ]);
+
     $readiness = Livewire::actingAs($admin)->test('pages::dashboard.index')->instance()->readiness;
 
     expect($readiness['service']->is($service))->toBeTrue()
-        ->and($readiness['total'])->toBe(3)
-        ->and($readiness['missing'])->toBe(1)
-        ->and($readiness['unassigned'])->toBe(1)
+        ->and($readiness['total'])->toBe(4)
+        ->and($readiness['missing'])->toBe(2)
+        ->and($readiness['unassigned'])->toBe(2)
         ->and($readiness['ready'])->toBe(1)
-        ->and($readiness['pct'])->toBe(33);
+        ->and($readiness['pct'])->toBe(25);
 });
 
 test('readiness reports full pct when all elements are ready', function (): void {

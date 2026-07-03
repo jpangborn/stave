@@ -177,6 +177,9 @@ class Person extends Model
     /**
      * Filter people whose next birthday falls within the given number of days.
      *
+     * Designed for windows under a year; at $days >= ~365 the month-day
+     * window collapses (from/to wrap to the same date) and stops filtering.
+     *
      * @param  Builder<Person>  $query
      * @return Builder<Person>
      */

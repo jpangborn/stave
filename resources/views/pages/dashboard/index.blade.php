@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\LiturgyElementType;
 use App\Enums\PrayerRequestVisibility;
 use App\Models\PastoralNote;
 use App\Models\Person;
@@ -21,6 +22,10 @@ new #[Title('Dashboard')] class extends Component
     #[Computed]
     public function myAssignments(): Collection
     {
+        if (! auth()->user()->canAccessLiturgy()) {
+            return collect();
+        }
+
         return auth()->user()->upcomingAssignments();
     }
 
@@ -46,7 +51,7 @@ new #[Title('Dashboard')] class extends Component
     public function messageGroups(): Collection
     {
         return auth()->user()->groups()->notDirect()
-            ->with('latestConversation.lastComment')
+            ->with('latestConversation')
             ->get();
     }
 
@@ -97,7 +102,10 @@ new #[Title('Dashboard')] class extends Component
         $missing = $service->missingContentCount();
         $unassigned = $service->unassignedCount();
         $total = $service->elementCount();
-        $ready = max(0, $total - $missing - $unassigned);
+        $ready = $service->liturgyElements
+            ->where('type', '!=', LiturgyElementType::SECTION)
+            ->filter(fn ($el) => $el->assignee_id !== null && (! $el->requiresContent() || $el->hasContent()))
+            ->count();
 
         return [
             'service' => $service,
@@ -356,7 +364,6 @@ new #[Title('Dashboard')] class extends Component
                             @foreach ($this->messageGroups as $group)
                                 @php($unread = $this->groupUnreadCounts[$group->id] ?? 0)
                                 @php($latestConversation = $group->latestConversation)
-                                @php($latestComment = $latestConversation?->lastComment->first())
                                 <a href="{{ route('groups.show', $group) }}" wire:navigate class="flex items-center gap-2.5 py-2.5">
                                     <flux:avatar :name="$group->name" :src="$group->cover_url" size="sm" />
                                     <div class="min-w-0 flex-1">
@@ -448,7 +455,7 @@ new #[Title('Dashboard')] class extends Component
                             </div>
                             <div class="mt-1 flex items-center justify-between">
                                 <p class="text-xs text-zinc-400">{{ $readiness['ready'] }} of {{ $readiness['total'] }} elements ready</p>
-                                <span class="text-xs font-bold text-zinc-500">{{ $readiness['pct'] }}%</span>
+                                <span class="text-xs font-bold text-zinc-500 dark:text-zinc-400">{{ $readiness['pct'] }}%</span>
                             </div>
                         </div>
 
@@ -497,7 +504,7 @@ new #[Title('Dashboard')] class extends Component
                                     <a href="{{ route('songs.show', $song) }}" wire:navigate class="truncate text-[13px] text-emerald-600 underline underline-offset-2 hover:text-emerald-700 dark:text-emerald-400">
                                         {{ $song->name }}
                                     </a>
-                                    <span class="whitespace-nowrap text-xs text-zinc-500">{{ $song->last_used_date?->format('M j, Y') ?? 'Never' }}</span>
+                                    <span class="whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400">{{ $song->last_used_date?->format('M j, Y') ?? 'Never' }}</span>
                                 </div>
                             @endforeach
                         </div>
@@ -524,7 +531,7 @@ new #[Title('Dashboard')] class extends Component
                     @else
                         <div class="mb-2 flex items-center gap-2">
                             <flux:badge color="emerald" size="sm">{{ $prayerWeek['label'] }}</flux:badge>
-                            <span class="text-xs text-zinc-500">{{ $prayerWeek['range'] }}</span>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $prayerWeek['range'] }}</span>
                         </div>
 
                         <div class="divide-y divide-zinc-100 dark:divide-zinc-700">
