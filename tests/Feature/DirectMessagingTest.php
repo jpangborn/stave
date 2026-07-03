@@ -22,6 +22,23 @@ test('the messages index renders for an authenticated user', function (): void {
         ->assertSee('Messages');
 });
 
+test('the messages index opens in compose mode when the compose query param is set', function (): void {
+    $user = User::factory()->create();
+
+    Livewire::withQueryParams(['compose' => 1])
+        ->actingAs($user)
+        ->test('pages::messages.index')
+        ->assertSet('mode', 'compose');
+});
+
+test('the messages index stays in empty mode without the compose query param', function (): void {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test('pages::messages.index')
+        ->assertSet('mode', 'empty');
+});
+
 test('a non-participant cannot deep-link into a direct conversation', function (): void {
     $me = User::factory()->create();
     $other = User::factory()->create();

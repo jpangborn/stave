@@ -37,6 +37,10 @@ new class extends Component {
     public function mount(?Conversation $conversation = null): void
     {
         if ($conversation === null) {
+            if (request()->boolean('compose')) {
+                $this->newMessage();
+            }
+
             return;
         }
 
