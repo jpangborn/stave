@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
 
+Route::livewire('/bulletin', 'pages::bulletin.show')->name('bulletin.current');
+Route::livewire('/bulletin/{service}', 'pages::bulletin.show')->name('bulletin.show');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

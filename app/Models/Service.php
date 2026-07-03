@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\LiturgyElementType;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +34,29 @@ class Service extends Model
         return [
             'date' => 'date',
         ];
+    }
+
+    /**
+     * Services on or after today, soonest first.
+     *
+     * @param  Builder<Service>  $query
+     * @return Builder<Service>
+     */
+    #[Scope]
+    protected function upcoming(Builder $query): Builder
+    {
+        return $query->whereDate('date', '>=', today())
+            ->orderBy('date')
+            ->orderBy('id');
+    }
+
+    /**
+     * The service a congregant is most likely following right now:
+     * the soonest service on or after today.
+     */
+    public static function current(): ?self
+    {
+        return static::query()->upcoming()->first();
     }
 
     /** @return BelongsTo<Template, $this> */

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Mews\Purifier\Casts\CleanHtmlInput;
 
 #[Fillable(['name', 'authors', 'ccli_number', 'copyright', 'lyrics'])]
 class Song extends Model
@@ -26,6 +27,7 @@ class Song extends Model
     {
         return [
             'last_used_date' => 'date',
+            'lyrics' => CleanHtmlInput::class.':rich_text',
         ];
     }
 
