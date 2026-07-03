@@ -153,4 +153,16 @@ class Service extends Model
             ->filter(fn (LiturgyElement $el) => $el->requiresContent() && ! $el->hasContent())
             ->count();
     }
+
+    /**
+     * Count of non-section elements that are assigned and, if they
+     * require library content, have it.
+     */
+    public function readyCount(): int
+    {
+        return $this->liturgyElements
+            ->where('type', '!=', LiturgyElementType::SECTION)
+            ->filter(fn (LiturgyElement $el) => $el->assignee_id !== null && (! $el->requiresContent() || $el->hasContent()))
+            ->count();
+    }
 }

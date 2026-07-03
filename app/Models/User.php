@@ -182,9 +182,21 @@ class User extends Authenticatable implements CanComment
      */
     public function unreadDirectCount(): int
     {
+        return $this->unreadCommentsQuery()
+            ->whereIn('comments.commentable_id', $this->directConversations()->select('conversations.id'))
+            ->count();
+    }
+
+    /**
+     * Base query for comments unread by this user: excludes the user's own
+     * comments and comments the user has already read.
+     *
+     * @return Builder<Comment>
+     */
+    private function unreadCommentsQuery(): Builder
+    {
         return Comment::query()
             ->where('comments.commentable_type', (new Conversation())->getMorphClass())
-            ->whereIn('comments.commentable_id', $this->directConversations()->select('conversations.id'))
             ->whereNot(fn ($q) => $q
                 ->where('comments.commentator_id', $this->id)
                 ->where('comments.commentator_type', $this->getMorphClass())
@@ -196,8 +208,7 @@ class User extends Authenticatable implements CanComment
             ->where(fn ($q) => $q
                 ->whereNull('conversation_user.last_read_at')
                 ->orWhereColumn('comments.created_at', '>', 'conversation_user.last_read_at')
-            )
-            ->count();
+            );
     }
 
     /**
@@ -246,8 +257,7 @@ class User extends Authenticatable implements CanComment
      */
     public function unreadGroupCounts(): Collection
     {
-        return Comment::query()
-            ->where('comments.commentable_type', (new Conversation())->getMorphClass())
+        return $this->unreadCommentsQuery()
             ->whereIn('comments.commentable_id', Conversation::query()
                 ->whereHas('group', fn (Builder $query): Builder => $query
                     ->where('is_direct', false)
@@ -257,18 +267,6 @@ class User extends Authenticatable implements CanComment
                     )
                 )
                 ->select('conversations.id')
-            )
-            ->whereNot(fn ($q) => $q
-                ->where('comments.commentator_id', $this->id)
-                ->where('comments.commentator_type', $this->getMorphClass())
-            )
-            ->leftJoin('conversation_user', fn ($join) => $join
-                ->on('conversation_user.conversation_id', '=', 'comments.commentable_id')
-                ->where('conversation_user.user_id', $this->id)
-            )
-            ->where(fn ($q) => $q
-                ->whereNull('conversation_user.last_read_at')
-                ->orWhereColumn('comments.created_at', '>', 'conversation_user.last_read_at')
             )
             ->join('conversations', 'conversations.id', '=', 'comments.commentable_id')
             ->join('groups', 'groups.id', '=', 'conversations.group_id')
@@ -286,21 +284,8 @@ class User extends Authenticatable implements CanComment
      */
     public function unreadDirectCounts(): Collection
     {
-        return Comment::query()
-            ->where('comments.commentable_type', (new Conversation())->getMorphClass())
+        return $this->unreadCommentsQuery()
             ->whereIn('comments.commentable_id', $this->directConversations()->select('conversations.id'))
-            ->whereNot(fn ($q) => $q
-                ->where('comments.commentator_id', $this->id)
-                ->where('comments.commentator_type', $this->getMorphClass())
-            )
-            ->leftJoin('conversation_user', fn ($join) => $join
-                ->on('conversation_user.conversation_id', '=', 'comments.commentable_id')
-                ->where('conversation_user.user_id', $this->id)
-            )
-            ->where(fn ($q) => $q
-                ->whereNull('conversation_user.last_read_at')
-                ->orWhereColumn('comments.created_at', '>', 'conversation_user.last_read_at')
-            )
             ->groupBy('comments.commentable_id')
             ->selectRaw('comments.commentable_id as conversation_id, count(*) as unread_count')
             ->pluck('unread_count', 'conversation_id');

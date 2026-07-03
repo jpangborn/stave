@@ -63,6 +63,8 @@ it('exposes service stats counters', function (): void {
     expect($service->unassignedCount())->toBe(4);
     // Missing-content excludes sermon/prayer; song without content + reading without content = 2
     expect($service->missingContentCount())->toBe(2);
+    // Only Doxology is both assigned and (not requiring content or having it)
+    expect($service->readyCount())->toBe(1);
 });
 
 it('renders the new header with date block, title and template chip', function (): void {

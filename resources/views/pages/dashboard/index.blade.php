@@ -1,7 +1,9 @@
 <?php
 
-use App\Enums\LiturgyElementType;
 use App\Enums\PrayerRequestVisibility;
+use App\Models\Conversation;
+use App\Models\Group;
+use App\Models\LiturgyElement;
 use App\Models\PastoralNote;
 use App\Models\Person;
 use App\Models\PrayerRequest;
@@ -18,7 +20,7 @@ use Livewire\Component;
 
 new #[Title('Dashboard')] class extends Component
 {
-    /** @return Collection<int, \App\Models\LiturgyElement> */
+    /** @return Collection<int, LiturgyElement> */
     #[Computed]
     public function myAssignments(): Collection
     {
@@ -46,7 +48,7 @@ new #[Title('Dashboard')] class extends Component
         };
     }
 
-    /** @return Collection<int, \App\Models\Group> */
+    /** @return Collection<int, Group> */
     #[Computed]
     public function messageGroups(): Collection
     {
@@ -62,7 +64,7 @@ new #[Title('Dashboard')] class extends Component
         return auth()->user()->unreadGroupCounts();
     }
 
-    /** @return Collection<int, \App\Models\Conversation> */
+    /** @return Collection<int, Conversation> */
     #[Computed]
     public function directMessages(): Collection
     {
@@ -102,10 +104,7 @@ new #[Title('Dashboard')] class extends Component
         $missing = $service->missingContentCount();
         $unassigned = $service->unassignedCount();
         $total = $service->elementCount();
-        $ready = $service->liturgyElements
-            ->where('type', '!=', LiturgyElementType::SECTION)
-            ->filter(fn ($el) => $el->assignee_id !== null && (! $el->requiresContent() || $el->hasContent()))
-            ->count();
+        $ready = $service->readyCount();
 
         return [
             'service' => $service,
@@ -219,9 +218,24 @@ new #[Title('Dashboard')] class extends Component
 
     public function nextBirthday(Person $person): Carbon
     {
-        $next = $person->birth_date->copy()->year(today()->year);
+        $next = $this->birthdayInYear($person, today()->year);
 
-        return $next->lt(today()) ? $next->addYear() : $next;
+        return $next->lt(today()) ? $this->birthdayInYear($person, today()->year + 1) : $next;
+    }
+
+    /**
+     * A person's birthday as it falls in the given year, rolling a Feb 29
+     * birthday to Feb 28 in years that aren't leap years.
+     */
+    private function birthdayInYear(Person $person, int $year): Carbon
+    {
+        $birthDate = $person->birth_date;
+
+        if ($birthDate->month === 2 && $birthDate->day === 29 && ! Carbon::create($year)->isLeapYear()) {
+            return Carbon::create($year, 2, 28);
+        }
+
+        return $birthDate->copy()->year($year);
     }
 }; ?>
 

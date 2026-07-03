@@ -479,6 +479,28 @@ test('upcomingBirthdays sorts a birthday today first', function (): void {
     expect($ids)->toBe([$today->id, $dec25->id]);
 });
 
+test('nextBirthday rolls a Feb 29 birthday to Feb 28 in a non-leap year', function (): void {
+    $this->travelTo(Carbon::parse('2026-02-01')); // 2026 is not a leap year
+
+    $user = User::factory()->create();
+    $leapDayPerson = Person::factory()->create(['birth_date' => '1992-02-29']);
+
+    $component = Livewire::actingAs($user)->test('pages::dashboard.index');
+
+    expect($component->instance()->nextBirthday($leapDayPerson)->toDateString())->toBe('2026-02-28');
+});
+
+test('nextBirthday keeps a Feb 29 birthday on Feb 29 in a leap year', function (): void {
+    $this->travelTo(Carbon::parse('2028-01-01')); // 2028 is a leap year
+
+    $user = User::factory()->create();
+    $leapDayPerson = Person::factory()->create(['birth_date' => '1992-02-29']);
+
+    $component = Livewire::actingAs($user)->test('pages::dashboard.index');
+
+    expect($component->instance()->nextBirthday($leapDayPerson)->toDateString())->toBe('2028-02-29');
+});
+
 /* -------------------------- recentPrayerRequests -------------------------- */
 
 test('recentPrayerRequests only includes open requests, newest first, limited to 5', function (): void {
