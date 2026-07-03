@@ -515,3 +515,61 @@ test('plain user does not see pastoral islands on initial render', function (): 
     $response->assertDontSee('Prayer This Week');
     $response->assertDontSee('My Care List');
 });
+
+/* ------------------------------ island loads ------------------------------ */
+
+test('upcoming-services island renders a service title after loadIsland', function (): void {
+    $user = User::factory()->create();
+
+    Service::factory()->create(['date' => today()->addDay()]);
+    $service = Service::factory()->create(['date' => today()->addWeek()]);
+
+    Livewire::actingAs($user)->test('pages::dashboard.index')
+        ->loadIsland('upcoming-services')
+        ->assertIslandSee('upcoming-services', $service->display_title);
+});
+
+test('my-assignments island shows the element name and Needs content badge', function (): void {
+    $user = User::factory()->create();
+    $user->grantAccessRole(AccessRole::LITURGY_USER);
+
+    $service = Service::factory()->create(['date' => today()->addWeek()]);
+    $element = LiturgyElement::factory()->assignedTo($user)->for($service, 'liturgy')->create([
+        'type' => LiturgyElementType::SONG,
+        'name' => 'Opening Hymn',
+    ]);
+
+    Livewire::actingAs($user)->test('pages::dashboard.index')
+        ->loadIsland('my-assignments')
+        ->assertIslandSee('my-assignments', $element->name)
+        ->assertIslandSee('my-assignments', 'Needs content');
+});
+
+test('direct-messages island shows the caught-up empty state', function (): void {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test('pages::dashboard.index')
+        ->loadIsland('direct-messages')
+        ->assertIslandSee('direct-messages', 'You&#039;re all caught up.');
+});
+
+test('my-care-list island shows the assigned congregant name', function (): void {
+    $user = User::factory()->create();
+    $user->grantAccessRole(AccessRole::PASTORAL_CARE_USER);
+
+    $congregant = Person::factory()->create(['pastoral_care_elder_id' => $user->person->id]);
+
+    Livewire::actingAs($user)->test('pages::dashboard.index')
+        ->loadIsland('my-care-list')
+        ->assertIslandSee('my-care-list', $congregant->full_name);
+});
+
+test('group-messages island region includes wire:poll.60s once loaded', function (): void {
+    $user = User::factory()->create();
+    $group = groupWithConversation($user);
+
+    Livewire::actingAs($user)->test('pages::dashboard.index')
+        ->loadIsland('group-messages')
+        ->assertIslandSee('group-messages', 'wire:poll.60s')
+        ->assertIslandSee('group-messages', $group->name);
+});

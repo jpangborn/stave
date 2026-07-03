@@ -1,5 +1,7 @@
 <?php
 
+use Livewire\Features\SupportTesting\Testable;
+use PHPUnit\Framework\Assert;
 use Tests\TestCase;
 
 /*
@@ -45,3 +47,46 @@ function something(): void
 {
     // ..
 }
+
+/*
+|--------------------------------------------------------------------------
+| Livewire island testing macros
+|--------------------------------------------------------------------------
+|
+| Livewire islands only render their real content in response to the
+| `__lazyLoadIsland` wire call (or a regular update after mounting); on
+| initial render they show only their placeholder. These macros let tests
+| trigger an island's load and inspect the resulting fragment HTML.
+|
+| Fragment shape (confirmed empirically): $component->effects['islandFragments']
+| is a plain array of raw HTML strings, each wrapped in HTML-comment fragment
+| markers: "<!--[if FRAGMENT:type=island|name={name}|token=...|mode=morph]><![endif]-->"
+| followed by the rendered island HTML, then a matching ENDFRAGMENT marker.
+| A never-mounted (role-gated) island has no entry in the component's islands
+| memo, so SupportIslands::call no-ops and no fragment is produced at all.
+|
+*/
+
+Testable::macro('loadIsland', function (string $name) {
+    /** @var Testable $this */
+    return $this->update(calls: [[
+        'method' => '__lazyLoadIsland',
+        'params' => [],
+        'metadata' => ['island' => ['name' => $name, 'mode' => 'morph']],
+    ]]);
+});
+
+Testable::macro('assertIslandSee', function (string $name, string $text) {
+    /** @var Testable $this */
+    $fragments = collect($this->effects['islandFragments'] ?? [])
+        ->filter(fn ($fragment) => str_contains($fragment, "name={$name}|"));
+
+    Assert::assertNotEmpty(
+        $fragments,
+        "No island fragment was rendered for island [{$name}]. Either the island was never mounted (role-gated and not loaded for this user) or loadIsland() was not called first."
+    );
+
+    $fragments->each(fn ($fragment) => Assert::assertStringContainsString($text, $fragment));
+
+    return $this;
+});
