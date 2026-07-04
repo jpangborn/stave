@@ -111,12 +111,12 @@ it('duplicates a service and its liturgy elements', function (): void {
     expect($clone->liturgyElements->first()->name)->toBe('God');
 });
 
-it('switches to the bulletin tab when View Bulletin is clicked', function (): void {
+it('redirects to the bulletin view when View Bulletin is clicked', function (): void {
     $service = Service::factory()->create();
 
     Livewire::test('pages::services.show', ['service' => $service])
         ->call('viewBulletin')
-        ->assertSet('tab', 'bulletin');
+        ->assertRedirect(route('bulletin.show', $service));
 });
 
 it('inserts a new element after the anchor', function (): void {
