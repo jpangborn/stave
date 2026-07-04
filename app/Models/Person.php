@@ -9,6 +9,7 @@ use App\Enums\TerminationReason;
 use App\Models\Traits\HasGravatar;
 use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * @property ?Gender $gender
@@ -71,6 +73,7 @@ class Person extends Model
             'membership_since' => 'date',
             'termination_reason' => TerminationReason::class,
             'last_active_at' => 'datetime',
+            'last_noted_at' => 'datetime',
         ];
     }
 
@@ -154,5 +157,62 @@ class Person extends Model
             'like',
             "%{$term}%",
         );
+    }
+
+    /**
+     * Add last pastoral note date to the query.
+     *
+     * @param  Builder<Person>  $query
+     * @return Builder<Person>
+     */
+    #[Scope]
+    protected function withLastPastoralNoteDate(Builder $query): Builder
+    {
+        return $query->addSelect([
+            'last_noted_at' => PastoralNote::query()
+                ->selectRaw('MAX(created_at)')
+                ->whereColumn('pastoral_notes.person_id', 'people.id'),
+        ]);
+    }
+
+    /**
+     * Filter people whose next birthday falls within the given number of days.
+     *
+     * Designed for windows under a year; at $days >= ~365 the month-day
+     * window collapses (from/to wrap to the same date) and stops filtering.
+     *
+     * @param  Builder<Person>  $query
+     * @return Builder<Person>
+     */
+    #[Scope]
+    protected function birthdayWithin(Builder $query, int $days = 30): Builder
+    {
+        $from = today()->format('m-d');
+        $to = today()->addDays($days)->format('m-d');
+        $expression = self::monthDayExpression($query->getModel()->getConnection()->getDriverName());
+
+        return $query->whereNotNull('birth_date')
+            ->where(function (Builder $q) use ($expression, $from, $to): void {
+                if ($from <= $to) {
+                    $q->whereRaw("{$expression} BETWEEN ? AND ?", [$from, $to]);
+                } else { // window wraps the new year (e.g. Dec 20 → Jan 19)
+                    $q->whereRaw("{$expression} >= ?", [$from])
+                        ->orWhereRaw("{$expression} <= ?", [$to]);
+                }
+            });
+    }
+
+    /**
+     * SQL expression that extracts a zero-padded "MM-DD" string from
+     * birth_date, for the database drivers this app runs on (SQLite
+     * locally/in tests, MySQL in production per config/deploy.yml).
+     */
+    private static function monthDayExpression(string $driver): string
+    {
+        return match ($driver) {
+            'sqlite' => "strftime('%m-%d', birth_date)",
+            'mysql' => "DATE_FORMAT(birth_date, '%m-%d')",
+            default => throw new LogicException("birthdayWithin() has no month-day expression for the [{$driver}] database driver."),
+        };
     }
 }

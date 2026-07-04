@@ -7,7 +7,7 @@ Route::get('/', fn () => view('welcome'))->name('home');
 Route::livewire('/bulletin', 'pages::bulletin.show')->name('bulletin.current');
 Route::livewire('/bulletin/{service}', 'pages::bulletin.show')->name('bulletin.show');
 
-Route::view('dashboard', 'dashboard')
+Route::livewire('dashboard', 'pages::dashboard.index')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 

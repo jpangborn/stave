@@ -63,6 +63,8 @@ it('exposes service stats counters', function (): void {
     expect($service->unassignedCount())->toBe(4);
     // Missing-content excludes sermon/prayer; song without content + reading without content = 2
     expect($service->missingContentCount())->toBe(2);
+    // Only Doxology is both assigned and (not requiring content or having it)
+    expect($service->readyCount())->toBe(1);
 });
 
 it('renders the new header with date block, title and template chip', function (): void {
@@ -109,12 +111,12 @@ it('duplicates a service and its liturgy elements', function (): void {
     expect($clone->liturgyElements->first()->name)->toBe('God');
 });
 
-it('switches to the bulletin tab when View Bulletin is clicked', function (): void {
+it('redirects to the bulletin view when View Bulletin is clicked', function (): void {
     $service = Service::factory()->create();
 
     Livewire::test('pages::services.show', ['service' => $service])
         ->call('viewBulletin')
-        ->assertSet('tab', 'bulletin');
+        ->assertRedirect(route('bulletin.show', $service));
 });
 
 it('inserts a new element after the anchor', function (): void {
