@@ -8,7 +8,7 @@
     'emptyMessage' => null,
 ])
 
-<flux:card class="!px-4.5 !py-4 hover:shadow-sm transition-shadow" {{ $attributes }}>
+<flux:card class="!px-4.5 !py-4 hover:shadow-sm transition-shadow h-full" {{ $attributes }}>
     <div class="mb-2 flex items-center gap-2">
         <div @class([
             'flex size-7 items-center justify-center rounded-lg',
