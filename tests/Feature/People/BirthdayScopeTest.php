@@ -62,3 +62,18 @@ test('birth year is irrelevant to the match', function (): void {
 
     expect(Person::query()->birthdayWithin(30)->pluck('id'))->toContain($person->id);
 });
+
+test('birthdayWithin uses MySQL DATE_FORMAT syntax on a MySQL connection', function (): void {
+    config(['database.connections.test_mysql' => ['driver' => 'mysql', 'database' => 'testing']]);
+
+    $sql = Person::on('test_mysql')->birthdayWithin(30)->toSql();
+
+    expect($sql)->toContain("DATE_FORMAT(birth_date, '%m-%d')");
+});
+
+test('birthdayWithin throws for an unsupported database driver', function (): void {
+    config(['database.connections.test_pgsql' => ['driver' => 'pgsql', 'database' => 'testing']]);
+
+    expect(fn () => Person::on('test_pgsql')->birthdayWithin(30)->toSql())
+        ->toThrow(LogicException::class, 'birthdayWithin() has no month-day expression for the [pgsql] database driver.');
+});

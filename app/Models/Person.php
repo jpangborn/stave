@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * @property ?Gender $gender
@@ -188,15 +189,30 @@ class Person extends Model
     {
         $from = today()->format('m-d');
         $to = today()->addDays($days)->format('m-d');
+        $expression = self::monthDayExpression($query->getModel()->getConnection()->getDriverName());
 
         return $query->whereNotNull('birth_date')
-            ->where(function (Builder $q) use ($from, $to): void {
+            ->where(function (Builder $q) use ($expression, $from, $to): void {
                 if ($from <= $to) {
-                    $q->whereRaw("strftime('%m-%d', birth_date) BETWEEN ? AND ?", [$from, $to]);
+                    $q->whereRaw("{$expression} BETWEEN ? AND ?", [$from, $to]);
                 } else { // window wraps the new year (e.g. Dec 20 → Jan 19)
-                    $q->whereRaw("strftime('%m-%d', birth_date) >= ?", [$from])
-                        ->orWhereRaw("strftime('%m-%d', birth_date) <= ?", [$to]);
+                    $q->whereRaw("{$expression} >= ?", [$from])
+                        ->orWhereRaw("{$expression} <= ?", [$to]);
                 }
             });
+    }
+
+    /**
+     * SQL expression that extracts a zero-padded "MM-DD" string from
+     * birth_date, for the database drivers this app runs on (SQLite
+     * locally/in tests, MySQL in production per config/deploy.yml).
+     */
+    private static function monthDayExpression(string $driver): string
+    {
+        return match ($driver) {
+            'sqlite' => "strftime('%m-%d', birth_date)",
+            'mysql' => "DATE_FORMAT(birth_date, '%m-%d')",
+            default => throw new LogicException("birthdayWithin() has no month-day expression for the [{$driver}] database driver."),
+        };
     }
 }
