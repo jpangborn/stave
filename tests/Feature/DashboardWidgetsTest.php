@@ -5,6 +5,7 @@ use App\Enums\GroupMembershipStatus;
 use App\Enums\LiturgyElementType;
 use App\Models\Group;
 use App\Models\LiturgyElement;
+use App\Models\PastoralNote;
 use App\Models\Person;
 use App\Models\PrayerRequest;
 use App\Models\Reading;
@@ -580,6 +581,20 @@ test('direct-messages island shows the caught-up empty state', function (): void
     Livewire::actingAs($user)->test('pages::dashboard.index')
         ->loadIsland('direct-messages')
         ->assertIslandSee('direct-messages', 'You&#039;re all caught up.');
+});
+
+test('recent-pastoral-notes island shows "Former user" when the note author has been deleted', function (): void {
+    $user = User::factory()->create();
+    $user->grantAccessRole(AccessRole::PASTORAL_CARE_USER);
+
+    $author = User::factory()->create();
+    $note = PastoralNote::factory()->create(['author_id' => $author->id]);
+    $author->delete();
+
+    Livewire::actingAs($user)->test('pages::dashboard.index')
+        ->loadIsland('recent-pastoral-notes')
+        ->assertIslandSee('recent-pastoral-notes', $note->person->full_name)
+        ->assertIslandSee('recent-pastoral-notes', 'Former user');
 });
 
 test('my-care-list island shows the assigned congregant name', function (): void {

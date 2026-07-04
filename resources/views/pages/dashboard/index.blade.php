@@ -619,7 +619,7 @@ new #[Title('Dashboard')] class extends Component
                                             {{ $note->person->full_name }}
                                         </a>
                                         <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ Str::limit($note->body, 70) }}</p>
-                                        <p class="text-[11px] text-zinc-400">{{ $note->author->name }} · {{ $note->created_at->diffForHumans(short: true) }}</p>
+                                        <p class="text-[11px] text-zinc-400">{{ $note->author?->name ?? 'Former user' }} · {{ $note->created_at->diffForHumans(short: true) }}</p>
                                     </div>
                                 </div>
                             @endforeach
