@@ -256,7 +256,7 @@ new #[Title('Dashboard')] class extends Component
         <flux:subheading>{{ now()->format('l, F j, Y') }}</flux:subheading>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-3 items-start">
+    <div class="grid gap-4 md:grid-cols-3 items-stretch">
         {{-- Quick Actions --}}
         <flux:card class="md:col-span-3 !py-3.5 !px-4.5">
             <div class="flex flex-wrap items-center gap-3">

@@ -1,6 +1,6 @@
 @props(['rows' => 3, 'title' => null, 'icon' => null, 'chip' => 'zinc'])
 
-<flux:card class="!px-4.5 !py-4">
+<flux:card class="!px-4.5 !py-4 h-full">
     <div class="mb-2 flex items-center gap-2">
         @if ($title)
             <div @class([
