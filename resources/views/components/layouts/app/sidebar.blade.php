@@ -6,7 +6,11 @@
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky collapsible persist class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <flux:sidebar.brand :href="route('dashboard')" logo="/stave-logo.webp" name="Stave" class="font-bold" />
+                <flux:sidebar.brand :href="route('dashboard')" name="Stave" class="font-bold">
+                    <x-slot:logo class="size-8 rounded-md bg-accent-content text-accent-foreground">
+                        <x-app-logo-icon class="size-5 fill-current text-white dark:text-black" />
+                    </x-slot:logo>
+                </flux:sidebar.brand>
                 <flux:sidebar.collapse />
             </flux:sidebar.header>
 
