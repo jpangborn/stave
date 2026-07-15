@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Service;
+use Database\Factories\Concerns\HasChurchAffinity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ServiceFactory extends Factory
 {
+    use HasChurchAffinity;
+
     /**
      * Define the model's default state.
      *
@@ -18,6 +21,7 @@ class ServiceFactory extends Factory
     public function definition(): array
     {
         return [
+            'church_id' => fn (): int => $this->defaultChurchId(),
             'title' => $this->faker->sentence(3),
             'date' => $this->faker->dateTimeBetween('-1 year', '+1 month'),
             'template_id' => null,

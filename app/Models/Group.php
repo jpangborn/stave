@@ -6,6 +6,8 @@ use App\Enums\GroupMembershipStatus;
 use App\Enums\GroupMessaging;
 use App\Enums\GroupRole;
 use App\Enums\GroupVisibility;
+use App\Models\Concerns\BelongsToChurch;
+use App\Support\CurrentChurch;
 use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,7 +33,7 @@ use Mews\Purifier\Casts\CleanHtmlInput;
 class Group extends Model
 {
     /** @use HasFactory<GroupFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
 
     protected static function booted(): void
     {
@@ -161,9 +163,17 @@ class Group extends Model
         $isOneToOne = count($allIds) === 2;
         $directKey = $isOneToOne ? self::directKeyFor($allIds) : null;
 
-        return DB::transaction(function () use ($creator, $allIds, $directKey): self {
+        // Direct groups live in the creator's church regardless of whether a
+        // request context resolved one (queued jobs, tests).
+        $churchId = app(CurrentChurch::class)->id() ?? $creator->current_church_id;
+
+        return DB::transaction(function () use ($creator, $allIds, $directKey, $churchId): self {
             if ($directKey !== null) {
-                $existing = self::query()->direct()->where('direct_key', $directKey)->first();
+                $existing = self::query()
+                    ->direct()
+                    ->where('church_id', $churchId)
+                    ->where('direct_key', $directKey)
+                    ->first();
 
                 if ($existing instanceof self) {
                     return $existing;
@@ -171,16 +181,22 @@ class Group extends Model
             }
 
             try {
-                $group = self::create([
+                $group = new self([
                     'name' => null,
                     'visibility' => GroupVisibility::PRIVATE,
                     'messaging' => GroupMessaging::ALL_MEMBERS,
                     'is_direct' => true,
                     'direct_key' => $directKey,
                 ]);
+                $group->church_id = $churchId;
+                $group->save();
             } catch (QueryException $exception) {
                 if ($directKey !== null && in_array($exception->getCode(), ['23000', '23505'], true)) {
-                    $existing = self::query()->direct()->where('direct_key', $directKey)->first();
+                    $existing = self::query()
+                        ->direct()
+                        ->where('church_id', $churchId)
+                        ->where('direct_key', $directKey)
+                        ->first();
 
                     if ($existing instanceof self) {
                         return $existing;

@@ -26,7 +26,7 @@ it('renders the public bulletin for guests without smoke', function (): void {
         ['type' => LiturgyElementType::SERMON, 'name' => 'The God Who Provides', 'order' => 4, 'assignee_id' => $preacher->id],
     ]);
 
-    $page = visit(route('bulletin.show', $service));
+    $page = visit(route('bulletin.show', [$service->church, $service]));
 
     $page->assertSee('Reforming Truth Church')
         ->assertSee('Doxology')
@@ -44,7 +44,7 @@ it('advances to the next element with the arrow key', function (): void {
         ['type' => LiturgyElementType::SERMON, 'name' => 'The God Who Provides', 'order' => 2],
     ]);
 
-    $page = visit(route('bulletin.show', $service));
+    $page = visit(route('bulletin.show', [$service->church, $service]));
 
     $page->assertSee('Call to Worship')
         ->keys('#follow-along', 'ArrowRight')

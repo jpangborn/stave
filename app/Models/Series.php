@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChurch;
 use Database\Factories\SeriesFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Series extends Model
 {
     /** @use HasFactory<SeriesFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
 
     /** @return HasMany<Reading, $this> */
     public function readings(): HasMany

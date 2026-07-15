@@ -2,6 +2,7 @@
 
 use App\Enums\LiturgyElementType;
 use App\Enums\ReadingType;
+use App\Models\Church;
 use App\Models\Reading;
 use App\Models\Service;
 use App\Models\Song;
@@ -9,6 +10,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    $this->church = Church::factory()->create();
+});
 
 it('lets guests view a service bulletin by id', function (): void {
     $service = Service::factory()->create([
@@ -22,7 +27,7 @@ it('lets guests view a service bulletin by id', function (): void {
         'order' => 1,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Prayer of Confession')
         ->assertSee('Sun, May 3, 2026');
@@ -38,7 +43,7 @@ it('resolves the soonest upcoming service on /bulletin', function (): void {
     Service::factory()->create(['date' => now()->addWeek()])
         ->liturgyElements()->create(['type' => LiturgyElementType::SERMON, 'name' => 'Future Sermon', 'order' => 1]);
 
-    $this->get(route('bulletin.current'))
+    $this->get(route('bulletin.current', $this->church))
         ->assertSuccessful()
         ->assertSee('Todays Sermon')
         ->assertDontSee('Past Sermon')
@@ -56,14 +61,14 @@ it('shows the empty state when only past services exist', function (): void {
     Service::factory()->create(['date' => now()->subWeek()])
         ->liturgyElements()->create(['type' => LiturgyElementType::SERMON, 'name' => 'Past Sermon', 'order' => 1]);
 
-    $this->get(route('bulletin.current'))
+    $this->get(route('bulletin.current', $this->church))
         ->assertSuccessful()
         ->assertSee('No upcoming service is scheduled')
         ->assertDontSee('Past Sermon');
 });
 
 it('shows the empty state when no services exist', function (): void {
-    $this->get(route('bulletin.current'))
+    $this->get(route('bulletin.current', $this->church))
         ->assertSuccessful()
         ->assertSee('No upcoming service is scheduled');
 });
@@ -91,7 +96,7 @@ it('shows song lyrics and CCLI details', function (): void {
         'content_id' => $song->id,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Praise God, from whom all blessings flow')
         ->assertSee('Thomas Ken')
@@ -115,7 +120,7 @@ it('shows reading text with the reading type as the kind label', function (): vo
         'content_id' => $reading->id,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Sing to the LORD with thanksgiving')
         ->assertSee('Opening Reading')
@@ -139,7 +144,7 @@ it('strips dangerous html from song lyrics before the public page renders it', f
         'content_id' => $song->id,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Praise God')
         ->assertDontSee('alert(1)');
@@ -162,7 +167,7 @@ it('strips dangerous html from reading text before the public page renders it', 
         'content_id' => $reading->id,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Sing praises')
         ->assertDontSee('alert(1)');
@@ -179,7 +184,7 @@ it('hides assignees on non-sermon elements', function (): void {
         'assignee_id' => $user->id,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertDontSee('Hidden Assignee Name');
 });
@@ -195,7 +200,7 @@ it('shows the preacher on the sermon element', function (): void {
         'assignee_id' => $user->id,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Preaching')
         ->assertSee('Rev. Joshua Pangborn');
@@ -208,7 +213,7 @@ it('never renders internal service notes', function (): void {
     ]);
     $service->liturgyElements()->create(['type' => LiturgyElementType::SERMON, 'name' => 'Sermon', 'order' => 1]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertDontSee('Internal planning notes for staff only');
 });
@@ -224,7 +229,7 @@ it('excludes sections from the element count', function (): void {
         ['type' => LiturgyElementType::SERMON, 'name' => 'Sermon', 'order' => 5],
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('of 3');
 });
@@ -238,7 +243,7 @@ it('shows a no-content card for a contentless song', function (): void {
         'order' => 1,
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('No content was attached to this element yet.');
 });
@@ -251,7 +256,7 @@ it('shows the entering card on the first element of a movement', function (): vo
         ['type' => LiturgyElementType::READING, 'name' => 'Call to Worship', 'order' => 2],
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Entering · God')
         ->assertSee('We start with a proclamation of God.');
@@ -266,7 +271,7 @@ it('keeps a trailing section with no following element in the stepper', function
         ['type' => LiturgyElementType::SECTION, 'name' => 'Sending', 'order' => 3],
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('God')
         ->assertSee('Sending');
@@ -281,7 +286,7 @@ it('keeps consecutive sections in the stepper', function (): void {
         ['type' => LiturgyElementType::SERMON, 'name' => 'The Sermon', 'order' => 3],
     ]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee('Adoration')
         ->assertSee('Confession');
@@ -290,7 +295,7 @@ it('keeps consecutive sections in the stepper', function (): void {
 it('renders a service with no elements without a counter', function (): void {
     $service = Service::factory()->create(['date' => now()]);
 
-    $this->get(route('bulletin.show', $service))
+    $this->get(route('bulletin.show', [$this->church, $service]))
         ->assertSuccessful()
         ->assertSee("This service doesn't have any elements yet.", false);
 });

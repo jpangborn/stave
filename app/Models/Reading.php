@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ReadingType;
+use App\Models\Concerns\BelongsToChurch;
 use Database\Factories\ReadingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -20,7 +21,7 @@ use Mews\Purifier\Casts\CleanHtmlInput;
 class Reading extends Model
 {
     /** @use HasFactory<ReadingFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
 
     /**
      * Get the attributes that should be cast.

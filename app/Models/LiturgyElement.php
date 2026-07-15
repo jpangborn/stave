@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\LiturgyElementType;
 use App\Enums\ReadingType;
+use App\Models\Concerns\BelongsToChurch;
 use App\Observers\LiturgyElementObserver;
 use App\Support\SectionTone;
 use Database\Factories\LiturgyElementFactory;
@@ -34,7 +35,19 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class LiturgyElement extends Model
 {
     /** @use HasFactory<LiturgyElementFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
+
+    protected static function booted(): void
+    {
+        // An element always belongs to its liturgy parent's church, even when
+        // created outside a request context where no current church resolves.
+        static::creating(function (LiturgyElement $element): void {
+            $element->setAttribute(
+                'church_id',
+                $element->getAttribute('church_id') ?? $element->liturgy?->getAttribute('church_id'),
+            );
+        });
+    }
 
     /**
      * Get the attributes that should be cast.

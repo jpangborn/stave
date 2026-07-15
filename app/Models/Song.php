@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChurch;
 use Database\Factories\SongFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -16,7 +17,7 @@ use Mews\Purifier\Casts\CleanHtmlInput;
 class Song extends Model
 {
     /** @use HasFactory<SongFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
 
     /**
      * Get the attributes that should be cast.

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\ReadingType;
 use App\Models\Reading;
+use Database\Factories\Concerns\HasChurchAffinity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ReadingFactory extends Factory
 {
+    use HasChurchAffinity;
+
     /**
      * Define the model's default state.
      *
@@ -19,6 +22,7 @@ class ReadingFactory extends Factory
     public function definition(): array
     {
         return [
+            'church_id' => fn (): int => $this->defaultChurchId(),
             'title' => $this->faker->sentence(3),
             'type' => $this->faker->randomElement(ReadingType::cases()),
             'text' => '<p>'.$this->faker->paragraph().'</p>',

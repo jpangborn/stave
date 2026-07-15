@@ -227,6 +227,7 @@ new class extends Component {
 
         /** @var EloquentCollection<int, User> */
         return User::query()
+            ->inCurrentChurch()
             ->where('id', '!=', $this->user()->id)
             ->whereNotIn('id', $this->composeRecipients)
             ->when($query !== '', fn ($builder) => $builder->where(fn ($inner) => $inner
@@ -249,6 +250,7 @@ new class extends Component {
         $order = array_flip($this->composeRecipients);
 
         return User::query()
+            ->inCurrentChurch()
             ->whereIn('id', $this->composeRecipients)
             ->get()
             ->sortBy(fn (User $user): int => $order[$user->id] ?? 0)
@@ -264,7 +266,7 @@ new class extends Component {
 
         if ($count === 1) {
             $existing = $this->existingOneToOne($recipients[0]);
-            $recipient = User::find($recipients[0]);
+            $recipient = User::query()->inCurrentChurch()->find($recipients[0]);
             $name = $recipient instanceof User ? $recipient->name : 'this person';
 
             if ($existing && $this->addPersonFrom !== null) {

@@ -9,6 +9,7 @@ use App\Enums\GroupVisibility;
 use App\Models\Conversation;
 use App\Models\Group;
 use App\Models\User;
+use Database\Factories\Concerns\HasChurchAffinity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,12 +17,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class GroupFactory extends Factory
 {
+    use HasChurchAffinity;
+
     /**
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
+            'church_id' => fn (): int => $this->defaultChurchId(),
             'name' => $this->faker->words(3, true),
             'description' => '<p>'.$this->faker->paragraph().'</p>',
             'visibility' => $this->faker->randomElement(GroupVisibility::cases()),

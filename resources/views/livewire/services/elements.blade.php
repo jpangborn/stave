@@ -29,7 +29,7 @@ new class extends Component {
     #[Computed]
     public function users()
     {
-        return User::orderBy('name')->get();
+        return User::query()->inCurrentChurch()->orderBy('name')->get();
     }
 
     #[Computed]

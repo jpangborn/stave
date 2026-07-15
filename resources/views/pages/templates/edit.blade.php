@@ -25,7 +25,7 @@ new class extends Component {
     #[Computed]
     public function users()
     {
-        return User::all();
+        return User::query()->inCurrentChurch()->orderBy('name')->get();
     }
 
     #[On("service-element-changed")]

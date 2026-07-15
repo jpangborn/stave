@@ -74,6 +74,8 @@ test('guests are redirected from the song show page', function (): void {
 
 test('authenticated users can view the song show page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $song = Song::create([
         'name' => 'Test Song',
         'ccli_number' => null,
@@ -100,6 +102,8 @@ test('guests are redirected from the song edit page', function (): void {
 
 test('authenticated users can view the song edit page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $song = Song::create([
         'name' => 'Edit Me',
         'ccli_number' => null,
@@ -116,6 +120,8 @@ test('authenticated users can view the song edit page', function (): void {
 
 test('authenticated users can update a song', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $song = Song::create([
         'name' => 'Old Title',
         'ccli_number' => '11111',
@@ -137,6 +143,8 @@ test('authenticated users can update a song', function (): void {
 
 test('authenticated users can delete a song', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $song = Song::create([
         'name' => 'Delete Me',
         'ccli_number' => null,
@@ -175,6 +183,8 @@ test('authenticated users can create a song with authors', function (): void {
 
 test('authenticated users can update a song with authors', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $song = Song::create([
         'name' => 'Old Title',
         'authors' => null,
@@ -214,6 +224,8 @@ test('song authors field is optional', function (): void {
 
 test('song show page displays authors when present', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $song = Song::create([
         'name' => 'Test Song',
         'authors' => 'John Newton, William Cowper',

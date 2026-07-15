@@ -167,6 +167,7 @@ new class extends Component {
             ->pluck('users.id');
 
         return User::query()
+            ->inCurrentChurch()
             ->where(function ($q): void {
                 $q->where('name', 'like', "%{$this->memberSearch}%")
                     ->orWhere('email', 'like', "%{$this->memberSearch}%");
@@ -185,7 +186,7 @@ new class extends Component {
             return new Collection;
         }
 
-        return User::query()->whereIn('id', $this->pickedUserIds)->get();
+        return User::query()->inCurrentChurch()->whereIn('id', $this->pickedUserIds)->get();
     }
 
     public function openAddMember(): void
@@ -371,7 +372,7 @@ new class extends Component {
             ->pluck('users.id')
             ->all();
 
-        $users = User::query()->whereIn('id', $userIds)->get();
+        $users = User::query()->inCurrentChurch()->whereIn('id', $userIds)->get();
 
         DB::transaction(function () use ($users, $existingIds): void {
             foreach ($users as $user) {

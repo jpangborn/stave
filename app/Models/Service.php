@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LiturgyElementType;
+use App\Models\Concerns\BelongsToChurch;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -23,7 +24,7 @@ use Spatie\Comments\Models\Concerns\HasComments;
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */
-    use HasComments, HasFactory;
+    use BelongsToChurch, HasComments, HasFactory;
 
     /**
      * Get the attributes that should be cast.

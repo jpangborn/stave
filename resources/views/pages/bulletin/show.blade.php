@@ -1,16 +1,27 @@
 <?php
 
 use App\Enums\LiturgyElementType;
+use App\Models\Church;
 use App\Models\Service;
+use App\Support\CurrentChurch;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 new #[Layout('components.layouts.public')] class extends Component {
+    public ?Church $church = null;
+
     public ?Service $service = null;
 
-    public function mount(?Service $service = null): void
+    public function mount(Church $church, ?Service $service = null): void
     {
+        $this->church = $church;
+
+        // {service} is implicitly scoped through {church:slug}, so a service
+        // id from another church already 404s. Setting the current church
+        // here scopes the Service::current() fallback for guests.
+        app(CurrentChurch::class)->set($church);
+
         $this->service = $service ?? Service::current();
         $this->service?->load(['liturgyElements.content', 'liturgyElements.assignee']);
     }
@@ -78,7 +89,7 @@ new #[Layout('components.layouts.public')] class extends Component {
 ?>
 
 @php
-    $churchName = 'Reforming Truth Church';
+    $churchName = $church->name;
     $panels = $this->bulletin['panels'];
     $sections = $this->bulletin['sections'];
 @endphp

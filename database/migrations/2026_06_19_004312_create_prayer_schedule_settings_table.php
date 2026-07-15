@@ -2,8 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class() extends Migration
@@ -19,15 +17,8 @@ return new class() extends Migration
             $table->timestamps();
         });
 
-        // Seed the single settings row so the rotation always has defaults to read.
-        DB::table('prayer_schedule_settings')->insert([
-            'cycle_weeks' => 8,
-            'group_by' => 'alpha',
-            'include_statuses' => json_encode(['member', 'catechumen']),
-            'anchor_date' => Carbon::now()->startOfWeek(Carbon::MONDAY)->toDateString(),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
+        // Settings rows are created lazily per church by
+        // PrayerScheduleSettings::current(); nothing to seed here.
     }
 
     public function down(): void

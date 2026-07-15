@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Household;
+use Database\Factories\Concerns\HasChurchAffinity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class HouseholdFactory extends Factory
 {
+    use HasChurchAffinity;
+
     /**
      * Define the model's default state.
      *
@@ -18,6 +21,7 @@ class HouseholdFactory extends Factory
     public function definition(): array
     {
         return [
+            'church_id' => fn (): int => $this->defaultChurchId(),
             'name' => 'The '.fake()->lastName().' Household',
             'address' => fake()->optional(0.7)->streetAddress(),
         ];
