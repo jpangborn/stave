@@ -35,12 +35,12 @@ return new class() extends Migration
             return;
         }
 
-        $name = env('STAVE_FIRST_CHURCH_NAME', 'First Church');
+        $name = config('app.first_church_name', 'First Church');
 
         $churchId = DB::table('churches')->insertGetId([
             'name' => $name,
             'slug' => Str::slug($name),
-            'timezone' => env('STAVE_FIRST_CHURCH_TIMEZONE', 'America/New_York'),
+            'timezone' => config('app.first_church_timezone', 'America/New_York'),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
@@ -49,13 +49,17 @@ return new class() extends Migration
             DB::table($table)->whereNull('church_id')->update(['church_id' => $churchId]);
         }
 
-        DB::table('users')->orderBy('id')->pluck('id')->each(function (int $userId) use ($churchId): void {
-            DB::table('church_user')->insertOrIgnore([
-                'church_id' => $churchId,
-                'user_id' => $userId,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+        $now = Carbon::now();
+
+        DB::table('users')->orderBy('id')->chunkById(1000, function ($users) use ($churchId, $now): void {
+            DB::table('church_user')->insertOrIgnore(
+                $users->map(fn (object $user): array => [
+                    'church_id' => $churchId,
+                    'user_id' => $user->id,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ])->toArray(),
+            );
         });
 
         DB::table('users')->whereNull('current_church_id')->update(['current_church_id' => $churchId]);
