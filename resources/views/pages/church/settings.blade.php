@@ -87,9 +87,13 @@ new class extends Component {
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
+    <div class="relative mb-6 w-full">
+        <flux:heading size="xl" level="1">{{ __('Church Settings') }}</flux:heading>
+        <flux:subheading size="lg">{{ __('Update your church\'s profile and contact information') }}</flux:subheading>
+        <flux:separator variant="subtle" />
+    </div>
 
-    <x-settings.layout :heading="__('Church')" :subheading="__('Update your church\'s profile and contact information')">
+    <div class="w-full max-w-lg">
         <form wire:submit="updateChurch" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('Church name')" type="text" required />
 
@@ -129,5 +133,5 @@ new class extends Component {
                 </x-action-message>
             </div>
         </form>
-    </x-settings.layout>
+    </div>
 </section>

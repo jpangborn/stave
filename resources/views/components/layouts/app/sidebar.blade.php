@@ -39,6 +39,13 @@
                         <flux:sidebar.item icon="calendar-date-range" :href="route('prayer-schedule.index')" :current="request()->routeIs('prayer-schedule.*')" wire:navigate>{{ __('Prayer Schedule') }}</flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
+
+                @can('update', auth()->user()?->currentChurch)
+                    <flux:sidebar.item icon="cog-6-tooth" :href="route('church.settings')" :current="request()->routeIs('church.settings')" wire:navigate>{{ __('Church Settings') }}</flux:sidebar.item>
+                @endcan
+                @can('manageMembers', auth()->user()?->currentChurch)
+                    <flux:sidebar.item icon="envelope" :href="route('church.invitations')" :current="request()->routeIs('church.invitations')" wire:navigate>{{ __('Invitations') }}</flux:sidebar.item>
+                @endcan
             </flux:sidebar.nav>
 
             <flux:spacer />

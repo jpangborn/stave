@@ -11,7 +11,7 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 test('guests are redirected from church settings', function (): void {
-    $this->get('/settings/church')->assertRedirect('/login');
+    $this->get('/church/settings')->assertRedirect('/login');
 });
 
 test('only church admins can view church settings', function (?AccessRole $role, bool $allowed): void {
@@ -23,7 +23,7 @@ test('only church admins can view church settings', function (?AccessRole $role,
     }
 
     $this->actingAs($user)
-        ->get('/settings/church')
+        ->get('/church/settings')
         ->assertStatus($allowed ? 200 : 403);
 })->with([
     'no roles' => [null, false],
@@ -39,7 +39,7 @@ test('an admin can update the church profile', function (): void {
     $user->grantAccessRole(AccessRole::ADMIN, $church);
 
     Livewire::actingAs($user)
-        ->test('pages::settings.church')
+        ->test('pages::church.settings')
         ->set('name', 'Renamed Church')
         ->set('timezone', 'America/Chicago')
         ->set('email', 'office@renamed.org')
@@ -67,7 +67,7 @@ test('an admin can upload and remove a church logo', function (): void {
     $user->grantAccessRole(AccessRole::ADMIN, $church);
 
     Livewire::actingAs($user)
-        ->test('pages::settings.church')
+        ->test('pages::church.settings')
         ->set('logo', UploadedFile::fake()->image('logo.png', 200, 200))
         ->call('updateChurch')
         ->assertHasNoErrors();
@@ -79,7 +79,7 @@ test('an admin can upload and remove a church logo', function (): void {
     $path = $church->logo_path;
 
     Livewire::actingAs($user)
-        ->test('pages::settings.church')
+        ->test('pages::church.settings')
         ->call('removeLogo');
 
     expect($church->fresh()->logo_path)->toBeNull();
@@ -95,5 +95,5 @@ test('an admin of another church cannot edit this church', function (): void {
     $user->grantAccessRole(AccessRole::ADMIN, $a);
 
     // Current church is B, where the user holds no roles.
-    $this->actingAs($user)->get('/settings/church')->assertForbidden();
+    $this->actingAs($user)->get('/church/settings')->assertForbidden();
 });

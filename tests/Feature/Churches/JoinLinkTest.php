@@ -90,13 +90,13 @@ test('admins can regenerate and disable the join link', function (): void {
     $original = $church->join_token;
 
     Livewire::actingAs($admin)
-        ->test('pages::settings.church-invitations')
+        ->test('pages::church.invitations')
         ->call('regenerateJoinLink');
 
     expect($church->fresh()->join_token)->not->toBe($original);
 
     Livewire::actingAs($admin)
-        ->test('pages::settings.church-invitations')
+        ->test('pages::church.invitations')
         ->call('disableJoinLink');
 
     expect($church->fresh()->join_token)->toBeNull();

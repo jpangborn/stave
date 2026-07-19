@@ -17,8 +17,8 @@ test('only church admins can view the invitations page', function (): void {
     $admin = User::factory()->forChurch($church)->create();
     $admin->grantAccessRole(AccessRole::ADMIN, $church);
 
-    $this->actingAs($member)->get('/settings/church/invitations')->assertForbidden();
-    $this->actingAs($admin)->get('/settings/church/invitations')->assertOk();
+    $this->actingAs($member)->get('/church/invitations')->assertForbidden();
+    $this->actingAs($admin)->get('/church/invitations')->assertOk();
 });
 
 test('an admin can send an invitation with roles', function (): void {
@@ -29,7 +29,7 @@ test('an admin can send an invitation with roles', function (): void {
     $admin->grantAccessRole(AccessRole::ADMIN, $church);
 
     Livewire::actingAs($admin)
-        ->test('pages::settings.church-invitations')
+        ->test('pages::church.invitations')
         ->set('email', 'invitee@example.com')
         ->set('roles', [AccessRole::LITURGY_ADMIN->value, AccessRole::PASTORAL_CARE_USER->value])
         ->call('invite')
@@ -53,7 +53,7 @@ test('existing members cannot be invited again', function (): void {
     $member = User::factory()->forChurch($church)->create();
 
     Livewire::actingAs($admin)
-        ->test('pages::settings.church-invitations')
+        ->test('pages::church.invitations')
         ->set('email', $member->email)
         ->call('invite')
         ->assertHasErrors('email');
@@ -153,14 +153,14 @@ test('an admin can revoke and resend invitations', function (): void {
     $originalToken = $invitation->token;
 
     Livewire::actingAs($admin)
-        ->test('pages::settings.church-invitations')
+        ->test('pages::church.invitations')
         ->call('resend', $invitation->id);
 
     expect($invitation->fresh()->token)->not->toBe($originalToken);
     Mail::assertQueued(ChurchInvitationMail::class);
 
     Livewire::actingAs($admin)
-        ->test('pages::settings.church-invitations')
+        ->test('pages::church.invitations')
         ->call('revoke', $invitation->id);
 
     $this->assertDatabaseMissing('church_invitations', ['id' => $invitation->id]);
