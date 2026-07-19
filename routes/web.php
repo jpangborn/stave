@@ -36,8 +36,13 @@ Route::middleware(['auth'])->group(function (): void {
             Route::livewire('password', 'pages::settings.password')->name('password');
             Route::livewire('appearance', 'pages::settings.appearance')->name('appearance');
             Route::livewire('notifications', 'pages::settings.notifications')->name('notifications');
-            Route::livewire('church', 'pages::settings.church')->name('church');
-            Route::livewire('church/invitations', 'pages::settings.church-invitations')->name('church-invitations');
+        });
+
+    Route::name('church.')
+        ->prefix('church')
+        ->group(function (): void {
+            Route::livewire('settings', 'pages::church.settings')->name('settings');
+            Route::livewire('invitations', 'pages::church.invitations')->name('invitations');
         });
 
     Route::name('songs.')

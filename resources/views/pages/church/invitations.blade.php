@@ -144,9 +144,13 @@ new class extends Component {
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
+    <div class="relative mb-6 w-full">
+        <flux:heading size="xl" level="1">{{ __('Invitations') }}</flux:heading>
+        <flux:subheading size="lg">{{ __('Invite people to join your church') }}</flux:subheading>
+        <flux:separator variant="subtle" />
+    </div>
 
-    <x-settings.layout :heading="__('Invitations')" :subheading="__('Invite people to join your church')">
+    <div class="w-full max-w-lg">
         <form wire:submit="invite" class="my-6 w-full space-y-6">
             <flux:input wire:model="email" :label="__('Email address')" type="email" required placeholder="name@example.com" />
 
@@ -230,5 +234,5 @@ new class extends Component {
         @else
             <flux:button variant="primary" wire:click="regenerateJoinLink">{{ __('Create join link') }}</flux:button>
         @endif
-    </x-settings.layout>
+    </div>
 </section>
