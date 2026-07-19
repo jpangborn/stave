@@ -5,11 +5,14 @@ use App\Enums\Gender;
 use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
 use App\Enums\Office;
+use App\Support\CurrentChurch;
 use App\Livewire\Forms\PersonForm;
 use App\Models\Household;
 use App\Models\Person;
 use App\Models\PersonOffice;
+use App\Models\User;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -189,11 +192,22 @@ new class extends Component
             return;
         }
 
-        foreach (AccessRole::cases() as $role) {
-            $desired = (bool) ($this->accessRoles[$role->value] ?? false);
-            $original = (bool) ($this->originalAccessRoles[$role->value] ?? false);
+        $changed = collect(AccessRole::cases())
+            ->filter(fn (AccessRole $role): bool => (bool) ($this->accessRoles[$role->value] ?? false)
+                !== (bool) ($this->originalAccessRoles[$role->value] ?? false));
 
-            if ($desired === $original) {
+        if ($changed->isEmpty()) {
+            return;
+        }
+
+        abort_unless(auth()->user()->hasAccessRole(AccessRole::ADMIN), 403);
+
+        foreach ($changed as $role) {
+            $desired = (bool) ($this->accessRoles[$role->value] ?? false);
+
+            if (! $desired && $role === AccessRole::ADMIN && $this->isLastAdmin($user)) {
+                Flux::toast(variant: 'danger', text: 'A church needs at least one administrator.');
+
                 continue;
             }
 
@@ -201,6 +215,19 @@ new class extends Component
                 ? $user->grantAccessRole($role)
                 : $user->revokeAccessRole($role);
         }
+    }
+
+    /**
+     * Whether removing the administrator role from this user would leave the
+     * current church without any administrator.
+     */
+    private function isLastAdmin(User $user): bool
+    {
+        return $user->hasAccessRole(AccessRole::ADMIN)
+            && DB::table('user_access_roles')
+                ->where('church_id', app(CurrentChurch::class)->id())
+                ->where('role', AccessRole::ADMIN->value)
+                ->count() <= 1;
     }
 
     public function delete(): void
@@ -636,7 +663,7 @@ new class extends Component
                                                 <p class="text-xs text-zinc-500">{{ $role->description() }}</p>
                                             </div>
                                             <flux:spacer />
-                                            <flux:checkbox wire:model="accessRoles.{{ $role->value }}" />
+                                            <flux:checkbox wire:model="accessRoles.{{ $role->value }}" :disabled="! auth()->user()->hasAccessRole(AccessRole::ADMIN)" />
                                         </div>
                                     @endforeach
                                 </div>

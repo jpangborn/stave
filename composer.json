@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
+        "bacon/bacon-qr-code": "^3.1",
         "laravel-notification-channels/webpush": "^10.5",
         "laravel/framework": "^13.0",
         "laravel/nightwatch": "^1.7",

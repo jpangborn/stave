@@ -14,6 +14,8 @@
                 <flux:sidebar.collapse />
             </flux:sidebar.header>
 
+            <livewire:sidebar.church-switcher />
+
             <flux:sidebar.nav>
                 <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:sidebar.item>
 

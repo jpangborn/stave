@@ -116,7 +116,7 @@ it('redirects to the bulletin view when View Bulletin is clicked', function (): 
 
     Livewire::test('pages::services.show', ['service' => $service])
         ->call('viewBulletin')
-        ->assertRedirect(route('bulletin.show', $service));
+        ->assertRedirect(route('bulletin.show', [$service->church, $service]));
 });
 
 it('inserts a new element after the anchor', function (): void {

@@ -6,6 +6,7 @@ use App\Enums\LiturgyElementType;
 use App\Models\LiturgyElement;
 use App\Models\User;
 use App\Support\SectionTone;
+use Database\Factories\Concerns\HasChurchAffinity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class LiturgyElementFactory extends Factory
 {
+    use HasChurchAffinity;
+
     /**
      * Define the model's default state.
      *
@@ -21,6 +24,7 @@ class LiturgyElementFactory extends Factory
     public function definition(): array
     {
         return [
+            'church_id' => fn (): int => $this->defaultChurchId(),
             'type' => $this->faker->randomElement(LiturgyElementType::cases()),
             'order' => $this->faker->numberBetween(1, 10),
             'name' => $this->faker->word(),

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Song;
+use Database\Factories\Concerns\HasChurchAffinity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class SongFactory extends Factory
 {
+    use HasChurchAffinity;
+
     /**
      * Define the model's default state.
      *
@@ -18,6 +21,7 @@ class SongFactory extends Factory
     public function definition(): array
     {
         return [
+            'church_id' => fn (): int => $this->defaultChurchId(),
             'name' => $this->faker->sentence(3),
             'authors' => $this->faker->optional()->name(),
             'ccli_number' => $this->faker->optional()->numerify('#######'),

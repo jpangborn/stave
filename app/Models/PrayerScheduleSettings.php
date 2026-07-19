@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MembershipStatus;
 use App\Enums\PrayerScheduleGrouping;
+use App\Models\Concerns\BelongsToChurch;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -22,6 +23,8 @@ use Illuminate\Support\Carbon;
 ])]
 class PrayerScheduleSettings extends Model
 {
+    use BelongsToChurch;
+
     /**
      * @return array<string, string>
      */

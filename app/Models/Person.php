@@ -6,6 +6,7 @@ use App\Enums\Gender;
 use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
 use App\Enums\TerminationReason;
+use App\Models\Concerns\BelongsToChurch;
 use App\Models\Traits\HasGravatar;
 use Database\Factories\PersonFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -56,7 +57,7 @@ use LogicException;
 class Person extends Model
 {
     /** @use HasFactory<PersonFactory> */
-    use HasFactory, HasGravatar;
+    use BelongsToChurch, HasFactory, HasGravatar;
 
     /**
      * @return array<string, string>

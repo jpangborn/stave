@@ -140,6 +140,8 @@ test('guests are redirected from the reading show page', function (): void {
 
 test('authenticated users can view the reading show page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $reading = Reading::create([
         'title' => 'Test Reading',
         'type' => ReadingType::CREED->value,
@@ -164,6 +166,8 @@ test('guests are redirected from the reading edit page', function (): void {
 
 test('authenticated users can view the reading edit page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $reading = Reading::create([
         'title' => 'Edit Me',
         'type' => ReadingType::LAW->value,
@@ -179,6 +183,8 @@ test('authenticated users can view the reading edit page', function (): void {
 
 test('authenticated users can update a reading', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $reading = Reading::create([
         'title' => 'Old Title',
         'type' => ReadingType::PRAYER->value,
@@ -199,6 +205,8 @@ test('authenticated users can update a reading', function (): void {
 
 test('authenticated users can delete a reading', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $reading = Reading::create([
         'title' => 'Delete Me',
         'type' => ReadingType::PRAISE->value,

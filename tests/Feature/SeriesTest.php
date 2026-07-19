@@ -69,6 +69,8 @@ test('guests are redirected from the series show page', function (): void {
 
 test('authenticated users can view the series show page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $series = Series::create([
         'name' => 'Test Series',
         'description' => '<p>Description</p>',
@@ -91,6 +93,8 @@ test('guests are redirected from the series edit page', function (): void {
 
 test('authenticated users can view the series edit page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $series = Series::create([
         'name' => 'Edit Me',
         'description' => '<p>Description</p>',
@@ -105,6 +109,8 @@ test('authenticated users can view the series edit page', function (): void {
 
 test('authenticated users can update a series', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $series = Series::create([
         'name' => 'Old Name',
         'description' => '<p>Old description</p>',
@@ -124,6 +130,8 @@ test('authenticated users can update a series', function (): void {
 
 test('authenticated users can delete a series', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $series = Series::create([
         'name' => 'Delete Me',
         'description' => '<p>Description</p>',

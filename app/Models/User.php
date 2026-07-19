@@ -6,9 +6,11 @@ use App\Enums\AccessRole;
 use App\Enums\DigestFrequency;
 use App\Enums\GroupMembershipStatus;
 use App\Models\Traits\HasGravatar;
+use App\Support\CurrentChurch;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -63,22 +65,46 @@ class User extends Authenticatable implements CanComment
             ->implode('');
     }
 
-    /** @return Collection<int, AccessRole> */
-    public function accessRoles(): Collection
+    /**
+     * Role sets already loaded this request, keyed by church id (0 = no
+     * church), so repeated capability checks cost a single query.
+     *
+     * @var array<int, Collection<int, AccessRole>>
+     */
+    private array $resolvedAccessRoles = [];
+
+    /**
+     * The user's access roles in the given church (defaults to the current
+     * church). Roles are church-scoped: a user can be an administrator in
+     * one church and a plain member in another.
+     *
+     * @return Collection<int, AccessRole>
+     */
+    public function accessRoles(?Church $church = null): Collection
     {
-        return DB::table('user_access_roles')
+        $churchId = $church->id ?? app(CurrentChurch::class)->id() ?? $this->current_church_id;
+
+        return $this->resolvedAccessRoles[$churchId ?? 0] ??= DB::table('user_access_roles')
             ->where('user_id', $this->id)
+            ->where('church_id', $churchId)
             ->pluck('role')
             ->map(fn (string $value) => AccessRole::tryFrom($value))
-            ->filter();
+            ->filter()
+            ->values();
     }
 
-    public function hasAccessRole(AccessRole $role): bool
+    public function hasAccessRole(AccessRole $role, ?Church $church = null): bool
     {
-        return DB::table('user_access_roles')
-            ->where('user_id', $this->id)
-            ->where('role', $role->value)
-            ->exists();
+        return $this->accessRoles($church)->containsStrict($role);
+    }
+
+    /**
+     * @param  array<int, AccessRole>  $roles
+     */
+    private function hasAnyAccessRole(array $roles): bool
+    {
+        return $this->accessRoles()
+            ->contains(fn (AccessRole $role): bool => in_array($role, $roles, true));
     }
 
     /**
@@ -87,14 +113,11 @@ class User extends Authenticatable implements CanComment
      */
     public function canAccessPastoralCare(): bool
     {
-        return DB::table('user_access_roles')
-            ->where('user_id', $this->id)
-            ->whereIn('role', [
-                AccessRole::PASTORAL_CARE_USER->value,
-                AccessRole::PASTORAL_CARE_ADMIN->value,
-                AccessRole::ADMIN->value,
-            ])
-            ->exists();
+        return $this->hasAnyAccessRole([
+            AccessRole::PASTORAL_CARE_USER,
+            AccessRole::PASTORAL_CARE_ADMIN,
+            AccessRole::ADMIN,
+        ]);
     }
 
     /**
@@ -103,14 +126,11 @@ class User extends Authenticatable implements CanComment
      */
     public function canAccessLiturgy(): bool
     {
-        return DB::table('user_access_roles')
-            ->where('user_id', $this->id)
-            ->whereIn('role', [
-                AccessRole::LITURGY_USER->value,
-                AccessRole::LITURGY_ADMIN->value,
-                AccessRole::ADMIN->value,
-            ])
-            ->exists();
+        return $this->hasAnyAccessRole([
+            AccessRole::LITURGY_USER,
+            AccessRole::LITURGY_ADMIN,
+            AccessRole::ADMIN,
+        ]);
     }
 
     /**
@@ -119,36 +139,112 @@ class User extends Authenticatable implements CanComment
      */
     public function canManageLiturgy(): bool
     {
-        return DB::table('user_access_roles')
-            ->where('user_id', $this->id)
-            ->whereIn('role', [
-                AccessRole::LITURGY_ADMIN->value,
-                AccessRole::ADMIN->value,
-            ])
-            ->exists();
-    }
-
-    public function grantAccessRole(AccessRole $role): void
-    {
-        DB::table('user_access_roles')->insertOrIgnore([
-            'user_id' => $this->id,
-            'role' => $role->value,
-            'created_at' => now(),
+        return $this->hasAnyAccessRole([
+            AccessRole::LITURGY_ADMIN,
+            AccessRole::ADMIN,
         ]);
     }
 
-    public function revokeAccessRole(AccessRole $role): void
+    public function grantAccessRole(AccessRole $role, ?Church $church = null): void
     {
+        $churchId = $church->id ?? app(CurrentChurch::class)->id() ?? $this->current_church_id;
+
+        DB::table('user_access_roles')->insertOrIgnore([
+            'user_id' => $this->id,
+            'church_id' => $churchId,
+            'role' => $role->value,
+            'created_at' => now(),
+        ]);
+
+        unset($this->resolvedAccessRoles[$churchId ?? 0]);
+    }
+
+    public function revokeAccessRole(AccessRole $role, ?Church $church = null): void
+    {
+        $churchId = $church->id ?? app(CurrentChurch::class)->id() ?? $this->current_church_id;
+
         DB::table('user_access_roles')
             ->where('user_id', $this->id)
+            ->where('church_id', $churchId)
             ->where('role', $role->value)
             ->delete();
+
+        unset($this->resolvedAccessRoles[$churchId ?? 0]);
     }
 
     /** @return BelongsTo<Person, $this> */
     public function person(): BelongsTo
     {
         return $this->belongsTo(Person::class);
+    }
+
+    /**
+     * The Person representing this user in the given church (defaults to the
+     * current church). Multi-church users have a distinct Person per church,
+     * tracked on the membership pivot; users.person_id is the fallback.
+     */
+    public function personFor(?Church $church = null): ?Person
+    {
+        $churchId = $church->id ?? app(CurrentChurch::class)->id() ?? $this->current_church_id;
+
+        $pivotPersonId = DB::table('church_user')
+            ->where('user_id', $this->id)
+            ->where('church_id', $churchId)
+            ->value('person_id');
+
+        if ($churchId !== null) {
+            return $pivotPersonId !== null
+                ? Person::query()
+                    ->withoutGlobalScopes()
+                    ->where('church_id', $churchId)
+                    ->find($pivotPersonId)
+                : null;
+        }
+
+        return $this->person;
+    }
+
+    /** @return BelongsToMany<Church, $this> */
+    public function churches(): BelongsToMany
+    {
+        return $this->belongsToMany(Church::class)->withTimestamps();
+    }
+
+    /**
+     * Members of the current church — use for all user pickers so one
+     * church's members never appear in another church's UI.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    #[Scope]
+    protected function inCurrentChurch(Builder $query): Builder
+    {
+        return $query->whereHas('churches', fn (Builder $inner) => $inner
+            ->whereKey(app(CurrentChurch::class)->id()));
+    }
+
+    /** @return BelongsTo<Church, $this> */
+    public function currentChurch(): BelongsTo
+    {
+        return $this->belongsTo(Church::class, 'current_church_id');
+    }
+
+    /**
+     * Switch the user's current church, refusing churches the user is not a
+     * member of.
+     */
+    public function switchChurch(Church $church): bool
+    {
+        if (! $this->churches()->whereKey($church->id)->exists()) {
+            return false;
+        }
+
+        $this->forceFill(['current_church_id' => $church->id])->save();
+        $this->setRelation('currentChurch', $church);
+        $this->resolvedAccessRoles = [];
+
+        return true;
     }
 
     /** @return BelongsToMany<Group, $this> */

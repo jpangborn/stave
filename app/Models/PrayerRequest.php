@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PrayerRequestVisibility;
+use App\Models\Concerns\BelongsToChurch;
 use Database\Factories\PrayerRequestFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,7 +26,7 @@ use Illuminate\Support\Carbon;
 class PrayerRequest extends Model
 {
     /** @use HasFactory<PrayerRequestFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
 
     /**
      * @return array<string, string>

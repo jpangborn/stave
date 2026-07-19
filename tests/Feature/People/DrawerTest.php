@@ -108,6 +108,8 @@ test('ends a current office', function (): void {
 });
 
 test('access role changes are staged and persisted on save', function (): void {
+    auth()->user()->grantAccessRole(AccessRole::ADMIN);
+
     $person = Person::factory()->member()->create();
     User::factory()->create(['person_id' => $person->id]);
 

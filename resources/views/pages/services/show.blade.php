@@ -39,7 +39,10 @@ new class extends Component {
 
     public function viewBulletin(): void
     {
-        $this->redirectRoute('bulletin.show', ['service' => $this->form->service], navigate: true);
+        $this->redirectRoute('bulletin.show', [
+            'church' => $this->form->service->church,
+            'service' => $this->form->service,
+        ], navigate: true);
     }
 
     public function duplicate(): void

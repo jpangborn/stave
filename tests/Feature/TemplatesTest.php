@@ -67,6 +67,8 @@ test('guests are redirected from the template show page', function (): void {
 
 test('authenticated users can view the template show page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $template = Template::create([
         'name' => 'Test Template',
         'default' => false,
@@ -89,6 +91,8 @@ test('guests are redirected from the template edit page', function (): void {
 
 test('authenticated users can view the template edit page', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $template = Template::create([
         'name' => 'Edit Me',
         'default' => true,
@@ -103,6 +107,8 @@ test('authenticated users can view the template edit page', function (): void {
 
 test('authenticated users can update a template', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $template = Template::create([
         'name' => 'Old Name',
         'default' => false,
@@ -121,6 +127,8 @@ test('authenticated users can update a template', function (): void {
 
 test('authenticated users can delete a template', function (): void {
     $user = User::factory()->create();
+    $this->actingAs($user);
+
     $template = Template::create([
         'name' => 'Delete Me',
         'default' => false,

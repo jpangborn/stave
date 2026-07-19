@@ -6,10 +6,12 @@ namespace App\Console\Commands;
 
 use App\Enums\Office;
 use App\Mail\PrayerScheduleDigestMail;
+use App\Models\Church;
 use App\Models\Person;
 use App\Models\PrayerScheduleSettings;
 use App\Models\User;
 use App\Services\PrayerScheduleService;
+use App\Support\CurrentChurch;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -22,6 +24,18 @@ class SendPrayerScheduleDigestCommand extends Command
 {
     public function handle(PrayerScheduleService $service): int
     {
+        Church::query()->orderBy('id')->each(
+            fn (Church $church) => app(CurrentChurch::class)->runAs(
+                $church,
+                fn () => $this->sendForChurch($church, $service),
+            ),
+        );
+
+        return self::SUCCESS;
+    }
+
+    private function sendForChurch(Church $church, PrayerScheduleService $service): void
+    {
         $settings = PrayerScheduleSettings::current();
 
         $week = $this->option('week') !== null
@@ -31,9 +45,9 @@ class SendPrayerScheduleDigestCommand extends Command
         $people = $service->bulletinDigestForWeek($settings, $week);
 
         if ($people === []) {
-            $this->info('No one is scheduled for this week — nothing to send.');
+            $this->info("{$church->name}: no one is scheduled for this week — nothing to send.");
 
-            return self::SUCCESS;
+            return;
         }
 
         /** @var Collection<int, User> $elders */
@@ -57,12 +71,10 @@ class SendPrayerScheduleDigestCommand extends Command
         }
 
         $weekNumber = $week + 1;
-        $this->info("Sent the Week {$weekNumber} prayer rota to {$elders->count()} elders.");
+        $this->info("{$church->name}: sent the Week {$weekNumber} prayer rota to {$elders->count()} elders.");
 
         if ($eldersWithoutAccounts > 0) {
-            $this->warn("{$eldersWithoutAccounts} elder(s) have no user account and were not emailed.");
+            $this->warn("{$church->name}: {$eldersWithoutAccounts} elder(s) have no user account and were not emailed.");
         }
-
-        return self::SUCCESS;
     }
 }

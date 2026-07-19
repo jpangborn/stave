@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Channels\DigestChannel;
+use App\Support\CurrentChurch;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -17,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
     #[\Override]
     public function register(): void
     {
-        //
+        $this->app->scoped(CurrentChurch::class);
     }
 
     /**

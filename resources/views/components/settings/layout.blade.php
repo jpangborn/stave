@@ -5,6 +5,10 @@
             <flux:navlist.item :href="route('settings.password')" :current="request()->routeIs('settings.password')" wire:navigate>{{ __('Password') }}</flux:navlist.item>
             <flux:navlist.item :href="route('settings.appearance')" :current="request()->routeIs('settings.appearance')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
             <flux:navlist.item :href="route('settings.notifications')" :current="request()->routeIs('settings.notifications')" wire:navigate>{{ __('Notifications') }}</flux:navlist.item>
+            @can('update', auth()->user()->currentChurch)
+                <flux:navlist.item :href="route('settings.church')" :current="request()->routeIs('settings.church')" wire:navigate>{{ __('Church') }}</flux:navlist.item>
+                <flux:navlist.item :href="route('settings.church-invitations')" :current="request()->routeIs('settings.church-invitations')" wire:navigate>{{ __('Invitations') }}</flux:navlist.item>
+            @endcan
         </flux:navlist>
     </div>
 

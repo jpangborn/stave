@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChurch;
 use Database\Factories\PastoralNoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PastoralNote extends Model
 {
     /** @use HasFactory<PastoralNoteFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
 
     /** @return BelongsTo<Person, $this> */
     public function person(): BelongsTo

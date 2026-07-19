@@ -2,6 +2,7 @@
 
 use App\Enums\MembershipStatus;
 use App\Mail\PrayerScheduleDigestMail;
+use App\Models\Church;
 use App\Models\PastoralNote;
 use App\Models\Person;
 use App\Models\PersonOffice;
@@ -9,6 +10,7 @@ use App\Models\PrayerRequest;
 use App\Models\PrayerScheduleSettings;
 use App\Models\User;
 use App\Services\PrayerScheduleService;
+use App\Support\CurrentChurch;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -19,9 +21,19 @@ uses(RefreshDatabase::class);
  * Collapse the cycle to a single week so everyone is scheduled in the current
  * week, making the command's output deterministic.
  */
+function updateSchedule(array $attributes): void
+{
+    $church = Church::query()->orderBy('id')->first() ?? Church::factory()->create();
+
+    app(CurrentChurch::class)->runAs(
+        $church,
+        fn () => PrayerScheduleSettings::current()->update($attributes),
+    );
+}
+
 function singleWeekSchedule(): void
 {
-    PrayerScheduleSettings::current()->update([
+    updateSchedule([
         'cycle_weeks' => 1,
         'anchor_date' => Carbon::now()->startOfWeek(Carbon::MONDAY),
         'include_statuses' => [MembershipStatus::MEMBER->value, MembershipStatus::CATECHUMEN->value],
@@ -118,7 +130,7 @@ test('nothing is sent when no one is scheduled for the week', function (): void 
     makeElder();
 
     // Exclude every status so the rotation is empty.
-    PrayerScheduleSettings::current()->update(['include_statuses' => []]);
+    updateSchedule(['include_statuses' => []]);
 
     $this->artisan('stave:send-prayer-schedule')
         ->expectsOutputToContain('nothing to send')

@@ -7,6 +7,7 @@ use App\Enums\HouseholdRole;
 use App\Enums\MembershipStatus;
 use App\Models\Household;
 use App\Models\Person;
+use Database\Factories\Concerns\HasChurchAffinity;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,12 +15,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PersonFactory extends Factory
 {
+    use HasChurchAffinity;
+
     /**
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
+            'church_id' => fn (): int => $this->defaultChurchId(),
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),

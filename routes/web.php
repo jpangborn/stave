@@ -1,17 +1,32 @@
 <?php
 
+use App\Models\Church;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
 
-Route::livewire('/bulletin', 'pages::bulletin.show')->name('bulletin.current');
-Route::livewire('/bulletin/{service}', 'pages::bulletin.show')->name('bulletin.show');
+Route::get('/bulletin', function () {
+    $church = auth()->user()?->currentChurch;
+
+    return $church instanceof Church
+        ? redirect()->route('bulletin.current', $church)
+        : redirect()->route('home');
+})->name('bulletin.index');
+
+Route::livewire('/bulletin/{church:slug}', 'pages::bulletin.show')->name('bulletin.current');
+Route::livewire('/bulletin/{church:slug}/{service}', 'pages::bulletin.show')->name('bulletin.show')->scopeBindings();
+
+Route::livewire('/invitations/{token}/accept', 'pages::invitations.accept')->name('invitations.accept');
+
+Route::livewire('/join/{token}', 'pages::churches.join')->name('churches.join');
 
 Route::livewire('dashboard', 'pages::dashboard.index')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function (): void {
+    Route::livewire('churches/create', 'pages::churches.create')->name('churches.create');
+
     Route::redirect('settings', 'settings/profile');
 
     Route::name('settings.')
@@ -21,6 +36,8 @@ Route::middleware(['auth'])->group(function (): void {
             Route::livewire('password', 'pages::settings.password')->name('password');
             Route::livewire('appearance', 'pages::settings.appearance')->name('appearance');
             Route::livewire('notifications', 'pages::settings.notifications')->name('notifications');
+            Route::livewire('church', 'pages::settings.church')->name('church');
+            Route::livewire('church/invitations', 'pages::settings.church-invitations')->name('church-invitations');
         });
 
     Route::name('songs.')

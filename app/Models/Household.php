@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChurch;
 use Database\Factories\HouseholdFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Household extends Model
 {
     /** @use HasFactory<HouseholdFactory> */
-    use HasFactory;
+    use BelongsToChurch, HasFactory;
 
     protected static function booted(): void
     {

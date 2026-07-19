@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'first_church_name' => env('STAVE_FIRST_CHURCH_NAME', 'First Church'),
+    'first_church_timezone' => env('STAVE_FIRST_CHURCH_TIMEZONE', 'America/New_York'),
+
 ];
