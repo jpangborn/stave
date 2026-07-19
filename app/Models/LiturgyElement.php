@@ -42,10 +42,11 @@ class LiturgyElement extends Model
         // An element always belongs to its liturgy parent's church, even when
         // created outside a request context where no current church resolves.
         static::creating(function (LiturgyElement $element): void {
-            $element->setAttribute(
-                'church_id',
-                $element->getAttribute('church_id') ?? $element->liturgy?->getAttribute('church_id'),
-            );
+            $parentChurchId = $element->liturgy?->getAttribute('church_id');
+
+            if ($parentChurchId !== null) {
+                $element->setAttribute('church_id', $parentChurchId);
+            }
         });
     }
 

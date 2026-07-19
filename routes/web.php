@@ -14,7 +14,7 @@ Route::get('/bulletin', function () {
 })->name('bulletin.index');
 
 Route::livewire('/bulletin/{church:slug}', 'pages::bulletin.show')->name('bulletin.current');
-Route::livewire('/bulletin/{church:slug}/{service}', 'pages::bulletin.show')->name('bulletin.show');
+Route::livewire('/bulletin/{church:slug}/{service}', 'pages::bulletin.show')->name('bulletin.show')->scopeBindings();
 
 Route::livewire('/invitations/{token}/accept', 'pages::invitations.accept')->name('invitations.accept');
 

@@ -51,11 +51,7 @@ class UserFactory extends Factory
                 ? Church::query()->findOrFail($user->current_church_id)
                 : (Church::query()->orderBy('id')->first() ?? Church::factory()->create());
 
-            $church->users()->syncWithoutDetaching([$user->id]);
-
-            if ($user->current_church_id === null) {
-                $user->forceFill(['current_church_id' => $church->id])->save();
-            }
+            $church->addMember($user);
         });
     }
 

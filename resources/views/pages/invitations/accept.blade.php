@@ -42,6 +42,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $user = Auth::user();
 
+        abort_unless($user instanceof User, 403);
         abort_unless(Str::lower($user->email) === Str::lower($invitation->email), 403);
 
         DB::transaction(function () use ($invitation, $user): void {

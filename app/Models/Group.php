@@ -167,6 +167,13 @@ class Group extends Model
         // request context resolved one (queued jobs, tests).
         $churchId = app(CurrentChurch::class)->id() ?? $creator->current_church_id;
 
+        $churchMembers = DB::table('church_user')
+            ->where('church_id', $churchId)
+            ->whereIn('user_id', $allIds)
+            ->pluck('user_id');
+
+        abort_unless($churchMembers->count() === count($allIds), 403);
+
         return DB::transaction(function () use ($creator, $allIds, $directKey, $churchId): self {
             if ($directKey !== null) {
                 $existing = self::query()

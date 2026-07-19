@@ -77,6 +77,13 @@ it('returns 404 for an unknown service id', function (): void {
     $this->get('/bulletin/999999')->assertNotFound();
 });
 
+it('returns 404 for a service belonging to another church', function (): void {
+    $otherChurch = Church::factory()->create();
+    $foreignService = Service::factory()->create(['church_id' => $otherChurch->id]);
+
+    $this->get(route('bulletin.show', [$this->church, $foreignService]))->assertNotFound();
+});
+
 it('shows song lyrics and CCLI details', function (): void {
     $song = Song::factory()->create([
         'name' => 'Doxology',

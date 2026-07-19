@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Church;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
@@ -27,6 +28,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $church = $this->church();
         $user = Auth::user();
+
+        abort_unless($user instanceof User, 403);
 
         DB::transaction(function () use ($church, $user): void {
             $church->addMember($user);

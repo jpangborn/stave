@@ -192,8 +192,13 @@ class User extends Authenticatable implements CanComment
             ->where('church_id', $churchId)
             ->value('person_id');
 
-        if ($pivotPersonId !== null) {
-            return Person::query()->withoutGlobalScopes()->find($pivotPersonId);
+        if ($churchId !== null) {
+            return $pivotPersonId !== null
+                ? Person::query()
+                    ->withoutGlobalScopes()
+                    ->where('church_id', $churchId)
+                    ->find($pivotPersonId)
+                : null;
         }
 
         return $this->person;

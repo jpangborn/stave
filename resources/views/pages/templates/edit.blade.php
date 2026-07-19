@@ -1,14 +1,15 @@
 <?php
 
 use App\Livewire\Forms\LiturgyElementForm;
-use Flux\Flux;
+use App\Livewire\Forms\TemplateForm;
 use App\Models\Template;
 use App\Models\User;
+use Flux\Flux;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use App\Livewire\Forms\TemplateForm;
 
 new class extends Component {
     public TemplateForm $form;
@@ -22,8 +23,9 @@ new class extends Component {
         $this->form->setTemplate($template);
     }
 
+    /** @return Collection<int, User> */
     #[Computed]
-    public function users()
+    public function users(): Collection
     {
         return User::query()->inCurrentChurch()->orderBy('name')->get();
     }

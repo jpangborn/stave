@@ -49,18 +49,20 @@ new class extends Component {
             'logo' => ['nullable', 'image', 'max:2048'],
         ]);
 
+        $oldLogoPath = null;
+
         if ($this->logo instanceof TemporaryUploadedFile) {
             $path = $this->logo->store("churches/{$church->id}", 'digital-ocean');
-
-            if ($church->logo_path) {
-                Storage::disk('digital-ocean')->delete($church->logo_path);
-            }
-
+            $oldLogoPath = $church->logo_path;
             $church->logo_path = $path;
             $this->logo = null;
         }
 
         $church->fill(collect($validated)->except('logo')->all())->save();
+
+        if ($oldLogoPath) {
+            Storage::disk('digital-ocean')->delete($oldLogoPath);
+        }
 
         $this->dispatch('church-updated');
     }
@@ -72,8 +74,9 @@ new class extends Component {
         $this->authorize('update', $church);
 
         if ($church->logo_path) {
-            Storage::disk('digital-ocean')->delete($church->logo_path);
+            $oldPath = $church->logo_path;
             $church->forceFill(['logo_path' => null])->save();
+            Storage::disk('digital-ocean')->delete($oldPath);
         }
     }
 

@@ -4,6 +4,7 @@ use App\Enums\AccessRole;
 use App\Models\Church;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
 
@@ -70,6 +71,8 @@ test('granting without explicit church defaults to the current church', function
 });
 
 test('the prayer schedule digest command stays inside each church', function (): void {
+    Mail::fake();
+
     $a = Church::factory()->create();
     $b = Church::factory()->create();
 

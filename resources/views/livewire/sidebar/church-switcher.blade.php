@@ -38,7 +38,7 @@ new class extends Component {
             <flux:profile
                 :name="$this->current?->name"
                 :avatar="$this->current?->logo_url"
-                :initials="$this->current?->name[0] ?? '?'"
+                :initials="mb_substr($this->current?->name ?? '?', 0, 1)"
                 icon-trailing="chevrons-up-down"
             />
 

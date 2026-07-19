@@ -56,10 +56,11 @@ class DatabaseSeeder extends Seeder
             DB::table($table)->whereNull('church_id')->update(['church_id' => $church->id]);
         }
 
-        DB::table('users')->orderBy('id')->pluck('id')->each(function (int $userId) use ($church): void {
+        DB::table('users')->orderBy('id')->each(function (object $user) use ($church): void {
             DB::table('church_user')->insertOrIgnore([
                 'church_id' => $church->id,
-                'user_id' => $userId,
+                'user_id' => $user->id,
+                'person_id' => $user->person_id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
