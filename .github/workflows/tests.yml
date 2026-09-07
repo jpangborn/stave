@@ -15,6 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     environment: Testing
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: stave
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,3 +80,15 @@ jobs:
 
       - name: Run Tests
         run: ./vendor/bin/pest --ci --parallel
+
+      # Tests run on SQLite, production runs MySQL. Migrate a clean MySQL
+      # database so dialect-specific schema errors surface here, not at deploy.
+      - name: Verify Migrations Against MySQL
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: stave
+          DB_USERNAME: root
+          DB_PASSWORD: password
+        run: php artisan migrate --force --no-interaction

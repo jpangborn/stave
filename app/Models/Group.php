@@ -10,6 +10,7 @@ use App\Models\Concerns\BelongsToChurch;
 use App\Support\CurrentChurch;
 use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -60,7 +61,8 @@ class Group extends Model
      *
      * @param  Builder<Group>  $query
      */
-    public function scopeDirect(Builder $query): void
+    #[Scope]
+    protected function direct(Builder $query): void
     {
         $query->where('is_direct', true);
     }
@@ -70,7 +72,8 @@ class Group extends Model
      *
      * @param  Builder<Group>  $query
      */
-    public function scopeNotDirect(Builder $query): void
+    #[Scope]
+    protected function notDirect(Builder $query): void
     {
         $query->where('is_direct', false);
     }

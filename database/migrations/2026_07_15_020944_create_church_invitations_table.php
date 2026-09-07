@@ -12,7 +12,7 @@ return new class() extends Migration
             $table->id();
             $table->foreignId('church_id')->constrained()->cascadeOnDelete();
             $table->string('email');
-            $table->json('roles')->default('[]');
+            $table->json('roles');
             $table->foreignId('invited_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('token', 64)->unique();
             $table->timestamp('expires_at');

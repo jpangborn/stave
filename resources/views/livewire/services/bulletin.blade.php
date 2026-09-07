@@ -8,7 +8,8 @@ new class extends Component {
     #[Reactive]
     public int $serviceId;
 
-    public function getServiceProperty()
+    #[\Livewire\Attributes\Computed]
+    public function service()
     {
         return Service::with(
             "liturgyElements",

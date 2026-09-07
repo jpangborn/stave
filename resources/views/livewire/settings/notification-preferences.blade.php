@@ -110,7 +110,8 @@ new class extends Component {
     }
 
     /** @return array<int, DigestFrequency> */
-    public function getDigestFrequenciesProperty(): array
+    #[\Livewire\Attributes\Computed]
+    public function digestFrequencies(): array
     {
         return DigestFrequency::cases();
     }
@@ -118,7 +119,8 @@ new class extends Component {
     /**
      * @return array<int, NotificationEventType>
      */
-    public function getEventsProperty(): array
+    #[\Livewire\Attributes\Computed]
+    public function events(): array
     {
         return NotificationEventType::userConfigurable();
     }
@@ -126,7 +128,8 @@ new class extends Component {
     /**
      * @return array<int, NotificationChannel>
      */
-    public function getChannelsProperty(): array
+    #[\Livewire\Attributes\Computed]
+    public function channels(): array
     {
         return NotificationChannel::cases();
     }
@@ -134,7 +137,8 @@ new class extends Component {
     /**
      * @return array<int, string>
      */
-    public function getTimezonesProperty(): array
+    #[\Livewire\Attributes\Computed]
+    public function timezones(): array
     {
         return \DateTimeZone::listIdentifiers();
     }
