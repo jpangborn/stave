@@ -59,7 +59,8 @@ class PrayerRequest extends Model
     /**
      * @param  Builder<PrayerRequest>  $query
      */
-    public function scopeOpen(Builder $query): void
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    protected function open(Builder $query): void
     {
         $query->whereNull('completed_at');
     }
@@ -67,7 +68,8 @@ class PrayerRequest extends Model
     /**
      * @param  Builder<PrayerRequest>  $query
      */
-    public function scopeCompleted(Builder $query): void
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    protected function completed(Builder $query): void
     {
         $query->whereNotNull('completed_at');
     }
@@ -75,7 +77,8 @@ class PrayerRequest extends Model
     /**
      * @param  Builder<PrayerRequest>  $query
      */
-    public function scopeBulletin(Builder $query): void
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    protected function bulletin(Builder $query): void
     {
         $query->where('visibility', PrayerRequestVisibility::BULLETIN);
     }

@@ -60,7 +60,8 @@ class Group extends Model
      *
      * @param  Builder<Group>  $query
      */
-    public function scopeDirect(Builder $query): void
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    protected function direct(Builder $query): void
     {
         $query->where('is_direct', true);
     }
@@ -70,7 +71,8 @@ class Group extends Model
      *
      * @param  Builder<Group>  $query
      */
-    public function scopeNotDirect(Builder $query): void
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    protected function notDirect(Builder $query): void
     {
         $query->where('is_direct', false);
     }
