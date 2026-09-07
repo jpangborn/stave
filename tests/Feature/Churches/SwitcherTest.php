@@ -8,14 +8,16 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('single-church users see their church without a switcher dropdown', function (): void {
+test('single-church users see their church as the only switcher option', function (): void {
     $church = Church::factory()->create(['name' => 'Solo Chapel']);
     $user = User::factory()->forChurch($church)->create();
 
-    Livewire::actingAs($user)
+    $component = Livewire::actingAs($user)
         ->test('sidebar.church-switcher')
         ->assertSee('Solo Chapel')
-        ->assertDontSee('chevrons-up-down');
+        ->assertSeeHtml('wire:key="church-'.$church->id.'"');
+
+    expect(substr_count($component->html(), 'wire:key="church-'))->toBe(1);
 });
 
 test('multi-church users can switch churches', function (): void {

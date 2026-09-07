@@ -50,8 +50,13 @@ new class extends Component {
 }; ?>
 
 <div>
-    <flux:dropdown position="bottom" align="end">
-        <flux:sidebar.item icon="bell" :badge="$this->unreadCount">Notifications</flux:sidebar.item>
+    {{-- w-full: ui-dropdown is inline-flex, and this Livewire root div stops
+         the sidebar's flex container from stretching it. --}}
+    <flux:dropdown position="bottom" align="end" class="w-full">
+        <flux:sidebar.item
+            icon="bell"
+            :badge="$this->unreadCount > 0 ? $this->unreadCount : null"
+        >{{ __('Notifications') }}</flux:sidebar.item>
 
         <flux:menu class="max-h-[480px] w-[380px] overflow-y-auto">
             <div class="flex items-center justify-between px-3 py-2">

@@ -17,7 +17,19 @@ test('bell renders with the current unread count', function (): void {
     $this->actingAs($user);
 
     Livewire::test('sidebar.notifications')
-        ->assertSee('2');
+        ->assertSee('2')
+        ->assertSeeHtml('data-flux-navlist-badge>');
+});
+
+test('bell renders no badge when nothing is unread', function (): void {
+    $user = User::factory()->create();
+    $user->notify(new TestNotification());
+    $user->unreadNotifications()->update(['read_at' => now()]);
+
+    $this->actingAs($user);
+
+    Livewire::test('sidebar.notifications')
+        ->assertDontSeeHtml('data-flux-navlist-badge>');
 });
 
 test('mark-read clears a single notification', function (): void {
