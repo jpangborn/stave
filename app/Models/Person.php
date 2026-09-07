@@ -146,7 +146,7 @@ class Person extends Model
     /**
      * @param  Builder<Person>  $query
      */
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     protected function searchedBy(Builder $query, ?string $term): void
     {
         $term = trim((string) $term);
