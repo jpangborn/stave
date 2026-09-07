@@ -32,13 +32,15 @@ new class extends Component {
     }
 }; ?>
 
-<div class="px-2 pb-2">
-    @if ($this->churches->count() > 1)
-        <flux:dropdown position="bottom" align="start">
-            <flux:profile
-                :name="$this->current?->name"
-                :avatar="$this->current?->logo_url"
-                :initials="mb_substr($this->current?->name ?? '?', 0, 1)"
+<div>
+    @if ($this->current)
+        {{-- w-full: ui-dropdown is inline-flex, and this Livewire root div stops
+             the sidebar's flex container from stretching it. --}}
+        <flux:dropdown position="bottom" align="start" class="w-full">
+            <flux:sidebar.profile
+                :name="$this->current->name"
+                :avatar="$this->current->logo_url"
+                :initials="mb_substr($this->current->name, 0, 1)"
                 icon-trailing="chevrons-up-down"
             />
 
@@ -47,17 +49,12 @@ new class extends Component {
                     @foreach ($this->churches as $church)
                         <flux:menu.radio
                             wire:key="church-{{ $church->id }}"
-                            :checked="$church->id === $this->current?->id"
+                            :checked="$church->id === $this->current->id"
                             wire:click="switch({{ $church->id }})"
                         >{{ $church->name }}</flux:menu.radio>
                     @endforeach
                 </flux:menu.radio.group>
             </flux:menu>
         </flux:dropdown>
-    @elseif ($this->current)
-        <div class="flex items-center gap-2 px-3 py-1.5">
-            <flux:avatar size="xs" :name="$this->current->name" :src="$this->current->logo_url" />
-            <span class="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{{ $this->current->name }}</span>
-        </div>
     @endif
 </div>
