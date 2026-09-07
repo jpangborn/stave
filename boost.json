@@ -1,19 +1,25 @@
 {
     "agents": [
-        "claude_code"
+        "claude_code",
+        "zed"
     ],
     "cloud": false,
     "guidelines": true,
     "mcp": true,
-    "nightwatch": false,
+    "nightwatch": true,
+    "packages": [
+        "livewire/blaze"
+    ],
     "sail": false,
     "skills": [
+        "infer-conventions",
         "laravel-best-practices",
+        "testing-best-practices",
         "configure-nightwatch",
         "fluxui-development",
         "livewire-development",
-        "pest-testing",
         "echo-development",
-        "tailwindcss-development"
+        "tailwindcss-development",
+        "blaze-optimize"
     ]
 }
