@@ -19,7 +19,9 @@ new class extends Component {
     }
 }; ?>
 
-<div>
+{{-- contents: the ui-tooltip inside flux:sidebar.item is inline-flex and only
+     fills the sidebar when it is a direct flex item of the group's flex column. --}}
+<div class="contents">
     <flux:sidebar.item
         icon="chat-bubble-left-right"
         :href="route('messages.index')"

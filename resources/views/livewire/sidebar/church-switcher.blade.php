@@ -32,11 +32,11 @@ new class extends Component {
     }
 }; ?>
 
-<div>
+{{-- contents: ui-dropdown is inline-flex and only fills the sidebar when it is a
+     direct flex item of the sidebar's flex column. --}}
+<div class="contents">
     @if ($this->current)
-        {{-- w-full: ui-dropdown is inline-flex, and this Livewire root div stops
-             the sidebar's flex container from stretching it. --}}
-        <flux:dropdown position="bottom" align="start" class="w-full">
+        <flux:dropdown position="bottom" align="start">
             <flux:sidebar.profile
                 :name="$this->current->name"
                 :avatar="$this->current->logo_url"
