@@ -52,7 +52,7 @@ new class extends Component {
 <div>
     {{-- w-full: ui-dropdown is inline-flex, and this Livewire root div stops
          the sidebar's flex container from stretching it. --}}
-    <flux:dropdown position="bottom" align="end" class="w-full">
+    <flux:dropdown position="top" align="start">
         <flux:sidebar.item
             icon="bell"
             :badge="$this->unreadCount > 0 ? $this->unreadCount : null"
