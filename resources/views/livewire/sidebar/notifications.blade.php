@@ -49,10 +49,12 @@ new class extends Component {
     }
 }; ?>
 
-<div>
-    {{-- w-full: ui-dropdown is inline-flex, and this Livewire root div stops
-         the sidebar's flex container from stretching it. --}}
-    <flux:dropdown position="top" align="start">
+{{-- contents: ui-dropdown and the ui-tooltip inside flux:sidebar.item are both
+     inline-flex, so they shrink-wrap unless they are flex items of the sidebar's
+     flex column. Dropping this root div out of the layout makes ui-dropdown that
+     flex item; flex-col then stretches the ui-tooltip across it. --}}
+<div class="contents">
+    <flux:dropdown position="top" align="start" class="flex-col">
         <flux:sidebar.item
             icon="bell"
             :badge="$this->unreadCount > 0 ? $this->unreadCount : null"
